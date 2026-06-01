@@ -215,6 +215,89 @@
   .footnotes p{font-size:10px;color:var(--text3);line-height:1.6;margin-bottom:2px}
   .footnotes p:last-child{margin-bottom:0}
   .tag-row{display:flex;gap:3px;flex-wrap:wrap;align-items:center;justify-content:flex-end}
+  /* ── MOBILE ── */
+  @media(max-width:700px){
+    /* Header */
+    .header-inner{flex-wrap:wrap}
+    .header-logo-band{min-width:0;padding:10px 16px;width:100%;justify-content:flex-start;gap:8px}
+    .header-logo-text{font-size:12px;line-height:1.2}
+    .header-content{padding:12px 16px 10px;order:2;width:100%}
+    .header-eyebrow{display:none}
+    .header-title{font-size:17px}
+    .header-subtitle{font-size:11px;margin-top:3px}
+    .header-right{order:3;padding:0 16px 12px;text-align:left;width:100%}
+    .header-notaffiliated{font-size:8.5px}
+    .header-disclaimer{font-size:9.5px;max-width:100%;text-align:left}
+
+    /* Layout: single column */
+    .main{grid-template-columns:1fr;padding:14px 12px 40px;gap:12px}
+
+    /* Inputs: collapsible on mobile */
+    .inputs-toggle{display:flex;align-items:center;justify-content:space-between;padding:11px 14px;background:var(--accent);border-radius:var(--r);cursor:pointer;user-select:none;margin-bottom:0}
+    .inputs-toggle-label{color:#fff;font-size:11px;font-weight:700;letter-spacing:.07em;text-transform:uppercase}
+    .inputs-toggle-chevron{color:rgba(255,255,255,.7);font-size:13px;transition:transform .25s;line-height:1}
+    .inputs-toggle-chevron.open{transform:rotate(180deg)}
+    .inputs-panel-body{overflow:hidden;max-height:0;transition:max-height .35s ease}
+    .inputs-panel-body.open{max-height:2400px}
+    .inputs-panel-body .panel{border-radius:0 0 var(--r) var(--r);margin-bottom:0}
+
+    /* Hero: stack to 2 cols then wrap */
+    .hero-grid{grid-template-columns:1fr 1fr;gap:12px}
+    .hero-grid>div:last-child{grid-column:1/-1}
+    .m-val{font-size:20px}
+    .result-hero{padding:14px 16px}
+
+    /* Insights */
+    .insight-body{padding:10px 12px;gap:8px}
+    .i-row{padding:9px 10px;gap:9px}
+    .i-val{font-size:13.5px}
+    .i-desc{font-size:10.5px}
+
+    /* Ideal window range: stack vertically on narrow screens */
+    .iw-range{flex-direction:column;align-items:stretch;gap:6px}
+    .iw-arrow{transform:rotate(90deg);text-align:center;font-size:16px}
+    .iw-age-box{padding:8px 12px}
+    .iw-age-val{font-size:19px}
+    .iw-desc{font-size:11px}
+    .ideal-window-body{padding:11px 12px}
+
+    /* Milestones: 1 col on mobile */
+    .milestones-grid{grid-template-columns:1fr}
+    .mc{display:flex;align-items:flex-start;gap:10px;padding:10px 12px}
+    .mc-icon{font-size:17px;flex-shrink:0;margin-bottom:0;margin-top:1px}
+    .mc-badge{margin-top:4px}
+
+    /* Panel body tighter */
+    .panel-body{padding:12px}
+
+    /* Chart */
+    .chart-header{flex-direction:column;align-items:flex-start;gap:8px;padding-bottom:4px}
+    .chart-legend{gap:8px}
+    .cl-item{font-size:9.5px}
+    .chart-wrap{height:180px}
+
+    /* Table: horizontal scroll, hide less important cols */
+    .table-wrap table{min-width:560px}
+    .col-hide-mobile{display:none}
+
+    /* Rules toggle tier label: shorten */
+    .rules-toggle-tier{display:none}
+
+    /* Footnotes */
+    .footnotes p{font-size:9.5px}
+
+    /* Touch targets */
+    .chart-tab{padding:6px 10px;font-size:11.5px}
+    .toggle-group button{padding:9px 8px;font-size:12.5px}
+    .field input[type="date"],.field input[type="number"],.field select{padding:9px 10px;font-size:14px}
+  }
+
+  @media(max-width:400px){
+    .hero-grid{grid-template-columns:1fr}
+    .hero-grid>div:last-child{grid-column:auto}
+    .header-title{font-size:15px}
+    .iw-range{gap:4px}
+  }
 </style>
 </head>
 <body>
@@ -239,6 +322,11 @@
 <div class="main">
   <!-- LEFT INPUTS -->
   <div>
+    <div class="inputs-toggle" onclick="toggleInputs(this)" style="display:none">
+      <span class="inputs-toggle-label">⚙ Edit Your Inputs</span>
+      <span class="inputs-toggle-chevron open">▼</span>
+    </div>
+    <div class="inputs-panel-body open" id="inputsPanelBody">
     <div class="panel">
       <div class="panel-header"><h2>Your Profile</h2></div>
       <div class="panel-body">
@@ -307,6 +395,7 @@
         </div>
       </div>
     </div>
+    </div><!-- /inputs-panel-body -->
   </div>
 
   <!-- RIGHT RESULTS -->
@@ -431,9 +520,9 @@
         <table>
           <thead>
             <tr>
-              <th>Age</th><th>Year</th><th>Svc Yrs</th><th>+Sick</th>
-              <th>Age Factor</th><th>Final Comp</th><th>Monthly</th><th>Annual</th>
-              <th>Flags</th><th>% Salary</th>
+              <th>Age</th><th>Year</th><th>Svc Yrs</th><th class="col-hide-mobile">+Sick</th>
+              <th>Age Factor</th><th class="col-hide-mobile">Final Comp</th><th>Monthly</th><th class="col-hide-mobile">Annual</th>
+              <th class="col-hide-mobile">Flags</th><th>% Salary</th>
             </tr>
           </thead>
           <tbody id="tableBody"></tbody>
@@ -844,12 +933,12 @@ function update(){
       <td>${r.age}${isTarget?' ★':''}${winTag}</td>
       <td>${r.retireYear}</td>
       <td>${r.earnedSvc.toFixed(1)}</td>
-      <td style="color:var(--teal)">${r.pe?'+'+r.sickCredit.toFixed(2):'—'}</td>
+      <td class="col-hide-mobile" style="color:var(--teal)">${r.pe?'+'+r.sickCredit.toFixed(2):'—'}</td>
       <td>${r.af?(r.af*100).toFixed(3)+'%':'—'}</td>
-      <td>${r.pe?fmt(r.finalComp):'—'}</td>
+      <td class="col-hide-mobile">${r.pe?fmt(r.finalComp):'—'}</td>
       <td>${r.monthly!==null?fmt(r.monthly):''} ${incrCell}</td>
-      <td>${r.annual!==null?fmt(r.annual):'—'}</td>
-      <td><div class="tag-row">${flags}</div></td>
+      <td class="col-hide-mobile">${r.annual!==null?fmt(r.annual):'—'}</td>
+      <td class="col-hide-mobile"><div class="tag-row">${flags}</div></td>
       <td>${pctBadge}</td>
     `;
     tbody.appendChild(tr);
@@ -879,6 +968,7 @@ function setCV(v,btn){
   update();
 }
 
+
 document.getElementById('hireDate').addEventListener('change',()=>{
   const h=document.getElementById('hireDate').value;
   document.getElementById('districtYears').value=autoDistrictYrs(h);
@@ -888,6 +978,34 @@ document.querySelectorAll('input,select').forEach(el=>{
   el.addEventListener('input',update);
   el.addEventListener('change',update);
 });
+
+function toggleInputs(btn){
+  const body=document.getElementById('inputsPanelBody');
+  const chev=btn.querySelector('.inputs-toggle-chevron');
+  const isOpen=body.classList.contains('open');
+  body.classList.toggle('open',!isOpen);
+  chev.classList.toggle('open',!isOpen);
+}
+
+function initMobile(){
+  const toggle=document.querySelector('.inputs-toggle');
+  const body=document.getElementById('inputsPanelBody');
+  if(window.innerWidth<=700){
+    toggle.style.display='flex';
+    // Start collapsed on mobile
+    body.classList.remove('open');
+    document.querySelector('.inputs-toggle-chevron').classList.remove('open');
+  } else {
+    toggle.style.display='none';
+    body.classList.add('open');
+  }
+}
+window.addEventListener('resize',()=>{
+  if(myChart){myChart.destroy();myChart=null;}
+  initMobile();
+  update();
+});
+initMobile();
 update();
 </script>
 </body>
