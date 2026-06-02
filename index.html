@@ -6,6 +6,8 @@
 <title>CalSTRS Retirement Calculator</title>
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <style>
   *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
   :root{
@@ -333,6 +335,23 @@
     .header-title{font-size:14px}
     .main{padding:10px 8px 36px}
   }
+
+  /* PDF button */
+  .pdf-btn-wrap{display:flex;justify-content:flex-end;margin-bottom:2px}
+  .pdf-btn{
+    display:inline-flex;align-items:center;gap:7px;
+    padding:9px 18px;background:var(--accent);color:#fff;
+    border:none;border-radius:var(--rs);font-family:'DM Sans',sans-serif;
+    font-size:12px;font-weight:600;letter-spacing:.03em;cursor:pointer;
+    transition:background .15s,transform .1s;
+    -webkit-tap-highlight-color:transparent;
+  }
+  .pdf-btn:hover{background:var(--accent-mid)}
+  .pdf-btn:active{transform:scale(.97)}
+  .pdf-btn svg{width:14px;height:14px;flex-shrink:0}
+  .pdf-btn.loading{opacity:.7;cursor:not-allowed;pointer-events:none}
+  @media(max-width:700px){.pdf-btn{font-size:11.5px;padding:9px 14px}}
+</style>
 </style>
 </head>
 <body>
@@ -436,6 +455,14 @@
 
   <!-- RIGHT RESULTS -->
   <div class="results-col">
+
+    <!-- PDF export button -->
+    <div class="pdf-btn-wrap">
+      <button class="pdf-btn" id="pdfBtn" onclick="generatePDF()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14,2 14,8 20,8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10,9 9,9 8,9"/></svg>
+        Download PDF Report
+      </button>
+    </div>
 
     <!-- Hero metrics -->
     <div class="result-hero">
@@ -578,6 +605,7 @@
 
 <script>
 let formula='2at60', chartView='monthly', myChart=null;
+let optStart=null, optEnd=null; // optimal window, set during update()
 
 const AF_2AT60    = {50:.0110,51:.01175,52:.01235,53:.01295,54:.01355,55:.0141,56:.0153,57:.0165,58:.0177,59:.0189,60:.0201,61:.0214,62:.02267,63:.024,64:.024,65:.024,66:.024,67:.024,68:.024,69:.024,70:.024,71:.024,72:.024,73:.024,74:.024,75:.024};
 const AF_2AT60_30 = {50:.01315,51:.01375,52:.01435,53:.01495,54:.01555,55:.0161,56:.0173,57:.0185,58:.0197,59:.0209,60:.0221,61:.0234,62:.024,63:.024,64:.024,65:.024,66:.024,67:.024,68:.024,69:.024,70:.024,71:.024,72:.024,73:.024,74:.024,75:.024};
@@ -709,7 +737,7 @@ function update(){
   const windowEnd=firstMaxAF;
 
   // Optimal sweet spot = top half of the window (midpoint → cap), biased toward 80%+ salary replacement
-  let optStart=windowStart, optEnd=windowEnd;
+  optStart=windowStart; optEnd=windowEnd;
   if(windowStart&&windowEnd){
     const fullSpan=windowEnd.age-windowStart.age;
     // Midpoint of the full window, rounded up
@@ -1044,6 +1072,274 @@ document.querySelectorAll('input,select').forEach(el=>{
   el.addEventListener('input',update);
   el.addEventListener('change',update);
 });
+
+// ─── PDF GENERATION ───────────────────────────────────────────────
+async function generatePDF(){
+  const btn=document.getElementById('pdfBtn');
+  btn.classList.add('loading');
+  btn.textContent='Generating…';
+
+  // Snapshot chart as image
+  const chartCanvas=document.getElementById('benefitChart');
+  const chartImg=chartCanvas.toDataURL('image/png',1.0);
+
+  // Gather current data
+  const inp=getInputs();
+  const rows=buildSchedule();
+  const nowAge=ageNowFn(inp.dob);
+  const tier=getTier(inp.hireDate);
+  const target=rows.find(r=>r.age===inp.targetAge);
+  const firstPen=rows.find(r=>r.pe);
+  const firstHealth=rows.find(r=>r.hm&&r.pe);
+  const firstMaxAF=rows.find(r=>r.maxAF&&r.pe);
+  const eligRows=rows.filter(r=>r.pe&&r.monthly!==null);
+
+  const {jsPDF}=window.jspdf;
+  const doc=new jsPDF({orientation:'portrait',unit:'pt',format:'letter'});
+  const PW=612, PH=792;
+  const ML=40, MR=40, MT=40;
+  const CW=PW-ML-MR;
+
+  // ── helpers ──
+  const fmtN=fmt; // alias to global fmt
+  const COL={navy:[29,27,105],teal:[15,118,110],green:[26,92,56],slate:[51,65,85],light:[238,237,244],border:[221,219,232],white:[255,255,255],text:[24,23,31],text2:[94,92,110],text3:[152,150,168],coral:[190,58,47],window:[3,105,161]};
+  const setFill=c=>doc.setFillColor(...c);
+  const setStroke=c=>doc.setDrawColor(...c);
+  const setTxt=c=>doc.setTextColor(...c);
+  const sf=(x,y,w,h,r=0)=>doc.roundedRect(x,y,w,h,r,r,'F');
+  const ss=(x,y,w,h,r=0)=>doc.roundedRect(x,y,w,h,r,r,'S');
+
+  let cy=MT; // current y cursor
+
+  // ── HEADER BAR ──
+  setFill(COL.navy); sf(0,0,PW,52);
+  setFill(COL.teal); sf(0,0,88,52);
+  setTxt(COL.white);
+  doc.setFont('helvetica','bold'); doc.setFontSize(8);
+  doc.text('CalSTRS',10,20); doc.text('LA School',10,31);
+  doc.setFontSize(15); doc.text('CalSTRS Retirement Benefit Report',96,20);
+  doc.setFont('helvetica','normal'); doc.setFontSize(8); doc.setTextColor(200,200,220);
+  doc.text(`Generated ${new Date().toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'})}  ·  For estimation purposes only — not financial advice`,96,35);
+  cy=68;
+
+  // ── ASSUMPTIONS BOX ──
+  setFill(COL.light); sf(ML,cy,CW,130,6);
+  setTxt(COL.navy); doc.setFont('helvetica','bold'); doc.setFontSize(8);
+  doc.text('YOUR ASSUMPTIONS',ML+10,cy+14);
+  setTxt(COL.text); doc.setFont('helvetica','normal'); doc.setFontSize(9);
+
+  const asmCols=[[
+    ['Date of Birth', inp.dob||'—'],
+    ['LAUSD Hire Date', inp.hireDate||'—'],
+    ['CalSTRS Formula', formula==='2at62'?'2% at 62':'2% at 60'],
+    ['Current Salary', fmtN(inp.salary)],
+  ],[
+    ['Salary Growth Rate', inp.salaryGrowth+'% / yr'],
+    ['Current Service Credit', inp.serviceYears+' years'],
+    ['Continuous District Svc', inp.districtYears+' years'],
+    ['Unused Sick Days / Yr', inp.sickDaysPerYear+' days'],
+  ],[
+    ['Base Days (Full-Time)', inp.baseDays+' days'],
+    ['Target Retirement Age', inp.targetAge],
+    ['Health Tier', tier.label.split('–')[0].trim()+'…'],
+    ['Estimate Date', new Date().toLocaleDateString()],
+  ]];
+  const asmColW=CW/3, asmStart=cy+24;
+  asmCols.forEach((col,ci)=>{
+    col.forEach((row,ri)=>{
+      const x=ML+10+ci*asmColW, y=asmStart+ri*20;
+      setTxt(COL.text3); doc.setFontSize(7); doc.setFont('helvetica','bold');
+      doc.text(row[0].toUpperCase(),x,y);
+      setTxt(COL.text); doc.setFontSize(9); doc.setFont('helvetica','normal');
+      doc.text(String(row[1]),x,y+10);
+    });
+  });
+  cy+=140;
+
+  // ── KEY METRICS ──
+  setTxt(COL.navy); doc.setFont('helvetica','bold'); doc.setFontSize(8);
+  doc.text('KEY METRICS AT TARGET RETIREMENT AGE '+inp.targetAge,ML,cy+12);
+  cy+=18;
+
+  const metrics=target&&target.monthly?[
+    {label:'Monthly Benefit',val:fmtN(target.monthly),sub:'pension payment',col:COL.teal},
+    {label:'Annual Benefit',val:fmtN(target.annual),sub:'per year',col:COL.navy},
+    {label:'% of Salary',val:fmtP(target.pctSal),sub:'salary replaced',col:COL.green},
+    {label:'Age Factor',val:(target.af*100).toFixed(3)+'%',sub:formula==='2at62'?'2% at 62':'2% at 60',col:COL.slate},
+    {label:'Total Service Credit',val:target.totalSvc.toFixed(2)+' yrs',sub:'+'+target.sickCredit.toFixed(2)+' sick leave',col:COL.slate},
+    {label:'Final Compensation',val:fmtN(target.finalComp),sub:target.use1yr?'single highest yr':'3-yr average',col:COL.slate},
+  ]:[{label:'Status',val:'Not eligible',sub:'at target age',col:COL.coral}];
+
+  const mW=(CW-10)/3, mH=56;
+  metrics.forEach((m,i)=>{
+    const col=i%3, row=Math.floor(i/3);
+    const x=ML+col*(mW+5), y=cy+row*(mH+6);
+    setFill(COL.light); sf(x,y,mW,mH,5);
+    doc.setFillColor(...m.col); doc.rect(x,y,3,mH,'F');
+    setTxt(m.col); doc.setFont('helvetica','bold'); doc.setFontSize(7);
+    doc.text(m.label.toUpperCase(),x+9,y+13);
+    setTxt(COL.text); doc.setFont('helvetica','bold'); doc.setFontSize(14);
+    doc.text(m.val,x+9,y+32);
+    setTxt(COL.text3); doc.setFont('helvetica','normal'); doc.setFontSize(8);
+    doc.text(m.sub,x+9,y+46);
+  });
+  cy+=metrics.length>3?130:72;
+
+  // ── ELIGIBILITY MILESTONES ──
+  setTxt(COL.navy); doc.setFont('helvetica','bold'); doc.setFontSize(8);
+  doc.text('ELIGIBILITY MILESTONES',ML,cy+12);
+  cy+=18;
+
+  const milestones=[
+    {label:'Earliest Pension',icon:'🎓',val:firstPen?'Age '+firstPen.age:'—',sub:firstPen?fmtN(firstPen.monthly)+'/mo':'-',ok:firstPen&&nowAge>=firstPen.age},
+    {label:'District Health Benefit',icon:'🏥',val:firstHealth?'Age '+firstHealth.age:'Not met by 75',sub:firstHealth?firstHealth.points.toFixed(0)+' pts required':'Check HR',ok:firstHealth&&nowAge>=firstHealth.age},
+    {label:'Age Factor Caps (2.4%)',icon:'⬆',val:firstMaxAF?'Age '+firstMaxAF.age:'—',sub:firstMaxAF?fmtN(firstMaxAF.monthly)+'/mo':'',ok:firstMaxAF&&nowAge>=firstMaxAF.age},
+  ];
+  const miW=(CW-10)/3, miH=52;
+  milestones.forEach((m,i)=>{
+    const x=ML+i*(miW+5), y=cy;
+    setFill(COL.light); sf(x,y,miW,miH,5);
+    const c=m.ok?COL.green:COL.slate;
+    doc.setFillColor(...c); doc.rect(x,y,3,miH,'F');
+    setTxt(c); doc.setFont('helvetica','bold'); doc.setFontSize(7);
+    doc.text(m.label.toUpperCase(),x+9,y+13);
+    setTxt(COL.text); doc.setFont('helvetica','bold'); doc.setFontSize(13);
+    doc.text(m.val,x+9,y+30);
+    setTxt(COL.text3); doc.setFont('helvetica','normal'); doc.setFontSize(8);
+    doc.text(m.sub,x+9,y+44);
+  });
+  cy+=miH+14;
+
+  // Optimal window note
+  if(firstPen&&firstHealth&&firstMaxAF){
+    const wsAge=Math.max(firstPen.age,firstHealth.age);
+    const weAge=firstMaxAF.age;
+    const fullSpan=weAge-wsAge;
+    const midAge=wsAge+Math.ceil(fullSpan/2);
+    setFill(COL.window); sf(ML,cy,CW,28,5);
+    setTxt(COL.white); doc.setFont('helvetica','bold'); doc.setFontSize(8.5);
+    doc.text(`⭐  OPTIMAL RETIREMENT WINDOW: Ages ${midAge}–${weAge}  (pension + health met, highest age factor rate)`,ML+10,cy+17);
+    cy+=38;
+  }
+
+  // ── CHART (captured from canvas) ──
+  setTxt(COL.navy); doc.setFont('helvetica','bold'); doc.setFontSize(8);
+  doc.text('MONTHLY BENEFIT BY RETIREMENT AGE',ML,cy+12);
+  cy+=18;
+  const chartH=140;
+  try{
+    doc.addImage(chartImg,'PNG',ML,cy,CW,chartH,undefined,'FAST');
+  } catch(e){
+    setFill([240,240,240]); sf(ML,cy,CW,chartH,4);
+    setTxt(COL.text3); doc.setFontSize(9); doc.text('Chart unavailable',ML+CW/2,cy+chartH/2,{align:'center'});
+  }
+  cy+=chartH+14;
+
+  // ── YEAR-BY-YEAR TABLE ──
+  // Check if we need a new page
+  if(cy>PH-200){doc.addPage(); cy=MT;}
+
+  setTxt(COL.navy); doc.setFont('helvetica','bold'); doc.setFontSize(8);
+  doc.text('YEAR-BY-YEAR RETIREMENT SCHEDULE',ML,cy+12);
+  cy+=20;
+
+  // Table header
+  const cols=[
+    {label:'Age',w:32,align:'center'},
+    {label:'Year',w:36,align:'center'},
+    {label:'Svc Yrs',w:46,align:'right'},
+    {label:'+Sick SC',w:46,align:'right'},
+    {label:'Age Factor',w:54,align:'right'},
+    {label:'Final Comp',w:68,align:'right'},
+    {label:'Monthly',w:62,align:'right'},
+    {label:'Annual',w:66,align:'right'},
+    {label:'% Salary',w:46,align:'right'},
+    {label:'H/P',w:32,align:'center'},
+  ];
+  const tH=15, rowH=13;
+  const tW=cols.reduce((s,c)=>s+c.w,0);
+  const tX=ML+(CW-tW)/2;
+
+  // Header row
+  setFill(COL.navy); doc.rect(tX,cy,tW,tH,'F');
+  setTxt(COL.white); doc.setFont('helvetica','bold'); doc.setFontSize(6.5);
+  let cx2=tX;
+  cols.forEach(c=>{
+    const tx=c.align==='center'?cx2+c.w/2:c.align==='right'?cx2+c.w-3:cx2+3;
+    doc.text(c.label,tx,cy+10,{align:c.align==='center'?'center':c.align==='right'?'right':'left'});
+    cx2+=c.w;
+  });
+  cy+=tH;
+
+  // Data rows
+  eligRows.forEach((r,idx)=>{
+    if(cy>PH-50){
+      doc.addPage(); cy=MT;
+      // Repeat header
+      setFill(COL.navy); doc.rect(tX,cy,tW,tH,'F');
+      setTxt(COL.white); doc.setFont('helvetica','bold'); doc.setFontSize(6.5);
+      let hx=tX;
+      cols.forEach(c=>{
+        const tx=c.align==='center'?hx+c.w/2:c.align==='right'?hx+c.w-3:hx+3;
+        doc.text(c.label,tx,cy+10,{align:c.align==='center'?'center':c.align==='right'?'right':'left'});
+        hx+=c.w;
+      });
+      cy+=tH;
+    }
+
+    const isTarget=r.age===inp.targetAge;
+    const isWin=optStart&&optEnd&&r.age>=optStart.age&&r.age<=optEnd.age;
+    const bg=isTarget?[204,241,235]:isWin?[224,242,254]:idx%2===0?COL.white:[248,247,252];
+    setFill(bg); doc.rect(tX,cy,tW,rowH,'F');
+
+    setTxt(isTarget?COL.teal:isWin?COL.window:COL.text);
+    doc.setFont('helvetica',isTarget?'bold':'normal'); doc.setFontSize(6.5);
+
+    const vals=[
+      r.age+(isTarget?' ★':''),
+      r.retireYear,
+      r.earnedSvc.toFixed(1),
+      '+'+r.sickCredit.toFixed(2),
+      (r.af*100).toFixed(3)+'%',
+      fmtN(r.finalComp),
+      fmtN(r.monthly),
+      fmtN(r.annual),
+      r.pctSal?fmtP(r.pctSal):'—',
+      (r.hm?'🏥':'')+(r.maxAF?' ⬆':''),
+    ];
+    let dx=tX;
+    vals.forEach((v,vi)=>{
+      const c=cols[vi];
+      const tx=c.align==='center'?dx+c.w/2:c.align==='right'?dx+c.w-3:dx+3;
+      doc.text(String(v),tx,cy+9,{align:c.align==='center'?'center':c.align==='right'?'right':'left'});
+      dx+=c.w;
+    });
+    // Bottom border
+    setStroke(COL.border); doc.setDrawColor(...COL.border); doc.setLineWidth(0.3);
+    doc.line(tX,cy+rowH,tX+tW,cy+rowH);
+    cy+=rowH;
+  });
+  cy+=10;
+
+  // ── FOOTER ──
+  const totalPages=doc.getNumberOfPages();
+  for(let i=1;i<=totalPages;i++){
+    doc.setPage(i);
+    setFill(COL.navy); doc.rect(0,PH-22,PW,22,'F');
+    setTxt([160,160,200]); doc.setFont('helvetica','normal'); doc.setFontSize(7);
+    doc.text('CalSTRS LA School Retirement Estimator  ·  Not affiliated with any district or pension fund  ·  For estimation purposes only',ML,PH-8);
+    setTxt([120,120,170]);
+    doc.text(`Page ${i} of ${totalPages}`,PW-MR,PH-8,{align:'right'});
+  }
+
+  // Save
+  const fname=`CalSTRS_Retirement_Report_Age${inp.targetAge}_${new Date().toISOString().slice(0,10)}.pdf`;
+  doc.save(fname);
+
+  btn.classList.remove('loading');
+  btn.innerHTML='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14,2 14,8 20,8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10,9 9,9 8,9"/></svg> Download PDF Report';
+}
+// ──────────────────────────────────────────────────────────────────
 
 function toggleInputs(){
   const body=document.getElementById('inputsPanelBody');
