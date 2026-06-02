@@ -217,86 +217,121 @@
   .tag-row{display:flex;gap:3px;flex-wrap:wrap;align-items:center;justify-content:flex-end}
   /* ── MOBILE ── */
   @media(max-width:700px){
-    /* Header */
-    .header-inner{flex-wrap:wrap}
-    .header-logo-band{min-width:0;padding:10px 16px;width:100%;justify-content:flex-start;gap:8px}
+    /* Header: compact single strip */
+    .header-inner{flex-direction:column}
+    .header-logo-band{width:100%;padding:10px 16px;justify-content:flex-start;gap:8px;min-width:0}
     .header-logo-text{font-size:12px;line-height:1.2}
-    .header-content{padding:12px 16px 10px;order:2;width:100%}
+    .header-content{padding:10px 16px 8px}
     .header-eyebrow{display:none}
-    .header-title{font-size:17px}
-    .header-subtitle{font-size:11px;margin-top:3px}
-    .header-right{order:3;padding:0 16px 12px;text-align:left;width:100%}
-    .header-notaffiliated{font-size:8.5px}
-    .header-disclaimer{font-size:9.5px;max-width:100%;text-align:left}
+    .header-title{font-size:16px}
+    .header-subtitle{font-size:10.5px;margin-top:3px}
+    .header-right{padding:0 16px 10px;text-align:left}
+    .header-notaffiliated{font-size:8px}
+    .header-disclaimer{font-size:9px;max-width:100%;text-align:left}
 
     /* Layout: single column */
-    .main{grid-template-columns:1fr;padding:14px 12px 40px;gap:12px}
+    .main{grid-template-columns:1fr;padding:12px 10px 40px;gap:10px}
 
-    /* Inputs: collapsible on mobile */
-    .inputs-toggle{display:flex;align-items:center;justify-content:space-between;padding:11px 14px;background:var(--accent);border-radius:var(--r);cursor:pointer;user-select:none;margin-bottom:0}
-    .inputs-toggle-label{color:#fff;font-size:11px;font-weight:700;letter-spacing:.07em;text-transform:uppercase}
-    .inputs-toggle-chevron{color:rgba(255,255,255,.7);font-size:13px;transition:transform .25s;line-height:1}
+    /* Inputs toggle button */
+    .inputs-toggle{
+      display:flex;align-items:center;justify-content:space-between;
+      padding:12px 16px;background:var(--accent);border-radius:var(--r);
+      cursor:pointer;user-select:none;margin-bottom:0;border:none;width:100%;
+      -webkit-tap-highlight-color:transparent;
+    }
+    .inputs-toggle-label{color:#fff;font-size:12px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;pointer-events:none}
+    .inputs-toggle-chevron{color:rgba(255,255,255,.8);font-size:14px;transition:transform .25s;line-height:1;pointer-events:none}
     .inputs-toggle-chevron.open{transform:rotate(180deg)}
-    .inputs-panel-body{overflow:hidden;max-height:0;transition:max-height .35s ease}
-    .inputs-panel-body.open{max-height:2400px}
-    .inputs-panel-body .panel{border-radius:0 0 var(--r) var(--r);margin-bottom:0}
 
-    /* Hero: stack to 2 cols then wrap */
-    .hero-grid{grid-template-columns:1fr 1fr;gap:12px}
+    /* Inputs panel slide */
+    .inputs-panel-body{overflow:hidden;max-height:0;transition:max-height .4s cubic-bezier(0.4,0,0.2,1)}
+    .inputs-panel-body.open{max-height:3000px}
+    .inputs-panel-body .panel{border-radius:0 0 var(--r) var(--r);margin-bottom:0;border-top:none}
+
+    /* Done button inside inputs */
+    .inputs-done-btn{
+      display:block;width:100%;padding:13px;
+      background:var(--teal);color:#fff;border:none;
+      font-family:'DM Sans',sans-serif;font-size:14px;font-weight:600;
+      cursor:pointer;letter-spacing:.02em;
+      -webkit-tap-highlight-color:transparent;
+    }
+    .inputs-done-btn:active{background:var(--teal-mid)}
+
+    /* Hero: 2 cols */
+    .hero-grid{grid-template-columns:1fr 1fr;gap:10px}
     .hero-grid>div:last-child{grid-column:1/-1}
-    .m-val{font-size:20px}
-    .result-hero{padding:14px 16px}
+    .m-val{font-size:19px}
+    .result-hero{padding:14px 14px}
+    .hero-note{font-size:10.5px;padding:7px 10px}
 
     /* Insights */
-    .insight-body{padding:10px 12px;gap:8px}
-    .i-row{padding:9px 10px;gap:9px}
-    .i-val{font-size:13.5px}
+    .insight-body{padding:10px;gap:8px}
+    .i-row{padding:10px;gap:8px}
+    .i-val{font-size:13px}
     .i-desc{font-size:10.5px}
+    .i-label{font-size:9px}
 
-    /* Ideal window range: stack vertically on narrow screens */
+    /* Ideal window */
     .iw-range{flex-direction:column;align-items:stretch;gap:6px}
-    .iw-arrow{transform:rotate(90deg);text-align:center;font-size:16px}
-    .iw-age-box{padding:8px 12px}
-    .iw-age-val{font-size:19px}
-    .iw-desc{font-size:11px}
-    .ideal-window-body{padding:11px 12px}
+    .iw-arrow{transform:rotate(90deg);text-align:center;font-size:15px}
+    .iw-age-box{padding:8px 10px}
+    .iw-age-val{font-size:18px}
+    .iw-desc{font-size:10.5px;line-height:1.5}
+    .ideal-window-body{padding:10px}
+    .iw-target-note{font-size:10.5px;padding:6px 9px}
+    .ideal-window-header .iw-badge{font-size:8.5px;padding:2px 6px}
 
-    /* Milestones: 1 col on mobile */
+    /* Milestones: row layout */
     .milestones-grid{grid-template-columns:1fr}
     .mc{display:flex;align-items:flex-start;gap:10px;padding:10px 12px}
-    .mc-icon{font-size:17px;flex-shrink:0;margin-bottom:0;margin-top:1px}
-    .mc-badge{margin-top:4px}
+    .mc-icon{font-size:16px;flex-shrink:0;margin-bottom:0;margin-top:2px}
+    .mc-val{font-size:16px}
+    .mc-badge{margin-top:4px;display:inline-block}
 
-    /* Panel body tighter */
+    /* Panel */
     .panel-body{padding:12px}
+    .panel{border-radius:var(--rs)}
+
+    /* Rules toggle tier: hide on mobile */
+    .rules-toggle-tier{display:none}
+    .rules-body-inner{padding:10px}
 
     /* Chart */
-    .chart-header{flex-direction:column;align-items:flex-start;gap:8px;padding-bottom:4px}
-    .chart-legend{gap:8px}
-    .cl-item{font-size:9.5px}
-    .chart-wrap{height:180px}
+    .chart-header{flex-direction:column;align-items:flex-start;gap:6px;padding:10px 12px 0}
+    .chart-body{padding:8px 10px 12px}
+    .chart-legend{gap:6px;margin-bottom:6px}
+    .cl-item{font-size:9px}
+    .cl-dot{width:8px;height:8px}
+    .chart-wrap{height:170px}
+    .chart-tabs{flex-wrap:wrap;gap:4px}
+    .chart-tab{padding:5px 10px;font-size:11px}
 
-    /* Table: horizontal scroll, hide less important cols */
-    .table-wrap table{min-width:560px}
+    /* Table */
+    .table-wrap table{min-width:520px}
     .col-hide-mobile{display:none}
+    .table-header{padding:9px 12px}
+    .footnotes{padding:8px 12px}
+    .footnotes p{font-size:9px}
 
-    /* Rules toggle tier label: shorten */
-    .rules-toggle-tier{display:none}
+    /* Badges */
+    .badge{font-size:8.5px;padding:2px 4px}
 
-    /* Footnotes */
-    .footnotes p{font-size:9.5px}
-
-    /* Touch targets */
-    .chart-tab{padding:6px 10px;font-size:11.5px}
-    .toggle-group button{padding:9px 8px;font-size:12.5px}
-    .field input[type="date"],.field input[type="number"],.field select{padding:9px 10px;font-size:14px}
+    /* Touch-friendly inputs */
+    .field input[type="date"],
+    .field input[type="number"],
+    .field select{padding:10px 11px;font-size:15px;min-height:44px}
+    .toggle-group button{padding:11px 8px;font-size:13px;min-height:44px}
+    .field{margin-bottom:14px}
+    .field-hint{font-size:10px}
+    .sec-label{font-size:9px;margin-bottom:8px}
   }
 
-  @media(max-width:400px){
+  @media(max-width:380px){
     .hero-grid{grid-template-columns:1fr}
     .hero-grid>div:last-child{grid-column:auto}
-    .header-title{font-size:15px}
-    .iw-range{gap:4px}
+    .header-title{font-size:14px}
+    .main{padding:10px 8px 36px}
   }
 </style>
 </head>
@@ -322,11 +357,11 @@
 <div class="main">
   <!-- LEFT INPUTS -->
   <div>
-    <div class="inputs-toggle" onclick="toggleInputs(this)" style="display:none">
-      <span class="inputs-toggle-label">⚙ Edit Your Inputs</span>
-      <span class="inputs-toggle-chevron open">▼</span>
-    </div>
-    <div class="inputs-panel-body open" id="inputsPanelBody">
+    <button class="inputs-toggle" id="inputsToggleBtn" style="display:none" onclick="toggleInputs()">
+      <span class="inputs-toggle-label" id="inputsToggleLabel">⚙ Edit Your Inputs</span>
+      <span class="inputs-toggle-chevron" id="inputsChevron">▼</span>
+    </button>
+    <div class="inputs-panel-body" id="inputsPanelBody">
     <div class="panel">
       <div class="panel-header"><h2>Your Profile</h2></div>
       <div class="panel-body">
@@ -395,6 +430,7 @@
         </div>
       </div>
     </div>
+    <button class="inputs-done-btn" id="inputsDoneBtn" style="display:none" onclick="toggleInputs()">✓ Done — Show Results</button>
     </div><!-- /inputs-panel-body -->
   </div>
 
@@ -671,8 +707,29 @@ function update(){
                    :!firstPen?firstHealth
                    :firstHealth.age>=firstPen.age?firstHealth:firstPen;
   const windowEnd=firstMaxAF;
-  // Window rows = all eligible rows from windowStart.age to windowEnd.age inclusive
-  const inWindow=r=>windowStart&&windowEnd&&r.pe&&r.age>=windowStart.age&&r.age<=windowEnd.age;
+
+  // Optimal sweet spot = top half of the window (midpoint → cap), biased toward 80%+ salary replacement
+  let optStart=windowStart, optEnd=windowEnd;
+  if(windowStart&&windowEnd){
+    const fullSpan=windowEnd.age-windowStart.age;
+    // Midpoint of the full window, rounded up
+    const midAge=windowStart.age+Math.ceil(fullSpan/2);
+    const midRow=rows.find(r=>r.age===midAge&&r.pe)||rows.filter(r=>r.pe&&r.age>=midAge).slice(0,1)[0];
+    optStart=midRow||windowStart;
+
+    // Also find first age in window where pctSal >= 80%
+    const eightyRow=rows.find(r=>r.pe&&r.age>=windowStart.age&&r.age<=windowEnd.age&&r.pctSal>=80);
+    // Use whichever comes earlier: midpoint or 80% threshold (but not before windowStart)
+    if(eightyRow&&eightyRow.age<optStart.age){
+      optStart=eightyRow;
+    }
+    // Clamp to full window bounds
+    if(optStart.age<windowStart.age) optStart=windowStart;
+    if(!optEnd||optStart.age>optEnd.age) optStart=windowStart; // fallback if no room
+  }
+
+  // Chart/table highlight: the optimal sweet spot rows
+  const inWindow=r=>optStart&&optEnd&&r.pe&&r.age>=optStart.age&&r.age<=optEnd.age;
 
   /* ── HERO ── */
   if(target&&target.monthly){
@@ -754,31 +811,40 @@ function update(){
 
   // 4 – Optimal window (stands out)
   if(windowStart&&windowEnd){
-    const wsRow=windowStart;
-    const weRow=windowEnd;
+    const wsRow=windowStart;   // full window opens here
+    const weRow=windowEnd;     // full window closes here (cap)
+    const osRow=optStart;      // sweet spot starts here
     const tAge=inp.targetAge;
+    const salPct=osRow.pctSal?fmtP(osRow.pctSal):'—';
+    const salPctEnd=weRow.pctSal?fmtP(weRow.pctSal):'—';
+
     let noteClass='',noteText='';
-    if(tAge<wsRow.age){noteClass='before-window';noteText=`Your target age (${tAge}) is before this window. You'd be collecting a pension but missing the district health benefit or full age factor.`;}
-    else if(tAge>weRow.age){noteClass='after-window';noteText=`Your target age (${tAge}) is after this window. You'll have captured all benefits by then — each additional year adds only marginal pension growth.`;}
-    else{noteClass='in-window';noteText=`✓ Your target age (${tAge}) falls within the optimal window. Good timing.`;}
+    if(tAge<osRow.age){
+      if(tAge>=wsRow.age) {noteClass='in-window';noteText=`Your target age (${tAge}) is in the full eligibility window but before the optimal sweet spot. Consider pushing to age ${osRow.age}+ to capture closer to 80% salary replacement.`;}
+      else {noteClass='before-window';noteText=`Your target age (${tAge}) is before the eligibility window opens. You'd be collecting a pension without district health coverage yet.`;}
+    } else if(tAge>weRow.age){
+      noteClass='after-window';noteText=`Your target age (${tAge}) is after the age factor cap. Benefits continue to grow via service credit but the multiplier is no longer increasing — diminishing returns beyond age ${weRow.age}.`;
+    } else {
+      noteClass='in-window';noteText=`✓ Your target age (${tAge}) falls within the optimal sweet spot. Good timing.`;
+    }
 
     html+=`<div class="ideal-window">
       <div class="ideal-window-header">
         <div class="iw-title"><span class="iw-title-icon">⭐</span>Optimal Retirement Window</div>
-        <span class="iw-badge">Ages ${wsRow.age}–${weRow.age}</span>
+        <span class="iw-badge">Sweet spot: Ages ${osRow.age}–${weRow.age}</span>
       </div>
       <div class="ideal-window-body">
         <div class="iw-range">
           <div class="iw-age-box">
-            <p class="iw-age-label">Opens at</p>
+            <p class="iw-age-label">Eligible from</p>
             <p class="iw-age-val">${wsRow.age}</p>
             <p class="iw-age-sub">${fmt(wsRow.monthly)}/mo</p>
           </div>
           <div class="iw-arrow">→</div>
-          <div class="iw-age-box" style="flex:1;text-align:center">
+          <div class="iw-age-box" style="flex:1;text-align:center;border-color:var(--window);background:var(--window-light)">
             <p class="iw-age-label" style="color:var(--window)">Optimal years to retire</p>
-            <p style="font-family:'DM Mono',monospace;font-size:13px;font-weight:600;color:var(--window);letter-spacing:.02em">Ages ${wsRow.age} – ${weRow.age}</p>
-            <p class="iw-age-sub">pension eligible · health met · higher age factor rate</p>
+            <p style="font-family:'DM Mono',monospace;font-size:14px;font-weight:700;color:var(--window);letter-spacing:.02em">Ages ${osRow.age}–${weRow.age}</p>
+            <p class="iw-age-sub" style="color:var(--window);opacity:1">${salPct} → ${salPctEnd} of salary</p>
           </div>
           <div class="iw-arrow">→</div>
           <div class="iw-age-box">
@@ -787,7 +853,7 @@ function update(){
             <p class="iw-age-sub">${fmt(weRow.monthly)}/mo</p>
           </div>
         </div>
-        <p class="iw-desc">The window opens when both <strong>pension eligibility</strong> and <strong>district health</strong> are first met simultaneously, and closes when the <strong>2.4% age factor cap</strong> is reached. You can retire after this window — your benefit will continue to grow as you add service credit and salary — but the age factor multiplier no longer increases, so each additional year of waiting yields smaller incremental gains relative to the pension income you're giving up by working longer. The additional ${fmt(weRow.monthly-wsRow.monthly)}/mo gained by waiting the full window span comes at the cost of ${weRow.age-wsRow.age} fewer years of collecting.</p>
+        <p class="iw-desc">The full eligibility window runs <strong>ages ${wsRow.age}–${weRow.age}</strong> — from when pension and district health are both active, to when the 2.4% age factor cap is reached. The <strong>optimal sweet spot (ages ${osRow.age}–${weRow.age})</strong> is the upper half of that range, where benefit replacement approaches or exceeds 80% of salary. You can retire after age ${weRow.age} — service credit and salary growth continue to lift your benefit — but the age factor multiplier no longer increases, so each extra year of working yields diminishing returns relative to the pension income you forgo.</p>
         <div class="iw-target-note ${noteClass}">${noteText}</div>
       </div>
     </div>`;
@@ -798,7 +864,7 @@ function update(){
         <span class="iw-badge">Age ${windowStart.age}+</span>
       </div>
       <div class="ideal-window-body">
-        <p class="iw-desc">Pension and district health are met starting at age ${windowStart.age}. The age factor is already at max — any year you retire from this point captures all three milestones.</p>
+        <p class="iw-desc">Pension and district health are met starting at age ${windowStart.age}. The age factor is already at max — any year you retire from this point captures all milestones.</p>
       </div>
     </div>`;
   }
@@ -979,25 +1045,46 @@ document.querySelectorAll('input,select').forEach(el=>{
   el.addEventListener('change',update);
 });
 
-function toggleInputs(btn){
+function toggleInputs(){
   const body=document.getElementById('inputsPanelBody');
-  const chev=btn.querySelector('.inputs-toggle-chevron');
+  const chev=document.getElementById('inputsChevron');
+  const label=document.getElementById('inputsToggleLabel');
+  const doneBtn=document.getElementById('inputsDoneBtn');
   const isOpen=body.classList.contains('open');
   body.classList.toggle('open',!isOpen);
   chev.classList.toggle('open',!isOpen);
+  if(!isOpen){
+    label.textContent='⚙ Edit Your Inputs';
+    doneBtn.style.display='block';
+    // Scroll the panel into view smoothly
+    setTimeout(()=>document.getElementById('inputsToggleBtn').scrollIntoView({behavior:'smooth',block:'start'}),50);
+  } else {
+    label.textContent='⚙ Edit Your Inputs';
+    doneBtn.style.display='none';
+    // Scroll to results
+    setTimeout(()=>document.querySelector('.results-col').scrollIntoView({behavior:'smooth',block:'start'}),50);
+  }
 }
 
 function initMobile(){
-  const toggle=document.querySelector('.inputs-toggle');
+  const toggleBtn=document.getElementById('inputsToggleBtn');
+  const doneBtn=document.getElementById('inputsDoneBtn');
   const body=document.getElementById('inputsPanelBody');
-  if(window.innerWidth<=700){
-    toggle.style.display='flex';
-    // Start collapsed on mobile
-    body.classList.remove('open');
-    document.querySelector('.inputs-toggle-chevron').classList.remove('open');
+  const chev=document.getElementById('inputsChevron');
+  const isMobile=window.innerWidth<=700;
+  if(isMobile){
+    toggleBtn.style.display='flex';
+    // Start collapsed — show results first
+    if(!body.classList.contains('open')){
+      body.classList.remove('open');
+      chev.classList.remove('open');
+      doneBtn.style.display='none';
+    }
   } else {
-    toggle.style.display='none';
+    toggleBtn.style.display='none';
+    doneBtn.style.display='none';
     body.classList.add('open');
+    chev.classList.add('open');
   }
 }
 window.addEventListener('resize',()=>{
