@@ -4,6 +4,22 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>CalSTRS Retirement Planning Calculator</title>
+<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-KSXWB876QS"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-KSXWB876QS');
+</script>
+<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-KSXWB876QS"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-KSXWB876QS');
+</script>
 <meta name="description" content="Estimate your CalSTRS pension benefit, district health eligibility, and optimal retirement timing. Free tool for LAUSD certificated staff and teachers.">
 <meta property="og:title" content="CalSTRS Retirement Planning Calculator">
 <meta property="og:description" content="Estimate your pension benefit and determine optimal retirement timing. Free tool for LAUSD certificated staff and teachers.">
@@ -1520,6 +1536,15 @@ document.querySelectorAll('input,select').forEach(el=>{
   if(el.id==='salaryDisplay'||el.id==='salary') return; // handled above
   el.addEventListener('input',update);
   el.addEventListener('change',update);
+});
+
+// Track a real calculator session when user changes their date of birth
+document.getElementById('dob').addEventListener('change',()=>{
+  if(typeof gtag!=='undefined'){
+    gtag('event','calculator_used',{
+      birth_year: new Date(document.getElementById('dob').value).getFullYear(),
+    });
+  }
 });
 
 // ─── PDF GENERATION ───────────────────────────────────────────────
