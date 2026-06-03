@@ -3,7 +3,19 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>CalSTRS Retirement Calculator</title>
+<title>CalSTRS Retirement Planning Calculator</title>
+<meta name="description" content="Estimate your CalSTRS pension benefit, district health eligibility, and optimal retirement timing. Free tool for LAUSD certificated staff and teachers.">
+<meta property="og:title" content="CalSTRS Retirement Planning Calculator">
+<meta property="og:description" content="Estimate your pension benefit and determine optimal retirement timing. Free tool for LAUSD certificated staff and teachers.">
+<meta property="og:image" content="https://retirementtool.github.io/CalSTRS-Estimator//og-preview.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://retirementtool.github.io/CalSTRS-Estimator//">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="CalSTRS Retirement Planning Calculator">
+<meta name="twitter:description" content="Estimate your pension benefit and determine optimal retirement timing.">
+<meta name="twitter:image" content="https://retirementtool.github.io/CalSTRS-Estimator//og-preview.png">
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
@@ -571,7 +583,7 @@
         <div class="field">
           <label>CalSTRS Service Credit (Years) <span style="font-weight:400;color:var(--text3);font-size:10px">— as of today</span></label>
           <input type="number" id="serviceYears" value="25" min="0" max="55" step="0.01">
-          <p class="field-hint" id="serviceYearsHint">Auto-calculated from hire date; adjust if your CalSTRS credit differs</p>
+          <p class="field-hint" id="serviceYearsHint">Auto-calculated from hire date; adjust if your CalSTRS credit differs (see CalSTRS website for precise value)</p>
         </div>
         <div class="field">
           <label>Continuous District Service (Years) <span style="font-weight:400;color:var(--text3);font-size:10px">— as of today</span></label>
@@ -721,7 +733,7 @@
         <p>Flags: 🎓 Pension eligible · 🏥 Lifetime health benefit met · ⬆ Age factor at max 2.4% · 💊 Medicare eligible (age 65, must enroll Parts A &amp; B)</p>
         <p>Sick leave: accumulated unused days ÷ base days = additional service credit. Cannot satisfy minimum eligibility requirements.</p>
         <p>Final comp: 2% at 60 with ≥25 earned service years → single highest year; otherwise highest 3-year consecutive average.</p>
-        <p style="color:var(--text2);font-weight:500;line-height:1.6"><strong>Disclaimer:</strong> This calculator is an independent, unofficial educational tool. It is completely unaffiliated with, authorized by, or endorsed by the Los Angeles Unified School District (LAUSD) or the California State Teachers' Retirement System (CalSTRS). All calculations are rough estimates for planning purposes only and are non-binding. Pension benefits are strictly governed by California law. Users must verify all official estimates directly through a <a href="http://www.calstrs.com/calculators" target="_blank" rel="noopener" style="color:var(--accent)">myCalSTRS account</a> or by consulting a CalSTRS benefits specialist before making retirement decisions.</p>
+        <p style="color:var(--text2);font-weight:500;line-height:1.6"><strong>Disclaimer:</strong> This calculator is an independent, unofficial educational tool. It is completely unaffiliated with, authorized by, or endorsed by the Los Angeles Unified School District (LAUSD) or the California State Teachers' Retirement System (CalSTRS). All calculations are rough estimates for planning purposes only and are non-binding. This calculator may not capture uncommon situations such as service breaks, part-time service, mid-year retirements, concurrent employment, disability retirement, or other non-standard circumstances that could materially affect your benefit. Pension benefits are strictly governed by California law. Users must verify all official estimates directly through a <a href="http://www.calstrs.com/calculators" target="_blank" rel="noopener" style="color:var(--accent)">myCalSTRS account</a> or by consulting a CalSTRS benefits specialist before making retirement decisions.</p>
       </div>
     </div>
 
@@ -993,7 +1005,7 @@ function update(){
 
   // Update service years hint
   const svHint=document.getElementById('serviceYearsHint');
-  if(svHint) svHint.textContent=`Auto-calculated from hire date (${autoD} yrs); adjust if your CalSTRS credit differs`;
+  if(svHint) svHint.textContent=`Auto-calculated from hire date (${autoD} yrs); adjust if your CalSTRS credit differs (see CalSTRS website for precise value)`;
 
   // Update hero target age display
   const htaEl=document.getElementById('heroTargetAgeDisplay');
