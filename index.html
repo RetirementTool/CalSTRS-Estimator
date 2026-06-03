@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>CalSTRS Retirement Planning Calculator</title>
 <meta name="description" content="Estimate your CalSTRS pension benefit, district health eligibility, and optimal retirement timing. Free tool for LAUSD certificated staff and teachers.">
 <meta property="og:title" content="CalSTRS Retirement Planning Calculator">
@@ -35,11 +35,12 @@
     --window:#0369a1;--window-light:#f0f9ff;--window-border:#7dd3fc;
     --r:12px;--rs:8px;
   }
-  body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;text-rendering:optimizeLegibility}
+  html{overflow-x:hidden;width:100%}
+  body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;text-rendering:optimizeLegibility;overflow-x:hidden;width:100%}
 
   /* HEADER — sticky */
-  .header{background:var(--header-accent);border-bottom:3px solid var(--teal);position:sticky;top:0;z-index:100}
-  .header-inner{display:flex;align-items:stretch}
+  .header{background:var(--header-accent);border-bottom:3px solid var(--teal);position:sticky;top:0;z-index:100;width:100%;left:0;box-sizing:border-box;padding-left:env(safe-area-inset-left);padding-right:env(safe-area-inset-right)}
+  .header-inner{display:flex;align-items:stretch;width:100%;box-sizing:border-box}
   .header-logo-band{background:var(--teal);display:flex;align-items:center;justify-content:center;padding:0 22px;min-width:88px;flex-shrink:0}
   .header-logo-text{font-size:11px;font-weight:700;color:#fff;letter-spacing:0.04em;line-height:1.25;text-align:center;text-transform:uppercase}
   .header-content{padding:16px 28px;flex:1}
@@ -72,7 +73,7 @@
   .field-hint{font-size:10px;color:var(--text3);margin-top:3px;line-height:1.4}
   .divider{height:1px;background:var(--border);margin:12px 0}
   .sec-label{font-size:9.5px;font-weight:700;letter-spacing:.11em;text-transform:uppercase;color:var(--text3);margin:0 0 9px;padding-bottom:6px;border-bottom:1px solid var(--border)}
-  .pfx-wrap{display:flex;align-items:center;border:1px solid var(--border);border-radius:var(--rs);background:var(--bg);overflow:hidden;transition:border-color .15s}
+  .pfx-wrap{display:flex;align-items:center;border:1px solid var(--border);border-radius:var(--rs);background:var(--bg);overflow:hidden;transition:border-color .15s;width:100%;max-width:100%;min-width:0}
   .pfx-wrap:focus-within{border-color:var(--accent);background:#fff}
   .pfx{padding:7px 5px 7px 10px;font-size:12.5px;color:var(--text3);font-family:'DM Mono',monospace;user-select:none}
   .sfx{padding:7px 10px 7px 3px;font-size:12.5px;color:var(--text3);font-family:'DM Mono',monospace;user-select:none}
@@ -234,33 +235,38 @@
   .footnotes p:last-child{margin-bottom:0}
   .tag-row{display:flex;gap:3px;flex-wrap:wrap;align-items:center;justify-content:flex-end}
   /* ── MOBILE ── */
-  /* ── MOBILE ── */
   @media(max-width:700px){
-    /* Allow horizontal scroll on individual sections, not the whole page */
-    html,body{width:100%;max-width:100vw}
+    /* Full-bleed layout — nothing wider than screen */
+    html,body{overflow-x:hidden!important;width:100%!important;max-width:100vw}
+    /* Nuclear option: any element that might overflow gets clamped */
+    *{max-width:100%;min-width:0}
+    /* But allow table to scroll internally */
+    .table-wrap *{max-width:none}
+    img,canvas{max-width:100%}
 
-    /* Header: tight strip */
-    .header-inner{flex-direction:column}
+    /* Header: full width, compact height */
+    .header{width:100vw;left:0;position:sticky;top:0;z-index:100}
+    .header-inner{flex-direction:column;width:100%;min-width:0}
     .header-logo-band{display:none}
-    .header-content{padding:10px 14px 6px}
+    .header-content{padding:8px 12px 5px;min-width:0}
     .header-eyebrow{display:none}
-    .header-title{font-size:15px}
-    .header-subtitle{font-size:10px;margin-top:2px}
-    .header-right{padding:0 14px 8px;text-align:left;gap:2px}
-    .header-notaffiliated{font-size:8.5px}
-    .header-disclaimer{font-size:8.5px;max-width:100%;text-align:left;line-height:1.35}
+    .header-title{font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .header-subtitle{font-size:9.5px;margin-top:2px}
+    .header-right{padding:0 12px 7px;text-align:left;gap:2px}
+    .header-notaffiliated{font-size:8px}
+    .header-disclaimer{font-size:8px;max-width:100%;text-align:left;line-height:1.3}
 
-    /* Layout: single column */
-    .main{grid-template-columns:1fr;padding:10px 10px 36px;gap:10px;width:100%;box-sizing:border-box}
+    /* Layout: single column, clamped to screen */
+    .main{grid-template-columns:1fr;padding:8px 8px 32px;gap:8px;width:100%;max-width:100vw;overflow-x:hidden;box-sizing:border-box}
 
     /* Inputs toggle — prominent, clearly tappable */
     .inputs-toggle{
       display:flex!important;align-items:center;justify-content:space-between;
-      padding:14px 16px;background:var(--accent);border-radius:var(--r);
+      padding:14px 16px;background:var(--teal);border-radius:var(--r);
       cursor:pointer;user-select:none;margin-bottom:0;border:none;
       width:100%;box-sizing:border-box;
       -webkit-tap-highlight-color:transparent;
-      box-shadow:0 2px 8px rgba(29,27,105,.25);
+      box-shadow:0 2px 8px rgba(15,118,110,.25);
     }
     .inputs-toggle-label{
       color:#fff;font-size:13px;font-weight:700;letter-spacing:.04em;pointer-events:none;
@@ -284,7 +290,7 @@
     .inputs-done-btn:active{background:var(--teal-mid)}
 
     /* Results panels: full width */
-    .results-col,.result-hero,.insight-box,.chart-panel,.beneficiary-box{width:100%;box-sizing:border-box}
+    .results-col,.result-hero,.insight-box,.chart-panel,.beneficiary-box,.panel,.rules-box,.sick-box,.ideal-window,.contact-box{width:100%;max-width:100%;box-sizing:border-box}
 
     /* Hero */
     .hero-grid{grid-template-columns:1fr 1fr;gap:10px}
@@ -371,13 +377,55 @@
     .badge{font-size:8.5px;padding:2px 4px}
   }
 
+  /* iPhone 15 Pro and similar (≤430px) — optimized for 393px viewport */
+  @media(max-width:430px){
+    /* Hide header right column entirely — saves width + vertical space */
+    .header-right{display:none}
+    .header-content{padding:9px 12px 9px}
+    .header-title{font-size:15px}
+    .header-subtitle{font-size:10px}
+
+    /* Tighten main padding */
+    .main{padding:7px 7px 28px;gap:7px}
+
+    /* Hero: single column on very small screens, 2-col on 393+ */
+    .hero-grid{grid-template-columns:1fr 1fr;gap:8px}
+    .m-val{font-size:16px}
+    .m-label{font-size:8.5px}
+    .result-hero{padding:10px}
+
+    /* Insights tighter */
+    .i-row{padding:8px 9px;gap:7px}
+    .i-icon{font-size:14px}
+    .i-val{font-size:12px}
+    .i-desc{font-size:10px}
+    .i-label{font-size:8.5px}
+
+    /* Chart smaller */
+    .chart-wrap{height:150px}
+    .chart-tab{padding:4px 8px;font-size:10.5px}
+
+    /* Table */
+    .table-wrap table{min-width:420px}
+    .table-wrap td,.table-wrap th{padding:5px 7px;font-size:10px}
+
+    /* Contact */
+    .contact-body{padding:12px}
+    .contact-field input,.contact-field textarea,.contact-field select{font-size:14px;padding:9px 10px}
+
+    /* Inputs */
+    .field input[type="date"],.field input[type="number"],.field select{font-size:14px;padding:9px 10px}
+    .panel-body{padding:10px}
+    .field-hint{font-size:9.5px}
+  }
+
   @media(max-width:380px){
     .hero-grid{grid-template-columns:1fr}
     .hero-grid>div:last-child{grid-column:auto}
-    .header-title{font-size:14px}
-    .main{padding:8px 8px 32px}
-    .chart-wrap{height:150px}
-    .table-wrap table{min-width:420px}
+    .header-title{font-size:13px}
+    .main{padding:6px 6px 24px}
+    .chart-wrap{height:140px}
+    .table-wrap table{min-width:400px}
   }
 
   /* PDF button */
@@ -503,7 +551,7 @@
 
 <div class="main">
   <!-- LEFT INPUTS -->
-  <div>
+  <div style="min-width:0;width:100%">
     <button class="inputs-toggle" id="inputsToggleBtn" style="display:none" onclick="toggleInputs()">
       <span class="inputs-toggle-label" id="inputsToggleLabel">Tap to enter your information</span>
       <span class="inputs-toggle-chevron" id="inputsChevron">▼</span>
@@ -620,7 +668,7 @@
   </div>
 
   <!-- RIGHT RESULTS -->
-  <div class="results-col">
+  <div class="results-col" style="min-width:0;width:100%">
 
     <!-- PDF export button -->
     <div class="pdf-btn-wrap">
@@ -1205,6 +1253,7 @@ function update(){
         <p class="iw-desc" style="margin-top:6px">The optimal window runs from when pension is first active to when the 2.4% age factor cap is reached. The <strong>sweet spot (ages ${osRow.age}–${weRow.age})</strong> is the upper portion where benefit replacement approaches or exceeds 80% of salary. You can retire after age ${weRow.age} — service credit and salary growth continue to lift your benefit — but the age factor multiplier no longer increases, so each extra year of working yields diminishing returns relative to the pension income you forgo.</p>
         ${healthAltNote}
         <div class="iw-target-note ${noteClass}" style="margin-top:8px">${noteText}</div>
+        <p style="margin-top:10px;padding:10px 12px;background:var(--surface2);border-radius:var(--rs);font-size:12.5px;color:var(--text);font-weight:700;line-height:1.5;border-left:3px solid var(--teal)">📋 Next step: Review the full retirement schedule below and choose the age that best fits your personal situation, financial goals, and health coverage needs.</p>
       </div>
     </div>`;
   } else if(windowStart&&!windowEnd){
@@ -1799,13 +1848,11 @@ function toggleInputs(){
   if(!isOpen){
     label.textContent='Tap to enter your information';
     doneBtn.style.display='block';
-    // Scroll the panel into view smoothly
-    setTimeout(()=>document.getElementById('inputsToggleBtn').scrollIntoView({behavior:'smooth',block:'start'}),50);
   } else {
     label.textContent='Tap to enter your information';
     doneBtn.style.display='none';
-    // Scroll to results
-    setTimeout(()=>document.querySelector('.results-col').scrollIntoView({behavior:'smooth',block:'start'}),50);
+    // Scroll to top when collapsing (Done tapped)
+    window.scrollTo({top:0,behavior:'smooth'});
   }
 }
 
