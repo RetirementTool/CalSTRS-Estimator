@@ -209,7 +209,7 @@
   .sick-box .sick-total{font-family:'DM Mono',monospace;font-size:12px;font-weight:700;color:var(--text);display:inline}
 
   /* CHART */
-  .chart-panel{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);overflow:hidden}
+  .chart-panel{background:var(--surface);border:1px solid var(--border);border-radius:0 0 var(--r) var(--r);overflow:hidden}
   .chart-header{padding:13px 16px 0;display:flex;align-items:center;justify-content:space-between}
   .chart-header h3{font-size:10.5px;font-weight:700;letter-spacing:.07em;color:var(--text2);text-transform:uppercase}
   .chart-tabs{display:flex;gap:3px}
@@ -800,6 +800,7 @@
         </div>
       </div>
       <div class="hero-note" id="heroNote">—</div>
+      <p style="font-size:9.5px;color:var(--text3);margin-top:6px;line-height:1.4">* CalSTRS provides a 2% simple annual COLA on your original benefit amount. Benefit values shown do not include COLA — your actual purchasing power will be higher over time.</p>
     </div><!-- /hero -->
     </div><!-- /slider+hero group -->
 
@@ -810,6 +811,15 @@
         <span>Personalized to your inputs</span>
       </div>
       <div class="insight-body" id="insightBody">—</div>
+    </div>
+
+    <!-- Section header for chart + schedule -->
+    <div style="background:#1a2332;border-radius:var(--r) var(--r) 0 0;padding:13px 18px;display:flex;align-items:center;justify-content:space-between;margin-bottom:-1px">
+      <div>
+        <p style="color:rgba(255,255,255,.5);font-size:9px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;margin-bottom:3px">Full Retirement Analysis</p>
+        <h2 style="color:#fff;font-family:'Cormorant Garamond',Georgia,serif;font-size:20px;font-weight:600;letter-spacing:.01em;line-height:1">Benefits by Retirement Age</h2>
+      </div>
+      <p style="color:rgba(255,255,255,.45);font-size:10px;line-height:1.4;text-align:right;max-width:160px">Chart and full schedule below — review all ages before deciding</p>
     </div>
 
     <!-- Chart -->
@@ -861,10 +871,14 @@
         <p><strong>Table symbols:</strong> ★ = your target retirement age &nbsp;·&nbsp; ⭐ = within the optimal retirement window &nbsp;·&nbsp; ⚠ = salary capped at CalSTRS pensionable limit (benefit calculated on capped amount, not your full salary)</p>
         <p><strong>Flags:</strong> <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#3a5a7c" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg> Pension eligible &nbsp;·&nbsp; <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#2a7a5a" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="4" x2="12" y2="20"/><line x1="4" y1="12" x2="20" y2="12"/></svg> Lifetime health benefit met &nbsp;·&nbsp; <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#1a2e42" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><text x="0" y="17" font-size="7" font-family="sans-serif" font-weight="800" fill="#1a2e42" stroke="none">AGE</text><polyline points="11 3 16 3 16 8"/><line x1="9" y1="9" x2="16" y2="3"/></svg> Age factor at max 2.4% &nbsp;·&nbsp; <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#7a4f10" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a10 10 0 100 20A10 10 0 0012 2z"/><text x="4.5" y="16" font-size="8" font-family="sans-serif" font-weight="800" fill="#7a4f10" stroke="none">Rx</text></svg> Medicare eligible (age 65)</p>
         <p>Sick leave: accumulated unused days ÷ base days = additional service credit. Cannot satisfy minimum eligibility requirements.</p>
+        <p>* Benefit values shown do not include CalSTRS COLA. CalSTRS provides a 2% simple annual COLA on your original benefit — your actual purchasing power will be higher over time.</p>
 
         <p style="color:var(--text2);font-weight:500;line-height:1.6"><strong>Disclaimer:</strong> This calculator is an independent, unofficial educational tool. It is completely unaffiliated with, authorized by, or endorsed by the Los Angeles Unified School District (LAUSD) or the California State Teachers' Retirement System (CalSTRS). All calculations are rough estimates for planning purposes only and are non-binding. This calculator may not capture uncommon situations such as service breaks, part-time service, mid-year retirements, concurrent employment, disability retirement, or other non-standard circumstances that could materially affect your benefit. Pension benefits are strictly governed by California law. Users must verify all official estimates directly through a <a href="http://www.calstrs.com/calculators" target="_blank" rel="noopener" style="color:var(--accent)">myCalSTRS account</a> or by consulting a CalSTRS benefits specialist before making retirement decisions.</p>
       </div>
     </div>
+
+    <!-- Break-even + Lifetime Benefit (rendered by JS) -->
+    <div id="breakEvenSection"></div>
 
     <!-- Beneficiary Options Disclaimer -->
     <div class="beneficiary-box">
@@ -1460,8 +1474,105 @@ html+=`<div class="i-row">
 
   /* ── SICK BOX — now rendered in insight body, skip standalone update ── */
 
-  /* ── CHART ── */
-  document.getElementById('tableFormulaBadge').textContent=formula==='2at62'?'2% at 62':'2% at 60';
+  /* ── BREAK-EVEN + LIFETIME BENEFIT ── */
+  const beEl=document.getElementById('breakEvenSection');
+  if(beEl&&target&&target.pe){
+    const capRow=firstMaxAF||rows.filter(r=>r.pe).slice(-1)[0];
+
+    // Always compare two ages: earlier vs later
+    // If target < cap → compare target (early) vs cap (late)
+    // If target >= cap → compare firstPen (early) vs target (late)
+    let earlyRow, lateRow;
+    if(capRow&&capRow.age>target.age){
+      earlyRow=target; lateRow=capRow;
+    } else if(firstPen&&firstPen.age<target.age){
+      earlyRow=firstPen; lateRow=target;
+    } else {
+      earlyRow=null; lateRow=null;
+    }
+
+    // Format large numbers: $1.2M or $450k
+    const fmtTotal=v=>{
+      if(v>=1000000) return '$'+(v/1000000).toFixed(1)+'M';
+      return '$'+(v/1000).toFixed(0)+'k';
+    };
+
+    let beHtml='<div style="display:flex;flex-direction:column;gap:10px">';
+
+    // ── Break-even ──
+    if(earlyRow&&lateRow){
+      const earlyMonthly=earlyRow.monthly;
+      const lateMonthly=lateRow.monthly;
+      const monthsDiff=Math.round((lateRow.age-earlyRow.age)*12);
+      const foregone=earlyMonthly*monthsDiff;
+      const monthlyDiff=lateMonthly-earlyMonthly;
+      const breakEvenMonths=monthlyDiff>0?Math.round(foregone/monthlyDiff):null;
+      const breakEvenAge=breakEvenMonths?Math.round(lateRow.age+breakEvenMonths/12):null;
+
+      beHtml+=`<div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--r);overflow:hidden">
+        <div style="background:#253447;padding:9px 14px;display:flex;align-items:center;justify-content:space-between">
+          <span style="color:#fff;font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase">Break-Even Analysis</span>
+          <span style="color:rgba(255,255,255,.55);font-size:9px">Retire at age ${earlyRow.age} vs age ${lateRow.age}</span>
+        </div>
+        <div style="padding:13px 16px">
+          <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:12px">
+            <div style="text-align:center;padding:10px 8px;background:var(--surface2);border-radius:var(--rs)">
+              <p style="font-size:9px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--text3);margin-bottom:4px">Retire Age ${earlyRow.age}</p>
+              <p style="font-family:'DM Mono',monospace;font-size:15px;font-weight:700;color:var(--text)">${fmt(earlyMonthly)}/mo</p>
+            </div>
+            <div style="text-align:center;padding:10px 8px;background:var(--surface2);border-radius:var(--rs)">
+              <p style="font-size:9px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--text3);margin-bottom:4px">Retire Age ${lateRow.age}</p>
+              <p style="font-family:'DM Mono',monospace;font-size:15px;font-weight:700;color:var(--text)">${fmt(lateMonthly)}/mo</p>
+              <p style="font-size:9px;color:var(--text3)">+${fmt(monthlyDiff)}/mo more</p>
+            </div>
+            <div style="text-align:center;padding:10px 8px;background:#eaf2fb;border:1px solid #c0d4ec;border-radius:var(--rs)">
+              <p style="font-size:9px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--text3);margin-bottom:4px">Break-Even Age</p>
+              <p style="font-family:'DM Mono',monospace;font-size:15px;font-weight:700;color:#2d6da3">${breakEvenAge||'N/A'}</p>
+            </div>
+          </div>
+          <p style="font-size:11.5px;color:var(--text2);line-height:1.65">You can retire as early as age ${earlyRow.age} at ${fmt(earlyMonthly)}/mo, or work until age ${lateRow.age} and earn ${fmt(lateMonthly)}/mo — <strong>${fmt(monthlyDiff)}/mo more, for life.</strong></p>
+          <p style="font-size:11.5px;color:var(--text2);line-height:1.65;margin-top:7px">The question is: is the extra ${fmt(monthlyDiff)}/mo worth ${lateRow.age-earlyRow.age} more year${lateRow.age-earlyRow.age===1?'':'s'} of work? By staying until ${lateRow.age}, you pass on <strong>${fmtTotal(foregone)}</strong> in pension you could have already been collecting. The extra monthly income pays that back by age <strong>${breakEvenAge||'N/A'}</strong>. From that point forward, the person who waited is ahead.</p>
+          <p style="font-size:11.5px;color:var(--text2);line-height:1.65;margin-top:7px;font-style:italic">The later you retire, the bigger your monthly check — but it takes time to make up for the years you didn't collect.</p>
+        </div>
+      </div>`;
+    }
+
+    // ── Lifetime Benefit Table ──
+    const lifeAges=[75,80,85,90];
+    const eligPe2=rows.filter(r=>r.pe&&r.monthly>0);
+    // Sample a few ages to compare: firstPen, target, capRow
+    const compareAges=[...new Set([firstPen?.age,target.age,capRow?.age].filter(Boolean))].sort((a,b)=>a-b);
+    if(compareAges.length>=2){
+      const headerCols=compareAges.map(a=>`<th style="padding:6px 12px;text-align:right;font-size:9px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--text3)">Retire ${a}</th>`).join('');
+      const tableRows=lifeAges.map(lifeAge=>{
+        const cols=compareAges.map(retireAge=>{
+          const row=eligPe2.find(r=>r.age===retireAge);
+          if(!row) return `<td style="padding:7px 12px;text-align:right;font-family:'DM Mono',monospace;font-size:12px;color:var(--text3)">—</td>`;
+          const yrs=Math.max(0,lifeAge-retireAge);
+          const total=row.monthly*12*yrs;
+          const isTarget=retireAge===target.age;
+          return `<td style="padding:7px 12px;text-align:right;font-family:'DM Mono',monospace;font-size:12px;font-weight:${isTarget?'700':'400'};color:${isTarget?'#2d6da3':'var(--text)'}">${ yrs<=0?'—':fmtTotal(total)}</td>`;
+        }).join('');
+        return `<tr style="border-top:1px solid var(--border)"><td style="padding:7px 12px;font-size:12px;font-weight:600;color:var(--text2)">Live to ${lifeAge}</td>${cols}</tr>`;
+      }).join('');
+      beHtml+=`<div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--r);overflow:hidden">
+        <div style="background:#253447;padding:9px 14px;display:flex;align-items:center;justify-content:space-between">
+          <span style="color:#fff;font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase">Lifetime Benefit (Total Collected)</span>
+          <span style="color:rgba(255,255,255,.55);font-size:9px">Before COLA · Member-Only</span>
+        </div>
+        <table style="width:100%;border-collapse:collapse;font-size:12px">
+          <thead><tr style="background:var(--surface2)"><th style="padding:6px 12px;text-align:left;font-size:9px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--text3)">If you live to…</th>${headerCols}</tr></thead>
+          <tbody>${tableRows}</tbody>
+        </table>
+        <p style="font-size:9.5px;color:var(--text3);padding:7px 12px;border-top:1px solid var(--border)">Values shown are cumulative pension collected (monthly × 12 × years). <strong style="color:#2d6da3">Blue = your target age.</strong> Does not include COLA (actual totals will be higher).</p>
+      </div>`;
+    }
+
+    beHtml+='</div>';
+    beEl.innerHTML=beHtml;
+  } else if(beEl){
+    beEl.innerHTML='';
+  }
   const eligRows=rows.filter(r=>r.pe&&r.monthly!==null);
   const labels=eligRows.map(r=>r.age);
   const data=chartView==='monthly'?eligRows.map(r=>Math.round(r.monthly))
