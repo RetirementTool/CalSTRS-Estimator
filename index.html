@@ -906,7 +906,7 @@
           The reduction is calculated using an <em>option factor</em> based on your age, your beneficiary's age, and the option you elect. If your beneficiary predeceases you, your benefit rises back to the full Member-Only amount. This election is <strong>irrevocable</strong> 30 days after your first payment is issued. → <a href="https://www.calstrs.com/electing-an-option" target="_blank" rel="noopener">Learn more about beneficiary options at CalSTRS.com</a> · <a href="https://resources.calstrs.com/CalSTRSComResourcesWebUI_START/Calculators/Pages/RetirementBenefit.aspx" target="_blank" rel="noopener">Official CalSTRS Retirement Benefit Calculator</a>
         </div>
         <div style="margin-top:10px;padding:9px 13px;background:#f0f6ff;border:1px solid #c0d4ec;border-radius:var(--rs);display:flex;align-items:center;gap:10px">
-          <span style="font-size:16px">🔜</span>
+          <span style="flex-shrink:0;width:22px;height:22px;display:inline-flex;align-items:center;justify-content:center"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#2d6da3" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 8 16 12 12 16"/><line x1="8" y1="12" x2="16" y2="12"/></svg></span>
           <p style="font-size:11.5px;color:#1a3d5c;line-height:1.5"><strong>Coming soon:</strong> A built-in beneficiary option calculator will let you enter your beneficiary's age and instantly see how each option (100%/75%/50%) would reduce your monthly benefit — so you can compare the tradeoffs before making this irrevocable decision.</p>
         </div>
       </div>
@@ -1382,7 +1382,7 @@ function update(){
     html+=`<div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--rs);overflow:hidden;box-shadow:0 2px 4px rgba(0,0,0,.05)">
       <div style="padding:9px 13px;border-bottom:1px solid var(--border);background:var(--surface2);display:flex;align-items:center;justify-content:space-between">
         <span style="font-size:9px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--text2)">Salary Replacement Milestones</span>
-        <span style="font-size:9px;color:var(--text3)">based on ${fmt(inp.salary)}/yr current salary</span>
+        <span style="font-size:9px;color:var(--text3)">% of projected salary at each retirement age</span>
       </div>
       <table style="width:100%;border-collapse:collapse;font-size:12px">
         <thead><tr style="background:var(--surface2)">
@@ -1474,105 +1474,11 @@ html+=`<div class="i-row">
 
   /* ── SICK BOX — now rendered in insight body, skip standalone update ── */
 
+
   /* ── BREAK-EVEN + LIFETIME BENEFIT ── */
-  const beEl=document.getElementById('breakEvenSection');
-  if(beEl&&target&&target.pe){
-    const capRow=firstMaxAF||rows.filter(r=>r.pe).slice(-1)[0];
+  renderBreakEven(rows, target, firstPen, firstMaxAF);
 
-    // Always compare two ages: earlier vs later
-    // If target < cap → compare target (early) vs cap (late)
-    // If target >= cap → compare firstPen (early) vs target (late)
-    let earlyRow, lateRow;
-    if(capRow&&capRow.age>target.age){
-      earlyRow=target; lateRow=capRow;
-    } else if(firstPen&&firstPen.age<target.age){
-      earlyRow=firstPen; lateRow=target;
-    } else {
-      earlyRow=null; lateRow=null;
-    }
 
-    // Format large numbers: $1.2M or $450k
-    const fmtTotal=v=>{
-      if(v>=1000000) return '$'+(v/1000000).toFixed(1)+'M';
-      return '$'+(v/1000).toFixed(0)+'k';
-    };
-
-    let beHtml='<div style="display:flex;flex-direction:column;gap:10px">';
-
-    // ── Break-even ──
-    if(earlyRow&&lateRow){
-      const earlyMonthly=earlyRow.monthly;
-      const lateMonthly=lateRow.monthly;
-      const monthsDiff=Math.round((lateRow.age-earlyRow.age)*12);
-      const foregone=earlyMonthly*monthsDiff;
-      const monthlyDiff=lateMonthly-earlyMonthly;
-      const breakEvenMonths=monthlyDiff>0?Math.round(foregone/monthlyDiff):null;
-      const breakEvenAge=breakEvenMonths?Math.round(lateRow.age+breakEvenMonths/12):null;
-
-      beHtml+=`<div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--r);overflow:hidden">
-        <div style="background:#253447;padding:9px 14px;display:flex;align-items:center;justify-content:space-between">
-          <span style="color:#fff;font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase">Break-Even Analysis</span>
-          <span style="color:rgba(255,255,255,.55);font-size:9px">Retire at age ${earlyRow.age} vs age ${lateRow.age}</span>
-        </div>
-        <div style="padding:13px 16px">
-          <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:12px">
-            <div style="text-align:center;padding:10px 8px;background:var(--surface2);border-radius:var(--rs)">
-              <p style="font-size:9px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--text3);margin-bottom:4px">Retire Age ${earlyRow.age}</p>
-              <p style="font-family:'DM Mono',monospace;font-size:15px;font-weight:700;color:var(--text)">${fmt(earlyMonthly)}/mo</p>
-            </div>
-            <div style="text-align:center;padding:10px 8px;background:var(--surface2);border-radius:var(--rs)">
-              <p style="font-size:9px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--text3);margin-bottom:4px">Retire Age ${lateRow.age}</p>
-              <p style="font-family:'DM Mono',monospace;font-size:15px;font-weight:700;color:var(--text)">${fmt(lateMonthly)}/mo</p>
-              <p style="font-size:9px;color:var(--text3)">+${fmt(monthlyDiff)}/mo more</p>
-            </div>
-            <div style="text-align:center;padding:10px 8px;background:#eaf2fb;border:1px solid #c0d4ec;border-radius:var(--rs)">
-              <p style="font-size:9px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--text3);margin-bottom:4px">Break-Even Age</p>
-              <p style="font-family:'DM Mono',monospace;font-size:15px;font-weight:700;color:#2d6da3">${breakEvenAge||'N/A'}</p>
-            </div>
-          </div>
-          <p style="font-size:11.5px;color:var(--text2);line-height:1.65">You can retire as early as age ${earlyRow.age} at ${fmt(earlyMonthly)}/mo, or work until age ${lateRow.age} and earn ${fmt(lateMonthly)}/mo — <strong>${fmt(monthlyDiff)}/mo more, for life.</strong></p>
-          <p style="font-size:11.5px;color:var(--text2);line-height:1.65;margin-top:7px">The question is: is the extra ${fmt(monthlyDiff)}/mo worth ${lateRow.age-earlyRow.age} more year${lateRow.age-earlyRow.age===1?'':'s'} of work? By staying until ${lateRow.age}, you pass on <strong>${fmtTotal(foregone)}</strong> in pension you could have already been collecting. The extra monthly income pays that back by age <strong>${breakEvenAge||'N/A'}</strong>. From that point forward, the person who waited is ahead.</p>
-          <p style="font-size:11.5px;color:var(--text2);line-height:1.65;margin-top:7px;font-style:italic">The later you retire, the bigger your monthly check — but it takes time to make up for the years you didn't collect.</p>
-        </div>
-      </div>`;
-    }
-
-    // ── Lifetime Benefit Table ──
-    const lifeAges=[75,80,85,90];
-    const eligPe2=rows.filter(r=>r.pe&&r.monthly>0);
-    // Sample a few ages to compare: firstPen, target, capRow
-    const compareAges=[...new Set([firstPen?.age,target.age,capRow?.age].filter(Boolean))].sort((a,b)=>a-b);
-    if(compareAges.length>=2){
-      const headerCols=compareAges.map(a=>`<th style="padding:6px 12px;text-align:right;font-size:9px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--text3)">Retire ${a}</th>`).join('');
-      const tableRows=lifeAges.map(lifeAge=>{
-        const cols=compareAges.map(retireAge=>{
-          const row=eligPe2.find(r=>r.age===retireAge);
-          if(!row) return `<td style="padding:7px 12px;text-align:right;font-family:'DM Mono',monospace;font-size:12px;color:var(--text3)">—</td>`;
-          const yrs=Math.max(0,lifeAge-retireAge);
-          const total=row.monthly*12*yrs;
-          const isTarget=retireAge===target.age;
-          return `<td style="padding:7px 12px;text-align:right;font-family:'DM Mono',monospace;font-size:12px;font-weight:${isTarget?'700':'400'};color:${isTarget?'#2d6da3':'var(--text)'}">${ yrs<=0?'—':fmtTotal(total)}</td>`;
-        }).join('');
-        return `<tr style="border-top:1px solid var(--border)"><td style="padding:7px 12px;font-size:12px;font-weight:600;color:var(--text2)">Live to ${lifeAge}</td>${cols}</tr>`;
-      }).join('');
-      beHtml+=`<div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--r);overflow:hidden">
-        <div style="background:#253447;padding:9px 14px;display:flex;align-items:center;justify-content:space-between">
-          <span style="color:#fff;font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase">Lifetime Benefit (Total Collected)</span>
-          <span style="color:rgba(255,255,255,.55);font-size:9px">Before COLA · Member-Only</span>
-        </div>
-        <table style="width:100%;border-collapse:collapse;font-size:12px">
-          <thead><tr style="background:var(--surface2)"><th style="padding:6px 12px;text-align:left;font-size:9px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--text3)">If you live to…</th>${headerCols}</tr></thead>
-          <tbody>${tableRows}</tbody>
-        </table>
-        <p style="font-size:9.5px;color:var(--text3);padding:7px 12px;border-top:1px solid var(--border)">Values shown are cumulative pension collected (monthly × 12 × years). <strong style="color:#2d6da3">Blue = your target age.</strong> Does not include COLA (actual totals will be higher).</p>
-      </div>`;
-    }
-
-    beHtml+='</div>';
-    beEl.innerHTML=beHtml;
-  } else if(beEl){
-    beEl.innerHTML='';
-  }
   const eligRows=rows.filter(r=>r.pe&&r.monthly!==null);
   const labels=eligRows.map(r=>r.age);
   const data=chartView==='monthly'?eligRows.map(r=>Math.round(r.monthly))
@@ -1722,6 +1628,12 @@ function resetToDefaults(){
   // Uncheck pre1996
   const p=document.getElementById('pre1996Check');
   if(p) p.checked=false;
+  // Reset break-even dropdowns — will be repopulated by renderBreakEven after update()
+  // Store sentinel values so renderBreakEven ignores prevA/prevB and uses smart defaults
+  const bA=document.getElementById('beAgeA');
+  const bB=document.getElementById('beAgeB');
+  if(bA) bA.value='';
+  if(bB) bB.value='';
   update();
 }
 
@@ -2178,6 +2090,113 @@ function toggleInputs(){
     // Scroll to top when collapsing (Done tapped)
     window.scrollTo({top:0,behavior:'smooth'});
   }
+}
+
+
+function renderBreakEven(rows, target, firstPen, firstMaxAF){
+  var el=document.getElementById('breakEvenSection');
+  if(!el) return;
+  var ep=rows.filter(function(r){return r.pe&&r.monthly>0;});
+  if(!ep.length){el.innerHTML='';return;}
+
+  var fmtM=function(n){return new Intl.NumberFormat('en-US',{style:'currency',currency:'USD',maximumFractionDigits:0}).format(n);};
+  var fmtT=function(v){return v>=1000000?'$'+(v/1000000).toFixed(1)+'M':'$'+(v/1000).toFixed(0)+'k';};
+
+  var pA=parseInt((document.getElementById('beAgeA')||{}).value)||0;
+  var pB=parseInt((document.getElementById('beAgeB')||{}).value)||0;
+  var dA=pA&&ep.find(function(r){return r.age===pA;})?pA:ep[0].age;
+  var has62=ep.find(function(r){return r.age===62;});
+  var dB=pB&&ep.find(function(r){return r.age===pB;})?pB:(has62?62:(target?target.age:ep[Math.min(3,ep.length-1)].age));
+
+  function mkOpts(sel){
+    return ep.map(function(r){
+      return '<option value="'+r.age+'"'+(r.age===sel?' selected':'')+'>'+r.age+'</option>';
+    }).join('');
+  }
+
+  function calcResult(aA,aB){
+    if(aA===aB) return '<p style="padding:12px 16px;font-size:12px;color:#7a8a9a;font-style:italic">Select two different ages to compare.</p>';
+    var eA=Math.min(aA,aB), lA=Math.max(aA,aB);
+    var rE=ep.find(function(r){return r.age===eA;}), rL=ep.find(function(r){return r.age===lA;});
+    if(!rE||!rL) return '';
+    var mE=rE.monthly, mL=rL.monthly, mD=mL-mE;
+    var fg=mE*(lA-eA)*12;
+    var beA=mD>0?Math.round(lA+fg/mD/12):0;
+    var html='<div style="padding:13px 16px">';
+    html+='<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:12px">';
+    html+='<div style="text-align:center;padding:10px 8px;background:var(--surface2);border-radius:var(--rs)"><p style="font-size:9px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--text3);margin-bottom:4px">Retire Age '+eA+'</p><p style="font-size:15px;font-weight:700;color:var(--text)">'+fmtM(mE)+'/mo</p><p style="font-size:9px;color:var(--text3)">'+fmtM(mE*12)+'/yr</p></div>';
+    html+='<div style="text-align:center;padding:10px 8px;background:var(--surface2);border-radius:var(--rs)"><p style="font-size:9px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--text3);margin-bottom:4px">Retire Age '+lA+'</p><p style="font-size:15px;font-weight:700;color:var(--text)">'+fmtM(mL)+'/mo</p><p style="font-size:9px;color:var(--text3)">+'+fmtM(mD)+'/mo more</p></div>';
+    html+='<div style="text-align:center;padding:10px 8px;background:#eaf2fb;border:1px solid #c0d4ec;border-radius:var(--rs)"><p style="font-size:9px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--text3);margin-bottom:4px">Break-Even Age</p><p style="font-size:15px;font-weight:700;color:#2d6da3">'+(beA||'N/A')+'</p></div>';
+    html+='</div>';
+    html+='<p style="font-size:11.5px;color:var(--text2);line-height:1.65">You can retire as early as age '+eA+' at '+fmtM(mE)+'/mo, or work until age '+lA+' and earn '+fmtM(mL)+'/mo &mdash; <strong>'+fmtM(mD)+'/mo more, for life.</strong></p>';
+    html+='<p style="font-size:11.5px;color:var(--text2);line-height:1.65;margin-top:7px">The question is: is the extra '+fmtM(mD)+'/mo worth '+(lA-eA)+' more year'+(lA-eA===1?'':'s')+' of work? By staying until '+lA+', you pass on <strong>'+fmtT(fg)+'</strong> in pension you could have already been collecting. The extra monthly income pays that back by age <strong>'+(beA||'N/A')+'</strong>. From that point forward, the person who waited is ahead.</p>';
+    html+='<p style="font-size:11px;color:var(--text3);line-height:1.5;margin-top:7px;font-style:italic">The later you retire, the bigger your monthly check &mdash; but it takes time to make up for the years you did not collect.</p>';
+    html+='</div>';
+    return html;
+  }
+
+  // Lifetime table
+  var lAges=[75,80,85,90];
+  var cAgesRaw=[firstPen?firstPen.age:null, target?target.age:null, firstMaxAF?firstMaxAF.age:null];
+  var cAges=cAgesRaw.filter(function(a,i,arr){return a!==null&&arr.indexOf(a)===i;}).sort(function(a,b){return a-b;});
+  var ltHTML='';
+  if(cAges.length>=2){
+    var bestA=lAges.map(function(la){
+      var best=null,bT=0;
+      cAges.forEach(function(ra){
+        var rr=ep.find(function(r){return r.age===ra;});
+        if(!rr) return;
+        var t=rr.monthly*12*Math.max(0,la-ra);
+        if(t>bT){bT=t;best=ra;}
+      });
+      return {la:la,best:best};
+    });
+    var notBest=bestA.some(function(b){return b.best!==(target?target.age:null);});
+    var hCols=cAges.map(function(a){return '<th style="padding:6px 12px;text-align:right;font-size:9px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--text3)">Retire '+a+'</th>';}).join('');
+    var tRows=lAges.map(function(la){
+      var best=null;
+      bestA.forEach(function(b){if(b.la===la) best=b.best;});
+      var cols=cAges.map(function(ra){
+        var rr=ep.find(function(r){return r.age===ra;});
+        if(!rr) return '<td style="padding:7px 12px;text-align:right;font-size:12px;color:var(--text3)">&#8212;</td>';
+        var yrs=Math.max(0,la-ra), tot=rr.monthly*12*yrs;
+        var isT=ra===(target?target.age:null), isB=ra===best;
+        return '<td style="padding:7px 12px;text-align:right;font-size:12px;font-weight:'+(isT||isB?'700':'400')+';color:'+(isT?'#2d6da3':isB?'#2a7a5a':'var(--text)')+'">'+( yrs<=0?'&#8212;':fmtT(tot))+(isB&&!isT?' &#10003;':'')+'</td>';
+      }).join('');
+      return '<tr style="border-top:1px solid var(--border)"><td style="padding:7px 12px;font-size:12px;font-weight:600;color:var(--text2)">Live to '+la+'</td>'+cols+'</tr>';
+    }).join('');
+    ltHTML='<div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--r);overflow:hidden;margin-top:10px">'
+      +'<div style="background:#253447;padding:9px 14px;display:flex;align-items:center;justify-content:space-between"><span style="color:#fff;font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase">Lifetime Benefit (Total Collected)</span><span style="color:rgba(255,255,255,.55);font-size:9px">Before COLA &middot; Member-Only</span></div>'
+      +'<table style="width:100%;border-collapse:collapse;font-size:12px"><thead><tr style="background:var(--surface2)"><th style="padding:6px 12px;text-align:left;font-size:9px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--text3)">If you live to&hellip;</th>'+hCols+'</tr></thead><tbody>'+tRows+'</tbody></table>'
+      +'<p style="font-size:9.5px;color:var(--text3);padding:7px 12px;border-top:1px solid var(--border)">Cumulative pension collected. <strong style="color:#2d6da3">Blue = your target.</strong> <strong style="color:#2a7a5a">Green &#10003; = highest total for that life expectancy.</strong> Before COLA.</p>'
+      +(notBest?'<p style="font-size:11px;color:var(--text2);padding:9px 12px;border-top:1px solid var(--border);background:var(--surface2);line-height:1.55">&#128161; <strong>Worth noting:</strong> A higher monthly benefit does not always mean more total pension collected. An earlier retirement date can result in a larger lifetime payout &#8212; even with a lower monthly check. Review the table and consider what fits your situation.</p>':'')
+      +'</div>';
+  }
+
+  el.innerHTML='<div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--r);overflow:hidden">'
+    +'<div style="background:#253447;padding:9px 14px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px">'
+    +'<span style="color:#fff;font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase">Break-Even Analysis</span>'
+    +'<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">'
+    +'<span style="color:rgba(255,255,255,.6);font-size:10px">Compare retiring at</span>'
+    +'<select id="beAgeA" style="padding:4px 8px;border-radius:5px;border:2px solid rgba(255,255,255,.4);background:#fff;color:#1a2332;font-size:12px;font-weight:600;cursor:pointer">'+mkOpts(dA)+'</select>'
+    +'<span style="color:rgba(255,255,255,.6);font-size:10px">vs</span>'
+    +'<select id="beAgeB" style="padding:4px 8px;border-radius:5px;border:2px solid rgba(255,255,255,.4);background:#fff;color:#1a2332;font-size:12px;font-weight:600;cursor:pointer">'+mkOpts(dB)+'</select>'
+    +'</div></div>'
+    +'<div id="beResult">'+calcResult(dA,dB)+'</div>'
+    +'</div>'+ltHTML;
+
+  document.getElementById('beAgeA').addEventListener('change',function(){
+    document.getElementById('beResult').innerHTML=calcResult(
+      parseInt(document.getElementById('beAgeA').value),
+      parseInt(document.getElementById('beAgeB').value)
+    );
+  });
+  document.getElementById('beAgeB').addEventListener('change',function(){
+    document.getElementById('beResult').innerHTML=calcResult(
+      parseInt(document.getElementById('beAgeA').value),
+      parseInt(document.getElementById('beAgeB').value)
+    );
+  });
 }
 
 function initMobile(){
