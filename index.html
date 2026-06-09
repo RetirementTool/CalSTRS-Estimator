@@ -32,7 +32,7 @@
 <meta name="twitter:title" content="CalSTRS Retirement Planning Calculator">
 <meta name="twitter:description" content="Estimate your pension benefit and determine optimal retirement timing.">
 <meta name="twitter:image" content="https://retirementtool.github.io/CalSTRS-Estimator//og-preview.png">
-<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Inter:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
@@ -40,19 +40,20 @@
 <style>
   *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
   :root{
-    --bg:#f5f4f8;--surface:#fff;--surface2:#eeedf4;--border:#dddbe8;
-    --text:#18171f;--text2:#5e5c6e;--text3:#9896a8;
-    --accent:#2d1b69;--accent-light:#ede9fb;--accent-mid:#4a35a0;--accent-text:#160d3a;
-    --header-accent:#1e1245;
-    --teal:#0f766e;--teal-light:#ccfbf1;--teal-mid:#134e4a;
-    --green:#1a5c38;--green-light:#dcfce7;--green-text:#14532d;
-    --coral:#be3a2f;--coral-light:#fee2e2;
-    --slate:#334155;--slate-light:#f1f5f9;
-    --window:#0369a1;--window-light:#f0f9ff;--window-border:#7dd3fc;
+    /* F4-B: Charcoal & Slate */
+    --bg:#f7f8f9;--surface:#ffffff;--surface2:#f0f2f4;--border:#d8dce2;
+    --text:#1a2332;--text2:#3d4e63;--text3:#7a8a9a;
+    --accent:#253447;--accent-light:#e8ecf2;--accent-mid:#3a5a7c;--accent-text:#0e1824;
+    --header-accent:#1a2332;
+    --teal:#3a5a7c;--teal-light:#e8ecf2;--teal-mid:#253447;
+    --green:#3a6b52;--green-light:#e6f0eb;--green-text:#1f4a36;
+    --coral:#8b4a3a;--coral-light:#f4e8e5;
+    --slate:#3d4e63;--slate-light:#f0f2f4;
+    --window:#3a5a7c;--window-light:#edf1f6;--window-border:#b0bfcc;
     --r:12px;--rs:8px;
   }
   html{overflow-x:hidden;width:100%}
-  body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;text-rendering:optimizeLegibility;overflow-x:hidden;width:100%}
+  body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;text-rendering:optimizeLegibility;overflow-x:hidden;width:100%}
 
   /* HEADER — sticky */
   .header{background:var(--header-accent);border-bottom:3px solid var(--teal);position:sticky;top:0;z-index:100;width:100%;left:0;box-sizing:border-box;padding-left:env(safe-area-inset-left);padding-right:env(safe-area-inset-right)}
@@ -60,9 +61,9 @@
   .header-logo-band{background:var(--teal);display:flex;align-items:center;justify-content:center;padding:0 22px;min-width:88px;flex-shrink:0}
   .header-logo-text{font-size:11px;font-weight:700;color:#fff;letter-spacing:0.04em;line-height:1.25;text-align:center;text-transform:uppercase}
   .header-content{padding:16px 28px;flex:1}
-  .header-eyebrow{color:rgba(255,255,255,.6);font-size:9.5px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;margin-bottom:3px}
-  .header-title{color:#fff;font-size:24px;font-weight:600;letter-spacing:-.02em;line-height:1.1}
-  .header-subtitle{color:rgba(255,255,255,.55);font-size:11px;margin-top:3px;line-height:1.5}
+  .header-eyebrow{color:rgba(255,255,255,.45);font-size:9.5px;font-weight:500;letter-spacing:.12em;text-transform:uppercase;margin-bottom:4px}
+  .header-title{color:#fff;font-family:'Cormorant Garamond',Georgia,serif;font-size:28px;font-weight:600;letter-spacing:.02em;line-height:1.1}
+  .header-subtitle{color:rgba(255,255,255,.5);font-size:11px;margin-top:4px;line-height:1.5}
   .header-right{padding:12px 18px 12px 8px;display:flex;flex-direction:column;justify-content:center;gap:3px;text-align:right;min-width:0}
   .header-disclaimer{color:rgba(255,255,255,.7);font-size:10px;line-height:1.45;max-width:230px;text-align:right;font-weight:400}
   .header-notaffiliated{color:#fff;font-size:10px;font-weight:700;letter-spacing:.03em;text-transform:uppercase}
@@ -83,9 +84,9 @@
   .field{margin-bottom:13px}
   .field:last-child{margin-bottom:0}
   .field label{display:block;font-size:11px;font-weight:600;color:var(--text2);margin-bottom:4px;letter-spacing:.01em}
-  .field input[type="date"],.field input[type="number"],.field select{width:100%;padding:7px 10px;border:1px solid var(--border);border-radius:var(--rs);background:var(--bg);font-family:'DM Mono',monospace;font-size:13px;color:var(--text);transition:border-color .15s;outline:none}
+  .field input[type="date"],.field input[type="number"],.field select{width:100%;padding:8px 11px;border:1px solid var(--border);border-radius:var(--rs);background:var(--bg);font-family:'Inter',system-ui,sans-serif;font-size:13.5px;color:var(--text);transition:border-color .15s;outline:none}
   .field input:focus,.field select:focus{border-color:var(--accent);background:#fff}
-  .field select{font-family:'DM Sans',sans-serif;font-size:12.5px;cursor:pointer;appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='11' height='7' viewBox='0 0 11 7'%3E%3Cpath d='M1 1l4.5 4.5L10 1' stroke='%236b6a62' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 10px center;padding-right:28px}
+  .field select{font-family:'Inter',system-ui,sans-serif;font-size:12.5px;cursor:pointer;appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='11' height='7' viewBox='0 0 11 7'%3E%3Cpath d='M1 1l4.5 4.5L10 1' stroke='%236b6a62' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 10px center;padding-right:28px}
   .field-hint{font-size:10px;color:var(--text3);margin-top:3px;line-height:1.4}
   .divider{height:1px;background:var(--border);margin:12px 0}
   .sec-label{font-size:9.5px;font-weight:700;letter-spacing:.11em;text-transform:uppercase;color:var(--text3);margin:0 0 9px;padding-bottom:6px;border-bottom:1px solid var(--border)}
@@ -95,7 +96,7 @@
   .sfx{padding:7px 10px 7px 3px;font-size:12.5px;color:var(--text3);font-family:'DM Mono',monospace;user-select:none}
   .pfx-wrap input{border:none!important;background:transparent!important;flex:1;padding:7px 3px;outline:none;font-family:'DM Mono',monospace;font-size:13px;color:var(--text)}
   .toggle-group{display:flex;border:1px solid var(--border);border-radius:var(--rs);overflow:hidden}
-  .toggle-group button{flex:1;padding:7px 8px;border:none;background:var(--bg);font-family:'DM Sans',sans-serif;font-size:12px;font-weight:500;color:var(--text2);cursor:pointer;transition:all .15s}
+  .toggle-group button{flex:1;padding:7px 8px;border:none;background:var(--bg);font-family:'Inter',system-ui,sans-serif;font-size:12px;font-weight:500;color:var(--text2);cursor:pointer;transition:all .15s}
   .toggle-group button.active{background:var(--accent);color:#fff}
   .toggle-group button:not(:last-child){border-right:1px solid var(--border)}
 
@@ -104,25 +105,25 @@
   .result-hero{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:20px 24px;position:relative;overflow:hidden}
   .result-hero::before{content:'';position:absolute;top:0;left:0;width:4px;height:100%;background:var(--teal)}
   .hero-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:18px}
-  .m-label{font-size:9.5px;font-weight:700;letter-spacing:.09em;text-transform:uppercase;color:var(--text3);margin-bottom:4px}
+  .m-label{font-size:11px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;color:var(--text2);margin-bottom:4px}
   .m-val{font-family:'DM Mono',monospace;font-size:23px;font-weight:500;color:var(--text);letter-spacing:-.02em;line-height:1}
-  .m-val.blue{color:var(--teal)}.m-val.gold{color:var(--accent)}
+  .m-val.blue{color:#2d6da3}.m-val.gold{color:var(--accent)}
   .m-sub{font-size:10px;color:var(--text3);margin-top:3px;font-family:'DM Mono',monospace}
-  .hero-note{font-size:11px;color:var(--text2);margin-top:12px;padding:8px 11px;background:var(--teal-light);border-radius:var(--rs);border-left:3px solid var(--teal);line-height:1.55;color:var(--teal-mid)}
+  .hero-note{font-size:11px;margin-top:12px;padding:8px 11px;background:#eaf2fb;border-radius:var(--rs);border-left:3px solid #2d6da3;line-height:1.55;color:#1a3d5c}
 
   /* ── INSIGHTS ── */
-  .insight-box{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);overflow:hidden}
+  .insight-box{background:var(--surface);border:1px solid #b8d4ea;border-radius:var(--r);overflow:hidden}
   .insight-header{background:var(--accent);padding:10px 16px;display:flex;align-items:center;justify-content:space-between}
   .insight-header h3{color:#fff;font-size:10.5px;font-weight:700;letter-spacing:.08em;text-transform:uppercase}
   .insight-header span{color:rgba(255,255,255,.6);font-size:9.5px;font-weight:600;letter-spacing:.06em;text-transform:uppercase}
-  .insight-body{padding:12px 14px;display:flex;flex-direction:column;gap:9px}
+  .insight-body{padding:12px 14px;display:flex;flex-direction:column;gap:8px;background:#e8f2fb}
 
   /* Standard insight row — uniform gray */
-  .i-row{display:flex;align-items:flex-start;gap:11px;padding:10px 12px;background:var(--surface2);border:1px solid var(--border);border-radius:var(--rs)}
-  .i-icon{font-size:17px;line-height:1;flex-shrink:0;margin-top:1px}
-  .i-label{font-size:9.5px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--text3);margin-bottom:2px}
-  .i-val{font-family:'DM Mono',monospace;font-size:15px;font-weight:500;color:var(--text);line-height:1.15}
-  .i-desc{font-size:11px;color:var(--text2);margin-top:3px;line-height:1.45}
+  .i-row{display:flex;align-items:flex-start;gap:12px;padding:12px 14px;background:var(--surface);border:1px solid var(--border);border-radius:var(--rs);box-shadow:0 2px 4px rgba(0,0,0,.05)}
+  .i-icon{font-size:18px;line-height:1;flex-shrink:0;margin-top:2px;width:22px;height:22px;display:flex;align-items:flex-start;justify-content:center}
+  .i-label{font-size:9px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--text3);margin-bottom:3px}
+  .i-val{font-family:'DM Mono',monospace;font-size:15px;font-weight:600;color:var(--text);line-height:1.2}
+  .i-desc{font-size:11.5px;color:var(--text2);margin-top:4px;line-height:1.5}
 
   /* ── IDEAL WINDOW — stands out ── */
   .ideal-window{
@@ -155,12 +156,12 @@
   .iw-age-val{font-family:'DM Mono',monospace;font-size:22px;font-weight:600;color:var(--window);line-height:1}
   .iw-age-sub{font-size:9.5px;color:var(--teal);margin-top:2px;font-family:'DM Mono',monospace;opacity:.8}
   .iw-arrow{font-size:18px;color:var(--window-border);flex-shrink:0}
-  .iw-desc{font-size:11.5px;color:#3b1e6b;line-height:1.55}
+  .iw-desc{font-size:11.5px;color:var(--text2);line-height:1.55}
   .iw-desc strong{color:var(--window)}
   .iw-target-note{margin-top:9px;padding:7px 10px;border-radius:6px;font-size:11px;font-weight:500;line-height:1.4}
   .iw-target-note.on-target{background:#ede9fb;color:var(--window);border:1px solid var(--window-border)}
   .iw-target-note.before-window{background:var(--coral-light);color:var(--coral);border:1px solid #fca5a5}
-  .iw-target-note.in-window{background:var(--green-light);color:var(--green);border:1px solid #86efac}
+  .iw-target-note.in-window{background:#edf2f7;color:#1a3d5c;border:1px solid #b8ccd9}
   .iw-target-note.after-window{background:var(--surface2);color:var(--text2);border:1px solid var(--border)}
 
   /* MILESTONES — all same neutral gray */
@@ -203,7 +204,7 @@
   .pf-blue{background:var(--teal)}.pf-green{background:var(--green)}
 
   /* SICK BOX */
-  .sick-box{background:var(--teal-light);border:1px solid #99f6e4;border-radius:var(--rs);padding:10px 13px;font-size:11px;color:var(--teal-mid);line-height:1.6;font-family:'DM Sans',sans-serif}
+  .sick-box{background:var(--teal-light);border:1px solid #99f6e4;border-radius:var(--rs);padding:10px 13px;font-size:11px;color:var(--teal-mid);line-height:1.6;font-family:'Inter',system-ui,sans-serif}
   .sick-box strong{color:var(--teal);font-weight:700}
   .sick-box .sick-total{font-family:'DM Mono',monospace;font-size:12px;font-weight:700;color:var(--text);display:inline}
 
@@ -226,17 +227,17 @@
   .table-header h3{font-size:10.5px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--text2)}
   .table-header-badges{display:flex;gap:5px;align-items:center}
   .table-wrap table{width:100%;border-collapse:collapse}
-  .table-wrap th{padding:7px 10px;background:var(--surface2);color:var(--text3);font-size:9px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;text-align:right;border-bottom:1px solid var(--border);white-space:nowrap}
+  .table-wrap th{padding:5px 7px;background:var(--surface2);color:var(--text3);font-size:8.5px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;text-align:right;border-bottom:1px solid var(--border);white-space:nowrap}
   .table-wrap th:first-child{text-align:center}
-  .table-wrap td{padding:6px 10px;border-bottom:1px solid var(--border);text-align:right;font-family:'DM Mono',monospace;font-size:11px;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:120px}
+  .table-wrap td{padding:5px 7px;border-bottom:1px solid var(--border);text-align:right;font-family:'DM Mono',monospace;font-size:10.5px;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:110px}
   .table-wrap td:first-child{text-align:center;font-weight:700;font-size:11.5px}
   .table-wrap tr:last-child td{border-bottom:none}
-  .row-target td{background:#f0f9ff}
-  .row-target td:first-child{color:#0369a1}
-  .row-window td{background:#f0f9ff;border-bottom-color:#bae6fd}
-  .row-window td:first-child{color:#0369a1}
-  .row-window-end td{background:#e0f2fe;border-bottom-color:#7dd3fc}
-  .row-window-end td:first-child{color:#0369a1}
+  .row-target td{background:#e8f2fb}
+  .row-target td:first-child{color:#2d6da3}
+  .row-window td{background:#edf2f7;border-bottom-color:#b8ccd9}
+  .row-window td:first-child{color:#3a5a7c}
+  .row-window-end td{background:#dce8f2;border-bottom-color:#a0bcd4}
+  .row-window-end td:first-child{color:#3a5a7c}
   .row-ineligible td{color:var(--text3);background:var(--bg);font-style:italic}
   .row-ineligible td:first-child{font-style:normal}
 
@@ -244,7 +245,7 @@
   .bg-green{background:var(--green-light);color:var(--green-text)}.bg-gold2{background:#fff7ed;color:#9a3412}
   .bg-danger{background:var(--coral-light);color:#9f1239}.bg-gray{background:var(--surface2);color:var(--text3);border:1px solid var(--border)}
   .bg-blue{background:var(--teal-light);color:var(--teal-mid)}.bg-district{background:#e0f2fe;color:#0369a1;border:1px solid #7dd3fc}
-  .bg-window{background:#e0f2fe;color:#0369a1;border:1px solid #7dd3fc}
+  .bg-window{background:#dce8f2;color:#3a5a7c;border:1px solid #a0bcd4}
 
   .footnotes{padding:10px 16px;border-top:1px solid var(--border);background:var(--surface2)}
   .footnotes p{font-size:10px;color:var(--text3);line-height:1.6;margin-bottom:2px}
@@ -285,10 +286,10 @@
       box-shadow:0 2px 8px rgba(15,118,110,.25);
     }
     .inputs-toggle-label{
-      color:#fff;font-size:13px;font-weight:700;letter-spacing:.04em;pointer-events:none;
+      color:#fff;font-size:14px;font-weight:700;letter-spacing:.02em;pointer-events:none;
       display:flex;align-items:center;gap:8px;
     }
-    .inputs-toggle-label::before{content:"📋";font-size:15px}
+    .inputs-toggle-label::before{content:"📋";font-size:16px}
     .inputs-toggle-chevron{
       color:rgba(255,255,255,.9);font-size:15px;transition:transform .25s;
       line-height:1;pointer-events:none;
@@ -302,7 +303,7 @@
     .inputs-panel-body .panel{border-radius:0 0 var(--r) var(--r);margin-bottom:0;border-top:none;width:100%;box-sizing:border-box}
 
     /* Done button */
-    .inputs-done-btn{display:block;width:100%;padding:14px;background:var(--teal);color:#fff;border:none;font-family:"DM Sans",sans-serif;font-size:14px;font-weight:700;cursor:pointer;letter-spacing:.02em;-webkit-tap-highlight-color:transparent}
+    .inputs-done-btn{display:block;width:100%;padding:14px;background:var(--teal);color:#fff;border:none;font-family:"Inter",system-ui,sans-serif;font-size:14px;font-weight:700;cursor:pointer;letter-spacing:.02em;-webkit-tap-highlight-color:transparent}
     .inputs-done-btn:active{background:var(--teal-mid)}
 
     /* Results panels: full width */
@@ -444,13 +445,36 @@
     .table-wrap table{min-width:400px}
   }
 
+  /* Fix date input overflow on mobile — constrain width */
+  @media(max-width:700px){
+    .field input[type="date"]{
+      width:100%;max-width:100%;box-sizing:border-box;
+      font-size:13px;
+      /* iOS Safari renders date inputs wider than container by default */
+      -webkit-appearance:none;appearance:none;
+    }
+  }
+
+  /* Landscape phone — hide inputs toggle, show results full width */
+  @media(max-height:500px) and (orientation:landscape){
+    .inputs-toggle{display:none!important}
+    .inputs-panel-body{display:none!important}
+    .main{grid-template-columns:1fr;padding:6px 10px 20px}
+    .header{position:relative} /* unstick in landscape to save screen height */
+    .header-inner{flex-direction:row}
+    .header-content{padding:8px 14px}
+    .header-title{font-size:14px}
+    .header-subtitle{display:none}
+    .header-right{display:none}
+  }
+
   /* PDF button */
-  .pdf-btn-wrap{display:flex;justify-content:space-between;align-items:center;margin-bottom:2px;gap:12px}
+  .pdf-btn-wrap{display:flex;justify-content:space-between;align-items:center;margin-bottom:0;gap:12px;padding:4px 0}
   .pdf-disclaimer{font-size:11px;color:var(--text2);font-style:italic;line-height:1.4;flex:1}
   .pdf-btn{
     display:inline-flex;align-items:center;gap:7px;
     padding:9px 18px;background:var(--accent);color:#fff;
-    border:none;border-radius:var(--rs);font-family:'DM Sans',sans-serif;
+    border:none;border-radius:var(--rs);font-family:'Inter',system-ui,sans-serif;
     font-size:12px;font-weight:600;letter-spacing:.03em;cursor:pointer;
     transition:background .15s,transform .1s;
     -webkit-tap-highlight-color:transparent;
@@ -461,17 +485,22 @@
   .pdf-btn.loading{opacity:.7;cursor:not-allowed;pointer-events:none}
   /* Final comp override panel */
   .comp-override-panel{
-    background:var(--teal-light);border:1px solid #99f6e4;border-radius:var(--rs);
+    background:var(--surface);border:1px solid var(--border);border-radius:var(--rs);
     padding:11px 13px;margin-top:10px;
   }
   .comp-override-panel.hidden{display:none}
   .comp-override-rule{
-    font-size:10px;color:var(--teal-mid);line-height:1.5;
-    background:rgba(15,118,110,.08);border-radius:5px;padding:7px 9px;margin-bottom:10px;
+    font-size:11px;color:var(--text2);line-height:1.6;
+    background:var(--surface);border-radius:var(--rs);border:1px solid var(--border);
+    padding:9px 12px;margin-bottom:10px;
   }
-  .comp-override-rule strong{color:var(--teal)}
+  .comp-override-rule p{margin-bottom:6px;font-weight:500;color:var(--text)}
+  .comp-override-rule ul{list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:4px}
+  .comp-override-rule ul li{padding-left:14px;position:relative;color:var(--text2)}
+  .comp-override-rule ul li::before{content:'·';position:absolute;left:0;color:var(--text3);font-weight:700}
+  .comp-override-rule strong{color:var(--text);font-weight:600}
   .comp-mode-toggle{display:flex;border:1px solid var(--border);border-radius:var(--rs);overflow:hidden;margin-bottom:10px}
-  .comp-mode-toggle button{flex:1;padding:7px 8px;border:none;background:var(--bg);font-family:'DM Sans',sans-serif;font-size:11.5px;font-weight:500;color:var(--text2);cursor:pointer;transition:all .15s}
+  .comp-mode-toggle button{flex:1;padding:7px 8px;border:none;background:var(--bg);font-family:'Inter',system-ui,sans-serif;font-size:11.5px;font-weight:500;color:var(--text2);cursor:pointer;transition:all .15s}
   .comp-mode-toggle button.active{background:var(--teal);color:#fff}
   .comp-mode-toggle button:not(:last-child){border-right:1px solid var(--border)}
 
@@ -517,7 +546,7 @@
   .contact-field label{display:block;font-size:11px;font-weight:600;color:var(--text2);margin-bottom:5px;letter-spacing:.01em}
   .contact-field input,.contact-field textarea,.contact-field select{
     width:100%;padding:9px 12px;border:1px solid var(--border);border-radius:var(--rs);
-    background:var(--bg);font-family:'DM Sans',sans-serif;font-size:13px;color:var(--text);
+    background:var(--bg);font-family:'Inter',system-ui,sans-serif;font-size:13px;color:var(--text);
     outline:none;transition:border-color .15s;resize:vertical;
   }
   .contact-field input:focus,.contact-field textarea:focus,.contact-field select:focus{
@@ -529,7 +558,7 @@
   .contact-submit-btn{
     display:inline-flex;align-items:center;gap:7px;padding:10px 22px;
     background:var(--teal);color:#fff;border:none;border-radius:var(--rs);
-    font-family:'DM Sans',sans-serif;font-size:13px;font-weight:600;cursor:pointer;
+    font-family:'Inter',system-ui,sans-serif;font-size:13px;font-weight:600;cursor:pointer;
     transition:background .15s,transform .1s;letter-spacing:.01em;
   }
   .contact-submit-btn:hover{background:var(--teal-mid)}
@@ -552,25 +581,25 @@
   .age-slider-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:14px 20px 16px}
   .age-slider-label-row{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:8px}
   .age-slider-title{font-size:12px;font-weight:500;letter-spacing:.04em;text-transform:uppercase;color:var(--text2)}
-  .age-slider-val{font-family:'DM Mono',monospace;font-size:28px;font-weight:700;color:#0ea5e9;line-height:1}
+  .age-slider-val{font-family:'DM Mono',monospace;font-size:28px;font-weight:700;color:#2d6da3;line-height:1}
   .age-slider-val-sub{font-size:12px;font-weight:500;color:var(--text3);margin-left:4px}
   .age-slider-range-row{display:flex;align-items:center;gap:10px}
-  .age-slider-min,.age-slider-max{font-family:'DM Mono',monospace;font-size:11px;color:var(--text3);white-space:nowrap}
+  .age-slider-min,.age-slider-max{font-family:'DM Mono',monospace;font-size:14px;font-weight:600;color:var(--text2);white-space:nowrap}
   input[type=range]#ageSlider{
     flex:1;height:6px;border-radius:3px;appearance:none;-webkit-appearance:none;
-    background:linear-gradient(to right,#0ea5e9 0%,#0ea5e9 50%,var(--border) 50%,var(--border) 100%);
+    background:linear-gradient(to right,#2d6da3 0%,#2d6da3 24%,#c8d4df 24%,#c8d4df 100%);
     outline:none;cursor:pointer;transition:background .1s;
   }
   input[type=range]#ageSlider::-webkit-slider-thumb{
     -webkit-appearance:none;width:22px;height:22px;border-radius:50%;
-    background:#0ea5e9;cursor:pointer;border:3px solid #fff;
-    box-shadow:0 1px 5px rgba(0,0,0,.25);
+    background:#2d6da3;cursor:pointer;border:3px solid #fff;
+    box-shadow:0 2px 6px rgba(45,109,163,.4);
   }
   input[type=range]#ageSlider::-moz-range-thumb{
     width:22px;height:22px;border-radius:50%;
-    background:#0ea5e9;cursor:pointer;border:3px solid #fff;
+    background:#2d6da3;cursor:pointer;border:3px solid #fff;
   }
-  .age-slider-hint{font-size:10px;color:var(--text3);margin-top:8px;line-height:1.4;text-align:center}
+  .age-slider-hint{font-size:11px;color:var(--text2);font-weight:500;margin-top:8px;line-height:1.4;text-align:center;font-style:italic}
   @media(max-width:700px){
     .age-slider-card{padding:10px 12px 12px}
     .age-slider-val{font-size:22px}
@@ -602,7 +631,7 @@
     </button>
     <div class="inputs-panel-body" id="inputsPanelBody">
     <div class="panel">
-      <div class="panel-header" style="padding:13px 16px"><h2 style="font-size:13px;letter-spacing:.04em;color:var(--text)">Your Profile</h2><span style="font-size:11.5px;color:var(--text);font-weight:700;margin-left:8px">— enter your information below to get started</span></div>
+      <div class="panel-header" style="padding:13px 16px;display:block"><div style="display:flex;align-items:center;gap:8px;margin-bottom:4px"><span style="background:#2d6da3;color:#fff;font-size:13px;font-weight:700;letter-spacing:.02em;padding:3px 10px;border-radius:4px;text-transform:uppercase">STEP 1</span><h2 style="font-size:13px;letter-spacing:.04em;color:var(--text)">Your Profile</h2></div><p style="font-size:11.5px;color:#2d6da3;font-weight:600;line-height:1.4">Enter your information below to see your personalized retirement results →</p></div>
       <div class="panel-body">
         <p class="sec-label">Personal</p>
         <div class="field">
@@ -641,21 +670,22 @@
 
         <!-- Highest Compensation Override -->
         <div style="margin-top:10px">
-          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
-            <label style="font-size:11px;font-weight:600;color:var(--text2);display:block">Highest Compensation</label>
-            <div class="comp-mode-toggle" style="margin-bottom:0;width:auto">
-              <button id="compModeAuto" class="active" onclick="setCompMode('auto')">Auto</button>
-              <button id="compModeOverride" onclick="setCompMode('override')">Override</button>
-            </div>
+          <label style="font-size:11px;font-weight:600;color:var(--text2);display:block;margin-bottom:5px">Highest Compensation</label>
+          <p style="font-size:10px;color:var(--text3);text-align:center;margin-bottom:4px;letter-spacing:.06em;text-transform:uppercase">Select one</p>
+          <div class="comp-mode-toggle" style="margin-bottom:6px">
+            <button id="compModeAuto" class="active" onclick="setCompMode('auto')">Auto</button>
+            <button id="compModeOverride" onclick="setCompMode('override')">Override</button>
           </div>
           <div id="compAutoNote" style="font-size:10px;color:var(--text3);line-height:1.45;margin-bottom:0">
             Automatically uses your projected highest salary at the end of your career.
           </div>
           <div class="comp-override-panel hidden" id="compOverridePanel">
             <div class="comp-override-rule">
-              Use this section only if your highest salary has already occurred and will not be at retirement.<br>
-              · <strong>25+ years of service:</strong> enter your single highest annual salary (12 consecutive months)<br>
-              · <strong>Under 25 years:</strong> enter your highest average of 3 consecutive school years (36 months)
+              <p>Use this section only if your highest salary has already occurred and will not be at retirement.</p>
+              <ul>
+                <li><strong>25+ years of service:</strong> enter your single highest annual salary (12 consecutive months)</li>
+                <li><strong>Under 25 years:</strong> enter your highest average of 3 consecutive school years (36 months)</li>
+              </ul>
             </div>
             <div class="field" style="margin-bottom:8px">
               <label>Your Highest Salary</label>
@@ -702,9 +732,10 @@
         <div class="field">
           <label>Your Target Retirement Age</label>
           <input type="number" id="targetAge" value="62" min="50" max="75" step="1">
+          <p class="field-hint" style="color:#2d6da3;font-weight:500">You can also adjust this anytime using the slider on the results panel — no need to come back here.</p>
         </div>
         <div class="divider"></div>
-        <button onclick="resetToDefaults()" style="width:100%;padding:9px 0;background:var(--surface2);border:1.5px solid var(--text);border-radius:var(--rs);font-family:'DM Sans',sans-serif;font-size:11.5px;font-weight:600;color:var(--text);cursor:pointer;letter-spacing:.02em;transition:background .15s" onmouseover="this.style.background='#e2e0d8'" onmouseout="this.style.background='var(--surface2)'">↺ Reset to Defaults</button>
+        <button onclick="resetToDefaults()" style="width:100%;padding:9px 0;background:var(--surface2);border:1.5px solid var(--text);border-radius:var(--rs);font-family:'Inter',system-ui,sans-serif;font-size:11.5px;font-weight:600;color:var(--text);cursor:pointer;letter-spacing:.02em;transition:background .15s" onmouseover="this.style.background='#e2e0d8'" onmouseout="this.style.background='var(--surface2)'">↺ Reset to Defaults</button>
       </div>
     </div>
     <button class="inputs-done-btn" id="inputsDoneBtn" style="display:none" onclick="toggleInputs()">✓ Done — Show Results</button>
@@ -724,7 +755,7 @@
     </div>
 
     <!-- Slider + hero grouped tightly -->
-    <div style="display:flex;flex-direction:column;gap:7px">
+    <div style="display:flex;flex-direction:column;gap:5px;margin-top:2px">
 
     <!-- Age slider -->
     <div class="age-slider-card">
@@ -740,11 +771,16 @@
       <p class="age-slider-hint">Slide to explore different retirement ages — all results update instantly</p>
     </div>
 
+    <!-- Salary cap warning banner -->
+    <div id="salaryCapWarning" style="display:none;margin-bottom:0;padding:9px 13px;background:#fff8e8;border:1px solid #f0c060;border-radius:var(--rs);font-size:11.5px;color:#7a4f10;line-height:1.5">
+      ⚠ <strong>Salary cap applied.</strong> Your entered salary exceeds the CalSTRS pensionable limit. The benefit calculations use the capped amount — <strong id="salaryCapAmount">—</strong> — not your full salary. Rows marked ⚠ in the Final Comp column reflect this cap.
+    </div>
+
     <!-- Hero metrics -->
     <div class="result-hero">
       <div style="margin-bottom:12px;padding-bottom:10px;border-bottom:1px solid var(--border)">
         <p style="font-size:9.5px;font-weight:700;letter-spacing:.09em;text-transform:uppercase;color:var(--text3);margin-bottom:3px">Based on your target retirement age</p>
-        <p style="font-family:'DM Mono',monospace;font-size:22px;font-weight:600;color:#0ea5e9;line-height:1" id="heroTargetAgeDisplay">Age —</p>
+        <p style="font-family:'DM Mono',monospace;font-size:22px;font-weight:600;color:#2d6da3;line-height:1" id="heroTargetAgeDisplay">Age —</p>
       </div>
       <div class="hero-grid">
         <div>
@@ -776,40 +812,23 @@
       <div class="insight-body" id="insightBody">—</div>
     </div>
 
-    <!-- Sick leave + health rules -->
-    <div class="sick-box" id="sickBox" style="margin-bottom:0">—</div>
-
-    <div class="rules-box" style="margin-top:0">
-      <button class="rules-toggle" onclick="toggleRules(this)">
-        <h3>District Lifetime Health Eligibility Rules</h3>
-        <div class="rules-toggle-right">
-          <span class="rules-toggle-tier" id="rulesTierLabel">Your tier: …</span>
-          <span style="color:rgba(255,255,255,.55);font-size:9px;font-style:italic;pointer-events:none">click to expand</span>
-          <span class="rules-chevron">▼</span>
-        </div>
-      </button>
-      <div class="rules-body" id="rulesBody">
-        <div class="rules-body-inner" id="rulesInner"></div>
-      </div>
-    </div>
-
     <!-- Chart -->
     <div class="chart-panel">
       <div class="chart-header">
-        <h3>Benefit by Retirement Age</h3>
+        <h3>Calculated Benefit by Retirement Age</h3>
         <div class="chart-tabs">
-          <button class="chart-tab active" onclick="setCV('monthly',this)">Monthly</button>
-          <button class="chart-tab" onclick="setCV('annual',this)">Annual</button>
+          <button class="chart-tab active" onclick="setCV('monthly',this)">Monthly Benefit</button>
+          <button class="chart-tab" onclick="setCV('annual',this)">Annual Benefit</button>
           <button class="chart-tab" onclick="setCV('pct',this)">% of Salary</button>
         </div>
       </div>
       <div class="chart-body">
         <div class="chart-legend">
-          <div class="cl-item"><div class="cl-dot" style="background:#0ea5e9"></div>Your target age</div>
-          <div class="cl-item"><div class="cl-dot" style="background:#3b82f6"></div>Optimal window</div>
-          <div class="cl-item"><div class="cl-dot" style="background:#166534"></div>Age factor max (2.4%)</div>
-          <div class="cl-item"><div class="cl-dot" style="background:#22c55e"></div>Health met</div>
-          <div class="cl-item"><div class="cl-dot" style="background:#d1d5db"></div>Pension eligible</div>
+          <div class="cl-item"><div class="cl-dot" style="background:#2d6da3"></div>Your target age</div>
+          <div class="cl-item"><div class="cl-dot" style="background:#7fb3d8"></div>Optimal window</div>
+          <div class="cl-item"><div class="cl-dot" style="background:#1a2e42"></div>Age factor max (2.4%)</div>
+          <div class="cl-item"><div class="cl-dot" style="background:#2a7a5a"></div>Health met</div>
+          <div class="cl-item"><div class="cl-dot" style="background:#c5cdd6"></div>Pension eligible</div>
         </div>
         <div class="chart-wrap">
           <canvas id="benefitChart" role="img" aria-label="Bar chart of projected monthly CalSTRS pension by retirement age">Projected CalSTRS pension benefit by retirement age.</canvas>
@@ -832,17 +851,17 @@
             <tr>
               <th>Age</th><th>Year</th><th>Svc Yrs</th><th class="col-hide-mobile">+Sick</th>
               <th>Age Factor</th><th class="col-hide-mobile">Final Comp</th><th>Monthly</th><th class="col-hide-mobile">Annual</th>
-              <th class="col-hide-mobile">Flags</th><th>% Salary</th>
+              <th class="col-hide-mobile" style="font-style:italic">Ann % ↑</th><th class="col-hide-mobile">Flags</th><th>% Salary</th>
             </tr>
           </thead>
           <tbody id="tableBody"></tbody>
         </table>
       </div>
       <div class="footnotes">
-        <p><strong>Table symbols:</strong> ★ = your target retirement age &nbsp;·&nbsp; ⭐ = within the optimal retirement window</p>
-        <p>Flags: 🎓 Pension eligible · 🏥 Lifetime health benefit met · ⬆ Age factor at max 2.4% · 💊 Medicare eligible (age 65, must enroll Parts A &amp; B)</p>
+        <p><strong>Table symbols:</strong> ★ = your target retirement age &nbsp;·&nbsp; ⭐ = within the optimal retirement window &nbsp;·&nbsp; ⚠ = salary capped at CalSTRS pensionable limit (benefit calculated on capped amount, not your full salary)</p>
+        <p><strong>Flags:</strong> <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#3a5a7c" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg> Pension eligible &nbsp;·&nbsp; <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#2a7a5a" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="4" x2="12" y2="20"/><line x1="4" y1="12" x2="20" y2="12"/></svg> Lifetime health benefit met &nbsp;·&nbsp; <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#1a2e42" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><text x="0" y="17" font-size="7" font-family="sans-serif" font-weight="800" fill="#1a2e42" stroke="none">AGE</text><polyline points="11 3 16 3 16 8"/><line x1="9" y1="9" x2="16" y2="3"/></svg> Age factor at max 2.4% &nbsp;·&nbsp; <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#7a4f10" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a10 10 0 100 20A10 10 0 0012 2z"/><text x="4.5" y="16" font-size="8" font-family="sans-serif" font-weight="800" fill="#7a4f10" stroke="none">Rx</text></svg> Medicare eligible (age 65)</p>
         <p>Sick leave: accumulated unused days ÷ base days = additional service credit. Cannot satisfy minimum eligibility requirements.</p>
-        <p>Final comp: 2% at 60 with ≥25 earned service years → single highest year; otherwise highest 3-year consecutive average.</p>
+
         <p style="color:var(--text2);font-weight:500;line-height:1.6"><strong>Disclaimer:</strong> This calculator is an independent, unofficial educational tool. It is completely unaffiliated with, authorized by, or endorsed by the Los Angeles Unified School District (LAUSD) or the California State Teachers' Retirement System (CalSTRS). All calculations are rough estimates for planning purposes only and are non-binding. This calculator may not capture uncommon situations such as service breaks, part-time service, mid-year retirements, concurrent employment, disability retirement, or other non-standard circumstances that could materially affect your benefit. Pension benefits are strictly governed by California law. Users must verify all official estimates directly through a <a href="http://www.calstrs.com/calculators" target="_blank" rel="noopener" style="color:var(--accent)">myCalSTRS account</a> or by consulting a CalSTRS benefits specialist before making retirement decisions.</p>
       </div>
     </div>
@@ -871,6 +890,10 @@
         </div>
         <div class="beneficiary-cta">
           The reduction is calculated using an <em>option factor</em> based on your age, your beneficiary's age, and the option you elect. If your beneficiary predeceases you, your benefit rises back to the full Member-Only amount. This election is <strong>irrevocable</strong> 30 days after your first payment is issued. → <a href="https://www.calstrs.com/electing-an-option" target="_blank" rel="noopener">Learn more about beneficiary options at CalSTRS.com</a> · <a href="https://resources.calstrs.com/CalSTRSComResourcesWebUI_START/Calculators/Pages/RetirementBenefit.aspx" target="_blank" rel="noopener">Official CalSTRS Retirement Benefit Calculator</a>
+        </div>
+        <div style="margin-top:10px;padding:9px 13px;background:#f0f6ff;border:1px solid #c0d4ec;border-radius:var(--rs);display:flex;align-items:center;gap:10px">
+          <span style="font-size:16px">🔜</span>
+          <p style="font-size:11.5px;color:#1a3d5c;line-height:1.5"><strong>Coming soon:</strong> A built-in beneficiary option calculator will let you enter your beneficiary's age and instantly see how each option (100%/75%/50%) would reduce your monthly benefit — so you can compare the tradeoffs before making this irrevocable decision.</p>
         </div>
       </div>
     </div>
@@ -1182,13 +1205,27 @@ function update(){
 
   const inWindow=r=>optStart&&optEnd&&r.pe&&r.age>=optStart.age&&r.age<=optEnd.age;
 
+  // Show salary cap warning if any eligible row is capped
+  const capWarning=document.getElementById('salaryCapWarning');
+  const capAmountEl=document.getElementById('salaryCapAmount');
+  const anyCapped=rows.some(r=>r.pe&&r.capped);
+  if(capWarning&&capAmountEl){
+    if(anyCapped&&!inp.finalCompOverride){
+      const capRow=rows.find(r=>r.pe&&r.capped);
+      capWarning.style.display='block';
+      capAmountEl.textContent=capRow?fmt(capRow.salCap):'—';
+    } else {
+      capWarning.style.display='none';
+    }
+  }
+
   /* ── HERO ── */
   if(target&&target.monthly){
     document.getElementById('metricMonthly').textContent=fmt(target.monthly);
     document.getElementById('metricAnnual').textContent=fmt(target.annual)+'/yr';
     document.getElementById('metricAF').textContent=(target.af*100).toFixed(3)+'%';
-    const fn=formula==='2at62'?'2% at 62 formula':(target.earnedSvc>=30?'30+ yr bonus rate':'2% at 60 formula');
-    document.getElementById('metricAFNote').textContent=fn;
+    const fn=formula==='2at62'?'2% at 62':'2% at 60';
+    document.getElementById('metricAFNote').textContent=fn+' formula';
     document.getElementById('metricSvc').textContent=target.totalSvc.toFixed(2)+' yrs';
     document.getElementById('metricSvcNote').textContent=`(+${target.sickCredit.toFixed(2)} sick leave)`;
     const hNote=target.hm?'✓ District lifetime health met':`Health not yet met — need ${tier.pointThreshold?tier.pointThreshold+' pts':tier.minConsec+' consec yrs'} (at ${target.points.toFixed(1)} pts, ${target.dSvc.toFixed(1)} consec yrs)`;
@@ -1196,7 +1233,7 @@ function update(){
     const compNote=inp.finalCompOverride?`Override: ${fmt(inp.finalCompOverride)} (user-supplied)`:
       (target.capped?`${fmt(target.finalComp)} (capped — ${formula==='2at62'?'PEPRA':'IRS'} limit)`:
       (target.use1yr?'single highest year (25+ yrs)':'3-yr projected average'));
-    document.getElementById('heroNote').textContent=`Age ${target.age}: replaces ${fmtP(target.pctSal)} of projected salary (${fmt(target.projSal)}/yr). Final comp: ${compNote}. ${hNote}${mNote}`;
+    document.getElementById('heroNote').textContent=`Age ${target.age}: replaces ${fmtP(target.pctSal)} of projected salary (${fmt(target.projSal)}/yr). ${hNote}${mNote}`;
   } else {
     ['metricMonthly','metricAnnual','metricAF','metricAFNote','metricSvc','metricSvcNote'].forEach(id=>document.getElementById(id).textContent='—');
     document.getElementById('heroNote').textContent='Target age does not meet minimum CalSTRS retirement requirements.';
@@ -1209,39 +1246,37 @@ function update(){
   if(firstPen){
     const isNow=nowAge>=firstPen.age;
     const via30=(formula==='2at60'&&firstPen.age<55);
+    const clockIcon=`<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#3a5a7c" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>`;
     html+=`<div class="i-row">
-      <div class="i-icon">🎓</div>
+      <div class="i-icon">${clockIcon}</div>
       <div>
-        <p class="i-label">Earliest pension eligibility</p>
+        <p class="i-label">Earliest Pension Eligibility</p>
         <p class="i-val">Age ${firstPen.age} · ${fmt(firstPen.monthly)}/mo</p>
-        <p class="i-desc">${via30
-          ? `Early retirement at age ${firstPen.age} is available because you'll have 30+ years of service credit — a special provision under the <strong>2% at 60 formula</strong> that allows retirement before age 55. The standard minimum is age 55 with 5+ years.`
-          : 'Age 55 with 5+ years of service credit is the standard CalSTRS minimum.'}
-        At this age you'd receive ${fmt(firstPen.annual)}/yr, replacing ${fmtP(firstPen.pctSal)} of salary.
-        ${isNow?'<strong>You are eligible now.</strong>':'<strong>'+rel(inp.dob,firstPen.age)+' away.</strong>'}</p>
+        <p class="i-desc">${via30?`30+ yrs service unlocks early retirement before the standard age 55 minimum. `:'Age 55 with 5+ years is the CalSTRS minimum. '}Benefit at this age: <strong>${fmt(firstPen.annual)}/yr</strong> (${fmtP(firstPen.pctSal)} of salary). ${isNow?'<strong>Eligible now.</strong>':'<strong>'+rel(inp.dob,firstPen.age)+' away.</strong>'}</p>
       </div>
     </div>`;
   }
 
-  // 2 – District health (moved up)
+  // 2 – District health
   if(firstHealth){
     const isNow=nowAge>=firstHealth.age;
+    const plusIcon=`<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#3a5a7c" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="4" x2="12" y2="20"/><line x1="4" y1="12" x2="20" y2="12"/></svg>`;
     html+=`<div class="i-row">
-      <div class="i-icon">🏥</div>
+      <div class="i-icon">${plusIcon}</div>
       <div>
-        <p class="i-label">District lifetime health benefit</p>
+        <p class="i-label">District Lifetime Health Benefit</p>
         <p class="i-val">Age ${firstHealth.age} · ${firstHealth.points.toFixed(0)} pts</p>
-        <p class="i-desc">Your hire tier (${tier.label}) requires ${tier.pointThreshold?'age + service ≥ '+tier.pointThreshold+' pts and ':''} ${tier.minConsec} consecutive district years. At age ${firstHealth.age} you secure district-paid coverage for life, eliminating the gap to Medicare.
-        ${isNow?'<strong>Already eligible.</strong>':'<strong>'+rel(inp.dob,firstHealth.age)+' away.</strong>'}</p>
+        <p class="i-desc">Your tier requires ${tier.pointThreshold?'age + service ≥ '+tier.pointThreshold+' pts, ':''}<strong>${tier.minConsec} consecutive district years</strong>. Secures district-paid health coverage for life. ${isNow?'<strong>Already eligible.</strong>':'<strong>'+rel(inp.dob,firstHealth.age)+' away.</strong>'}</p>
       </div>
     </div>`;
   } else {
+    const warnIcon=`<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#8b4a3a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>`;
     html+=`<div class="i-row">
-      <div class="i-icon">⚠️</div>
+      <div class="i-icon">${warnIcon}</div>
       <div>
-        <p class="i-label">District lifetime health benefit</p>
+        <p class="i-label">District Lifetime Health Benefit</p>
         <p class="i-val">Not reached by age 75</p>
-        <p class="i-desc">With current inputs the ${tier.pointThreshold||''} point threshold with ${tier.minConsec} consecutive years cannot be met before age 75. Verify continuous service with HR.</p>
+        <p class="i-desc">Current inputs don't meet the ${tier.minConsec}-yr consecutive service requirement before age 75. Verify with HR.</p>
       </div>
     </div>`;
   }
@@ -1249,100 +1284,143 @@ function update(){
   // 3 – Age factor cap
   if(firstMaxAF){
     const isNow=nowAge>=firstMaxAF.age;
-    const prevRow=rows.filter(r=>r.pe&&r.monthly&&r.age<firstMaxAF.age).slice(-1)[0];
-    const prevIncr=prevRow&&prevRow.incr?prevRow.incr:null;
     const capAge=firstMaxAF.age;
+    const ageArrowIcon=`<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#3a5a7c" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><text x="0" y="23" font-size="9" font-family="sans-serif" font-weight="800" fill="#3a5a7c" stroke="none">AGE</text><polyline points="14 3 20 3 20 9"/><line x1="12" y1="12" x2="20" y2="3"/></svg>`;
     html+=`<div class="i-row">
-      <div class="i-icon">⬆</div>
+      <div class="i-icon">${ageArrowIcon}</div>
       <div>
-        <p class="i-label">Age factor reaches maximum 2.4%</p>
+        <p class="i-label">Age Factor Peaks at 2.4%</p>
         <p class="i-val">Age ${capAge} · ${fmt(firstMaxAF.monthly)}/mo</p>
-        <p class="i-desc">At age ${capAge} the age factor stops rising — the fastest period of benefit growth ends here. You can still retire later and your pension will keep growing through additional service credit, but at a slower pace. For most members, waiting beyond ${capAge} means giving up years of pension income for diminishing incremental gains.
-        ${isNow?'<strong>Already reached.</strong>':'<strong>'+rel(inp.dob,capAge)+' away.</strong>'}</p>
+        <p class="i-desc">The multiplier stops increasing at age ${capAge}. After this, your benefit still grows through service credit, but more slowly. ${isNow?'<strong>Already reached.</strong>':'<strong>'+rel(inp.dob,capAge)+' away.</strong>'}</p>
       </div>
     </div>`;
   }
 
-  // 4 – Optimal window (stands out)
-  if(windowStart&&windowEnd){
-    const wsRow=windowStart;   // pension eligibility
-    const weRow=windowEnd;     // age factor cap
-    const osRow=optStart;      // upper half sweet spot
-    const tAge=inp.targetAge;
-    const salPct=osRow.pctSal?fmtP(osRow.pctSal):'—';
-    const salPctEnd=weRow.pctSal?fmtP(weRow.pctSal):'—';
-
-    let noteClass='',noteText='';
-    if(tAge<osRow.age){
-      if(tAge>=wsRow.age){noteClass='in-window';noteText=`Your target age (${tAge}) is pension-eligible but before the optimal sweet spot. Consider age ${osRow.age}+ for stronger benefit replacement.`;}
-      else{noteClass='before-window';noteText=`Your target age (${tAge}) is before pension eligibility (age ${wsRow.age}).`;}
-    } else if(tAge>weRow.age){
-      noteClass='after-window';noteText=`Your target age (${tAge}) is after the age factor cap. Your benefit continues growing but incremental gains slow — each extra year adds service credit, not a higher multiplier.`;
-    } else {
-      noteClass='in-window';noteText=`✓ Your target age (${tAge}) falls within the optimal sweet spot. Good timing.`;
+  // 4 – Highest annual benefit growth window (where annual % increase is largest)
+  {
+    const eligPe=rows.filter(r=>r.pe&&r.annual>0);
+    // Compute year-over-year % increases
+    const growthRows=[];
+    for(let i=1;i<eligPe.length;i++){
+      const prev=eligPe[i-1], cur=eligPe[i];
+      if(prev.annual>0){
+        const pct=(cur.annual-prev.annual)/prev.annual*100;
+        growthRows.push({age:cur.age,pct,monthly:cur.monthly});
+      }
     }
-
-    // Health callout — varies by situation
-    let healthAltNote='';
-    if(nowAge>=firstHealth?.age||(!healthAfterPension&&healthStart)){
-      // Health already met or met at same time as pension — note it's not a limiting factor
-      healthAltNote=`<div style="margin-top:9px;padding:8px 11px;background:var(--green-light);border:1px solid #86efac;border-radius:var(--rs);font-size:11px;color:#166534;line-height:1.5">
-        ✅ <strong>District lifetime health benefit ${nowAge>=(firstHealth?.age||99)?'is already met':'is met within this window'}.</strong> Health eligibility is not a limiting factor — the optimal window already accounts for it. Focus on the age factor cap and salary replacement targets above.
-      </div>`;
-    } else if(healthAfterPension&&healthStart){
-      healthAltNote=`<div style="margin-top:9px;padding:9px 12px;background:var(--green-light);border:1px solid #86efac;border-radius:var(--rs)">
-        <p style="font-size:9.5px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--green);margin-bottom:3px">🏥 Alternative: If District Health Coverage Is a Priority</p>
-        <p style="font-size:11px;color:#166534;line-height:1.5">District lifetime health eligibility doesn't begin until <strong>age ${healthStart.age}</strong> — ${healthStart.age-wsRow.age} year(s) after pension eligibility. <u>If securing district-paid health coverage for life is important, your alternative optimal target is <strong>age ${healthStart.age} (${fmt(healthStart.monthly)}/mo)</strong>.</u> If you have alternative health coverage, the standard optimal window above applies.</p>
-      </div>`;
+    if(growthRows.length>0){
+      // Find window where growth >= 8%
+      const highRows=growthRows.filter(r=>r.pct>=9.25);
+      if(highRows.length>0){
+        const winStart=highRows[0].age;
+        const winEnd=highRows[highRows.length-1].age;
+        const avgPct=highRows.reduce((s,r)=>s+r.pct,0)/highRows.length;
+        const peakRow=highRows.reduce((a,b)=>b.pct>a.pct?b:a);
+        const isNow=nowAge>=winStart&&nowAge<=winEnd;
+        const isPast=nowAge>winEnd;
+        html+=`<div class="i-row">
+          <div class="i-icon">📈</div>
+          <div>
+            <p class="i-label">Highest Annual Benefit Growth Window</p>
+            <p class="i-val">Ages ${winStart}–${winEnd} · avg ~${Math.round(avgPct)}%/yr</p>
+            <p class="i-desc">Each year you work between ages ${winStart} and ${winEnd} adds roughly <strong>${avgPct.toFixed(0)}% to your annual benefit</strong> — the fastest growth period, driven by both a rising age factor multiplier and accumulating service credit simultaneously. Peak gain is at age ${peakRow.age} (+${peakRow.pct.toFixed(1)}%). ${isPast?'<strong>This window is past.</strong>':isNow?'<strong>You are in this window now.</strong>':'After this window, annual increases slow significantly.'}</p>
+          </div>
+        </div>`;
+      } else {
+        // Age factor already at cap — just show best growth years
+        const bestRow=growthRows.reduce((a,b)=>b.pct>a.pct?b:a);
+        if(bestRow.pct>0){
+          html+=`<div class="i-row">
+            <div class="i-icon">📈</div>
+            <div>
+              <p class="i-label">Annual Benefit Growth</p>
+              <p class="i-val">Best year: Age ${bestRow.age} · +${bestRow.pct.toFixed(1)}%</p>
+              <p class="i-desc">With the age factor already at its maximum, annual benefit growth comes primarily from service credit. Each additional year adds a smaller but still meaningful increment.</p>
+            </div>
+          </div>`;
+        }
+      }
     }
+  }
 
-    html+=`<div class="ideal-window">
-      <div class="ideal-window-header">
-        <div class="iw-title"><span class="iw-title-icon">⭐</span>Optimal Retirement Window</div>
-        <span class="iw-badge">Sweet spot: Ages ${osRow.age}–${weRow.age}</span>
+  // Salary Replacement Milestones — clean card matching other insight rows
+  const targets60=rows.find(r=>r.pe&&r.pctSal>=60);
+  const targets80=rows.find(r=>r.pe&&r.pctSal>=80);
+  const targets100=rows.find(r=>r.pe&&r.pctSal>=100);
+  const milestones=[
+    {pct:'60%',row:targets60},
+    {pct:'80%',row:targets80},
+    {pct:'100%',row:targets100},
+  ];
+  if(milestones.some(m=>m.row)){
+    const mRows=milestones.map(m=>{
+      if(!m.row) return `<tr><td style="font-weight:700;color:var(--text3);padding:7px 12px">${m.pct}</td><td colspan="4" style="padding:7px 12px;color:var(--text3);font-style:italic">Not reached by age 75</td></tr>`;
+      const yrs=Math.max(0,Math.round(m.row.age-nowAge));
+      const yLbl=yrs===0?`<strong style="color:#2d6da3">Now eligible</strong>`:yrs===1?'1 yr':yrs+' yrs';
+      return `<tr style="border-top:1px solid var(--border)">
+        <td style="padding:7px 12px;font-family:'DM Mono',monospace;font-weight:700;color:#2d6da3;font-size:14px">${m.pct}</td>
+        <td style="padding:7px 12px;font-family:'DM Mono',monospace;font-weight:600">Age ${m.row.age}</td>
+        <td style="padding:7px 12px;font-family:'DM Mono',monospace;font-weight:600">${fmt(m.row.monthly)}/mo</td>
+        <td style="padding:7px 12px;font-family:'DM Mono',monospace;font-weight:600;color:var(--text2)">${fmt(m.row.annual)}/yr</td>
+        <td style="padding:7px 12px;color:var(--text2)">${yLbl}</td>
+      </tr>`;
+    }).join('');
+    html+=`<div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--rs);overflow:hidden;box-shadow:0 2px 4px rgba(0,0,0,.05)">
+      <div style="padding:9px 13px;border-bottom:1px solid var(--border);background:var(--surface2);display:flex;align-items:center;justify-content:space-between">
+        <span style="font-size:9px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--text2)">Salary Replacement Milestones</span>
+        <span style="font-size:9px;color:var(--text3)">based on ${fmt(inp.salary)}/yr current salary</span>
       </div>
-      <div class="ideal-window-body">
-        <div class="iw-range">
-          <div class="iw-age-box">
-            <p class="iw-age-label">Pension Eligible</p>
-            <p class="iw-age-val">${wsRow.age}</p>
-            <p class="iw-age-sub">${fmt(wsRow.monthly)}/mo</p>
-          </div>
-          <div class="iw-arrow">→</div>
-          <div class="iw-age-box" style="flex:1;text-align:center;border-color:var(--window);background:var(--window-light)">
-            <p class="iw-age-label" style="color:var(--window)">Optimal years to retire</p>
-            <p style="font-family:'DM Mono',monospace;font-size:14px;font-weight:700;color:var(--window);letter-spacing:.02em">Ages ${osRow.age}–${weRow.age}</p>
-            <p class="iw-age-sub" style="color:var(--window);opacity:1">${salPct} → ${salPctEnd} of salary</p>
-          </div>
-          <div class="iw-arrow">→</div>
-          <div class="iw-age-box">
-            <p class="iw-age-label">Factor caps at</p>
-            <p class="iw-age-val">${weRow.age}</p>
-            <p class="iw-age-sub">${fmt(weRow.monthly)}/mo</p>
-          </div>
-        </div>
-        <p class="iw-desc" style="margin-top:6px">The optimal window runs from when pension is first active to when the 2.4% age factor cap is reached. The <strong>sweet spot (ages ${osRow.age}–${weRow.age})</strong> is the upper portion where benefit replacement approaches or exceeds 80% of salary. You can retire after age ${weRow.age} — service credit and salary growth continue to lift your benefit — but the age factor multiplier no longer increases, so each extra year of working yields diminishing returns relative to the pension income you forgo.</p>
-        ${healthAltNote}
-        <div class="iw-target-note ${noteClass}" style="margin-top:8px">${noteText}</div>
-        <p style="margin-top:10px;padding:10px 12px;background:var(--surface2);border-radius:var(--rs);font-size:12.5px;color:var(--text);font-weight:700;line-height:1.5;border-left:3px solid var(--teal)">📋 Next step: Review the full retirement schedule below and choose the age that best fits your personal situation, financial goals, and health coverage needs.</p>
-      </div>
+      <table style="width:100%;border-collapse:collapse;font-size:12px">
+        <thead><tr style="background:var(--surface2)">
+          <th style="padding:5px 12px;text-align:left;font-size:9px;letter-spacing:.08em;text-transform:uppercase;color:var(--text3);font-weight:700">% of Salary</th>
+          <th style="padding:5px 12px;text-align:left;font-size:9px;letter-spacing:.08em;text-transform:uppercase;color:var(--text3);font-weight:700">Age</th>
+          <th style="padding:5px 12px;text-align:left;font-size:9px;letter-spacing:.08em;text-transform:uppercase;color:var(--text3);font-weight:700">Monthly</th>
+          <th style="padding:5px 12px;text-align:left;font-size:9px;letter-spacing:.08em;text-transform:uppercase;color:var(--text3);font-weight:700">Annual</th>
+          <th style="padding:5px 12px;text-align:left;font-size:9px;letter-spacing:.08em;text-transform:uppercase;color:var(--text3);font-weight:700">Years Away</th>
+        </tr></thead>
+        <tbody>${mRows}</tbody>
+      </table>
     </div>`;
-  } else if(windowStart&&!windowEnd){
-    html+=`<div class="ideal-window">
-      <div class="ideal-window-header">
-        <div class="iw-title"><span class="iw-title-icon">⭐</span>Optimal Retirement Window</div>
-        <span class="iw-badge">Age ${windowStart.age}+</span>
-      </div>
-      <div class="ideal-window-body">
-        <p class="iw-desc">Pension eligibility starts at age ${windowStart.age}. The age factor is already at its maximum — any retirement age from here captures the full benefit rate.</p>
+  }
+
+  // Sick leave card — moved into insights
+  if(target){
+    const days=Math.round(inp.sickPerYear*(inp.serviceYears+Math.max(0,inp.targetAge-nowAge)));
+    const cred=target.sickCredit;
+    const extra=target.af?fmt(target.af*target.finalComp*cred/12):'—';
+html+=`<div class="i-row">
+      <div class="i-icon">🌿</div>
+      <div>
+        <p class="i-label">Sick Leave Credit at Age ${target.age}</p>
+        <p class="i-val"><span class="sick-total">~${days} days</span> → <span class="sick-total">+${cred.toFixed(2)} yrs</span> service credit</p>
+        <p class="i-desc">Worth <strong>${extra}/mo</strong> added to your benefit at retirement. Based on ${inp.sickPerYear} unused days/yr over your career.</p>
       </div>
     </div>`;
   }
+
+  // Health rules collapsible — moved into insights
+  html+=`<div class="rules-box" style="margin-top:0">
+    <button class="rules-toggle" onclick="toggleRules(this)">
+      <h3>District Lifetime Health Eligibility Rules</h3>
+      <div class="rules-toggle-right">
+        <span class="rules-toggle-tier" id="rulesTierLabel">Your tier: …</span>
+        <span style="color:rgba(255,255,255,.55);font-size:9px;font-style:italic;pointer-events:none">click to expand</span>
+        <span class="rules-chevron">▼</span>
+      </div>
+    </button>
+    <div class="rules-body" id="rulesBody">
+      <div class="rules-body-inner" id="rulesInner"></div>
+    </div>
+  </div>`;
+
+
+
+  // Next step note
+  html+=`<p style="margin-top:0;padding:10px 12px;background:var(--surface2);border-radius:var(--rs);font-size:12.5px;color:var(--text);font-weight:700;line-height:1.5;border-left:3px solid #2d6da3">📋 Next step: Review the full retirement schedule below. Consider your full financial picture — Social Security eligibility (if applicable), spouse or household income, other retirement accounts, and investment income — before choosing the age that best fits your situation.</p>`;
 
   document.getElementById('insightBody').innerHTML=html;
 
-  /* ── HEALTH RULES (collapsible) ── */
-  document.getElementById('rulesTierLabel').textContent='Your tier: '+tier.label;
+  /* ── HEALTH RULES update ── */
   const allTiers=[
     {label:'On/before Mar 11, 1984',minConsec:5,pointThreshold:null,desc:'5 consecutive years of district coverage immediately before retiring.'},
     {label:'Mar 12 1984 – Jun 30 1987',minConsec:10,pointThreshold:null,desc:'10 consecutive years of district coverage immediately before retiring.'},
@@ -1374,18 +1452,13 @@ function update(){
     const cls=isUser?(firstHealth&&nowAge>=firstHealth.age?'lr lr-met':'lr lr-active'):'lr';
     rHtml+=`<div class="${cls}"><div class="lr-dot"></div><div style="flex:1"><p class="lr-hire">${t.label}</p><p class="lr-desc">${t.desc}</p>${statusHtml}</div></div>`;
   });
-  document.getElementById('rulesInner').innerHTML=rHtml;
+  // Update health rules (elements now rendered inside insightBody)
+  const rulesTierEl=document.getElementById('rulesTierLabel');
+  if(rulesTierEl) rulesTierEl.textContent='Your tier: '+(tier.tier||tier.label||'').split('(')[0].trim();
+  const rulesInnerEl=document.getElementById('rulesInner');
+  if(rulesInnerEl) rulesInnerEl.innerHTML=rHtml;
 
-  /* ── SICK BOX ── */
-  if(target){
-    const days=Math.round(inp.sickPerYear*(inp.serviceYears+Math.max(0,inp.targetAge-nowAge)));
-    const cred=target.sickCredit.toFixed(3);
-    const extra=target.af?fmt(target.af*target.finalComp*target.sickCredit/12):'—';
-    const rule=inp.finalCompOverride
-      ?`user-supplied override: <strong>${fmt(inp.finalCompOverride)}</strong>`
-      :(formula==='2at60'&&target.earnedSvc>=25?'<strong>single highest year</strong> (25+ yrs)':'<strong>highest 3-year consecutive average</strong>');
-    document.getElementById('sickBox').innerHTML=`<strong>Sick Leave Credit at Age ${target.age}:</strong> <span class="sick-total">~${days} unused days</span> ÷ ${inp.baseDays} base days = <span class="sick-total">+${cred} yrs</span> of extra service credit, worth <strong>${extra}/mo</strong> added to your benefit. Final compensation uses ${rule}.`;
-  }
+  /* ── SICK BOX — now rendered in insight body, skip standalone update ── */
 
   /* ── CHART ── */
   document.getElementById('tableFormulaBadge').textContent=formula==='2at62'?'2% at 62':'2% at 60';
@@ -1397,38 +1470,55 @@ function update(){
   // Only the FIRST bar where health is met gets the green highlight
   const firstHealthAge=healthStart?healthStart.age:null;
   const colors=eligRows.map(r=>{
-    if(r.age===inp.targetAge)          return '#0ea5e9'; // sky blue = target
-    if(r.age===firstHealthAge&&r.hm)   return '#22c55e'; // green = first year health is met
-    if(inWindow(r))                    return '#3b82f6'; // blue = optimal window
-    if(r.maxAF)                        return '#166534'; // dark green = 2.4% cap
-    return '#d1d5db'; // light gray = just eligible / all others
+    if(r.age===inp.targetAge)          return '#2d6da3'; // bright slate blue = target
+    if(r.age===firstHealthAge&&r.hm)   return '#2a7a5a'; // distinct green = health met
+    if(inWindow(r))                    return '#7fb3d8'; // lighter sky blue = optimal window
+    if(r.maxAF)                        return '#1a2e42'; // very dark = age factor max
+    return '#c5cdd6'; // light neutral = just eligible
   });
   if(myChart){myChart.destroy();myChart=null;}
   // Determine label indices: first eligible, first optimal, last eligible, target
   const firstEligIdx=0;
   const lastEligIdx=eligRows.length-1;
   const firstOptIdx=eligRows.findIndex(r=>inWindow(r));
+  const lastOptIdx=eligRows.findLastIndex(r=>inWindow(r));
+  const healthIdx=eligRows.findIndex(r=>r.age===firstHealthAge&&r.hm);
+  const maxAFIdx=eligRows.findIndex(r=>r.maxAF&&r.pe);
+  const targetIdx=eligRows.findIndex(r=>r.age===inp.targetAge);
+
   const labelIndices=new Set([firstEligIdx,lastEligIdx]);
   if(firstOptIdx>=0) labelIndices.add(firstOptIdx);
-  // Also label target
-  const targetIdx=eligRows.findIndex(r=>r.age===inp.targetAge);
+  if(lastOptIdx>=0&&lastOptIdx!==firstOptIdx) labelIndices.add(lastOptIdx);
+  if(healthIdx>=0) labelIndices.add(healthIdx);
+  if(maxAFIdx>=0) labelIndices.add(maxAFIdx);
   if(targetIdx>=0) labelIndices.add(targetIdx);
 
   const barLabelPlugin={
     id:'barLabels',
     afterDatasetsDraw(chart){
-      if(chartView==='pct') return;
       const {ctx,data,scales:{x,y}}=chart;
       ctx.save();
       ctx.font='bold 9px DM Mono, monospace';
       ctx.textAlign='center';
       data.datasets[0].data.forEach((val,i)=>{
-        if(!labelIndices.has(i)) return;
-        const xPos=x.getPixelForValue(i);
-        const yPos=y.getPixelForValue(val);
-        const label=val>=1000?'$'+(val/1000).toFixed(0)+'k':fmt(val);
-        ctx.fillStyle='rgba(0,0,0,0.65)';
-        ctx.fillText(label,xPos,yPos-5);
+        if(chartView==='pct'){
+          // Label every bar that crosses 60, 80, or 100%
+          const pctThresholds=[60,80,100];
+          const prev=i>0?data.datasets[0].data[i-1]:0;
+          const crossesThreshold=pctThresholds.some(t=>val>=t&&(prev<t||i===0));
+          if(!crossesThreshold&&!labelIndices.has(i)) return;
+          const xPos=x.getPixelForValue(i);
+          const yPos=y.getPixelForValue(val);
+          ctx.fillStyle='rgba(0,0,0,0.65)';
+          ctx.fillText(val.toFixed(0)+'%',xPos,yPos-5);
+        } else {
+          if(!labelIndices.has(i)) return;
+          const xPos=x.getPixelForValue(i);
+          const yPos=y.getPixelForValue(val);
+          const label=val>=1000?'$'+(val/1000).toFixed(0)+'k':fmt(val);
+          ctx.fillStyle='rgba(0,0,0,0.65)';
+          ctx.fillText(label,xPos,yPos-5);
+        }
       });
       ctx.restore();
     }
@@ -1455,6 +1545,7 @@ function update(){
   /* ── TABLE ── */
   const tbody=document.getElementById('tableBody');
   tbody.innerHTML='';
+  let prevR=null;
   rows.forEach(r=>{
     const isTarget=r.age===inp.targetAge;
     const isWin=inWindow(r)&&!isTarget;
@@ -1465,18 +1556,19 @@ function update(){
     let pctBadge='',flags='';
     if(!r.pe){flags='<span class="badge bg-gray">Not eligible</span>';}
     else{
-      if(r.pctSal>=75)      pctBadge=`<span class="badge bg-green">${fmtP(r.pctSal)}</span>`;
-      else if(r.pctSal>=50) pctBadge=`<span class="badge bg-gold2">${fmtP(r.pctSal)}</span>`;
-      else                   pctBadge=`<span class="badge bg-danger">${fmtP(r.pctSal)}</span>`;
+      pctBadge=r.pctSal?fmtP(r.pctSal):'—';
       const via30=(formula==='2at60'&&r.age<55&&r.earnedSvc>=30);
-      flags=(r.pe?'🎓 ':'')+
-            (r.hm?'🏥 ':'')+
-            (r.maxAF?'⬆ ':'')+
-            (r.medicare?'💊':'');
+      flags=(r.pe?'<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#3a5a7c" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg> ':'')+
+            (r.hm?'<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#2a7a5a" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="4" x2="12" y2="20"/><line x1="4" y1="12" x2="20" y2="12"/></svg> ':'')+
+            (r.maxAF?'<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#1a2e42" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><text x="0" y="17" font-size="7" font-family="sans-serif" font-weight="800" fill="#1a2e42" stroke="none">AGE</text><polyline points="11 3 16 3 16 8"/><line x1="9" y1="9" x2="16" y2="3"/></svg> ':'')+
+            (r.medicare?'<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#7a4f10" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a10 10 0 100 20A10 10 0 0012 2z"/><text x="4.5" y="16" font-size="8" font-family="sans-serif" font-weight="800" fill="#7a4f10" stroke="none">Rx</text></svg>':'');
     }
-    // Window badge in first cell
+    // Annual % increase vs prior year
+    const annPct=(r.pe&&prevR?.pe&&prevR.annual&&r.annual)
+      ?((r.annual-prevR.annual)/prevR.annual*100).toFixed(1)+'%'
+      :'—';
+
     const winTag=isWin?'<span class="badge bg-window" style="margin-left:3px">⭐</span>':'';
-    const incrCell=r.incr!==null?`<span style="color:var(--text3);font-size:9.5px">(+${fmt(r.incr)})</span>`:'';
     tr.innerHTML=`
       <td>${r.age}${isTarget?' ★':''}${winTag}</td>
       <td>${r.retireYear}</td>
@@ -1484,12 +1576,14 @@ function update(){
       <td class="col-hide-mobile" style="color:var(--teal)">${r.pe?'+'+r.sickCredit.toFixed(2):'—'}</td>
       <td>${r.af?(r.af*100).toFixed(3)+'%':'—'}</td>
       <td class="col-hide-mobile">${r.pe?(r.capped?`<span style="color:var(--coral)">${fmt(r.finalComp)} ⚠</span>`:fmt(r.finalComp)):'—'}</td>
-      <td>${r.monthly!==null?fmt(r.monthly):''} ${incrCell}</td>
+      <td>${r.monthly!==null?fmt(r.monthly):''}</td>
       <td class="col-hide-mobile">${r.annual!==null?fmt(r.annual):'—'}</td>
+      <td class="col-hide-mobile" style="color:var(--text3)">${annPct}</td>
       <td class="col-hide-mobile"><div class="tag-row">${flags}</div></td>
       <td>${pctBadge}</td>
     `;
     tbody.appendChild(tr);
+    prevR=r;
   });
 }
 
@@ -1678,7 +1772,7 @@ async function generatePDF(){
 
   // ── helpers ──
   const fmtN=fmt; // alias to global fmt
-  const COL={navy:[29,27,105],teal:[15,118,110],green:[26,92,56],slate:[51,65,85],light:[238,237,244],border:[221,219,232],white:[255,255,255],text:[24,23,31],text2:[94,92,110],text3:[152,150,168],coral:[190,58,47],window:[3,105,161]};
+  const COL={navy:[26,35,50],teal:[58,90,124],green:[42,122,90],slate:[61,78,99],light:[240,242,244],border:[216,220,226],white:[255,255,255],text:[26,35,50],text2:[61,78,99],text3:[122,138,154],coral:[139,74,58],window:[58,90,124]};
   const setFill=c=>doc.setFillColor(...c);
   const setStroke=c=>doc.setDrawColor(...c);
   const setTxt=c=>doc.setTextColor(...c);
@@ -1770,28 +1864,40 @@ async function generatePDF(){
   });
   cy+=metrics.length>3?130:72;
 
-  // ── ELIGIBILITY MILESTONES ──
+  // ── ELIGIBILITY MILESTONES (4 insight cards) ──
   setTxt(COL.navy); doc.setFont('helvetica','bold'); doc.setFontSize(8);
-  doc.text('ELIGIBILITY MILESTONES',ML,cy+12);
+  doc.text('RETIREMENT TIMING INSIGHTS',ML,cy+12);
   cy+=18;
 
-  const milestones=[
-    {label:'Earliest Pension',icon:'🎓',val:firstPen?'Age '+firstPen.age:'—',sub:firstPen?fmtN(firstPen.monthly)+'/mo':'-',ok:firstPen&&nowAge>=firstPen.age},
-    {label:'District Health Benefit',icon:'🏥',val:firstHealth?'Age '+firstHealth.age:'Not met by 75',sub:firstHealth?firstHealth.points.toFixed(0)+' pts required':'Check HR',ok:firstHealth&&nowAge>=firstHealth.age},
-    {label:'Age Factor Caps (2.4%)',icon:'⬆',val:firstMaxAF?'Age '+firstMaxAF.age:'—',sub:firstMaxAF?fmtN(firstMaxAF.monthly)+'/mo':'',ok:firstMaxAF&&nowAge>=firstMaxAF.age},
+  // Compute growth window for PDF
+  const eligRowsPDF=rows.filter(r=>r.pe&&r.annual>0);
+  let growthWinStart=null,growthWinEnd=null;
+  for(let i=1;i<eligRowsPDF.length;i++){
+    const prev=eligRowsPDF[i-1],cur=eligRowsPDF[i];
+    if(prev.annual>0&&(cur.annual-prev.annual)/prev.annual*100>=9.25){
+      if(!growthWinStart) growthWinStart=cur.age;
+      growthWinEnd=cur.age;
+    }
+  }
+
+  const mi4=[
+    {label:'Earliest Pension',val:firstPen?'Age '+firstPen.age:'—',sub:firstPen?fmtN(firstPen.monthly)+'/mo':'—',ok:firstPen&&nowAge>=firstPen.age},
+    {label:'District Health Benefit',val:firstHealth?'Age '+firstHealth.age:'Not met by 75',sub:firstHealth?tier.minConsec+' consec yrs req':'Verify with HR',ok:firstHealth&&nowAge>=firstHealth.age},
+    {label:'Age Factor Peaks (2.4%)',val:firstMaxAF?'Age '+firstMaxAF.age:'—',sub:firstMaxAF?fmtN(firstMaxAF.monthly)+'/mo':'—',ok:firstMaxAF&&nowAge>=firstMaxAF.age},
+    {label:'High Growth Window (~10%/yr)',val:growthWinStart?'Ages '+growthWinStart+'-'+growthWinEnd:'—',sub:growthWinStart?'Fastest benefit growth period':'—',ok:false},
   ];
-  const miW=(CW-10)/3, miH=52;
-  milestones.forEach((m,i)=>{
+  const miW=(CW-15)/4, miH=52;
+  mi4.forEach((m,i)=>{
     const x=ML+i*(miW+5), y=cy;
-    setFill(COL.light); sf(x,y,miW,miH,5);
-    const c=m.ok?COL.green:COL.slate;
-    doc.setFillColor(...c); doc.rect(x,y,3,miH,'F');
-    setTxt(c); doc.setFont('helvetica','bold'); doc.setFontSize(7);
-    doc.text(m.label.toUpperCase(),x+9,y+13);
-    setTxt(COL.text); doc.setFont('helvetica','bold'); doc.setFontSize(13);
-    doc.text(m.val,x+9,y+30);
-    setTxt(COL.text3); doc.setFont('helvetica','normal'); doc.setFontSize(8);
-    doc.text(m.sub,x+9,y+44);
+    setFill(COL.light); sf(x,y,miW,miH,4);
+    const mc=m.ok?COL.green:COL.teal;
+    doc.setFillColor(...mc); doc.rect(x,y,3,miH,'F');
+    setTxt(mc); doc.setFont('helvetica','bold'); doc.setFontSize(6.5);
+    doc.text(m.label.toUpperCase(),x+8,y+12);
+    setTxt(COL.text); doc.setFont('helvetica','bold'); doc.setFontSize(11);
+    doc.text(m.val,x+8,y+28);
+    setTxt(COL.text3); doc.setFont('helvetica','normal'); doc.setFontSize(7.5);
+    doc.text(m.sub,x+8,y+43);
   });
   cy+=miH+14;
 
@@ -1805,17 +1911,7 @@ async function generatePDF(){
   doc.text('To provide income to a beneficiary after your death, a Beneficiary Option (100%/75%/50%) must be elected at retirement, which permanently reduces your benefit.',ML+9,cy+31);
   cy+=48;
 
-  // Optimal window note
-  if(firstPen&&firstHealth&&firstMaxAF){
-    const wsAge=Math.max(firstPen.age,firstHealth.age);
-    const weAge=firstMaxAF.age;
-    const fullSpan=weAge-wsAge;
-    const midAge=wsAge+Math.ceil(fullSpan/2);
-    setFill(COL.window); sf(ML,cy,CW,26,4);
-    setTxt(COL.white); doc.setFont('helvetica','bold'); doc.setFontSize(8);
-    doc.text(`OPTIMAL RETIREMENT WINDOW: Ages ${midAge}-${weAge}  |  Pension + health met, age factor at highest rate`,ML+10,cy+16);
-    cy+=36;
-  }
+  // Optimal window note removed — users determine their own optimal age
 
   // ── CHART with legend ──
   setTxt(COL.navy); doc.setFont('helvetica','bold'); doc.setFontSize(8);
@@ -1832,11 +1928,11 @@ async function generatePDF(){
 
   // Chart legend
   const legendItems=[
-    {color:[14,165,233],  label:'Your target age'},
-    {color:[59,130,246],  label:'Optimal window'},
-    {color:[22,101,52],   label:'Age factor max (2.4%)'},
-    {color:[34,197,94],   label:'Health benefit met'},
-    {color:[209,213,219], label:'Pension eligible'},
+    {color:[45,109,163],  label:'Your target age'},
+    {color:[91,141,184],  label:'Optimal window'},
+    {color:[26,46,66],   label:'Age factor max (2.4%)'},
+    {color:[42,122,90],   label:'Health benefit met'},
+    {color:[200,208,218], label:'Pension eligible'},
   ];
   const legDotSize=7, legGap=8, legItemW=90;
   const legTotalW=legendItems.length*(legItemW);
@@ -1940,7 +2036,7 @@ async function generatePDF(){
     doc.setPage(i);
     setFill(COL.navy); doc.rect(0,PH-22,PW,22,'F');
     setTxt([160,160,200]); doc.setFont('helvetica','normal'); doc.setFontSize(7);
-    doc.text('CalSTRS LA School Retirement Estimator  ·  Not affiliated with any district or pension fund  ·  For estimation purposes only',ML,PH-8);
+    doc.text('CalSTRS Retirement Planning Calculator  ·  Not affiliated with CalSTRS or any school district  ·  For estimation purposes only',ML,PH-8);
     setTxt([120,120,170]);
     doc.text(`Page ${i} of ${totalPages}`,PW-MR,PH-8,{align:'right'});
   }
