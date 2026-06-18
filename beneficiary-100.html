@@ -1,0 +1,893 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Beneficiary Option Calculator — CalSTRS</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;600&family=Inter:wght@300;400;500;600&family=DM+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#f7f8f9;--surface:#fff;--surface2:#f0f2f4;--border:#d8dce2;
+  --text:#1a2332;--text2:#3d4e63;--text3:#7a8a9a;
+  --navy:#1a2332;--teal:#3a5a7c;--blue:#2d6da3;--green:#2a7a5a;--red:#8b4a3a;
+  --r:12px;--rs:8px;
+}
+html,body{overflow-x:hidden;width:100%;-webkit-font-smoothing:antialiased}
+body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
+.header{background:var(--navy);border-bottom:3px solid var(--teal);padding:13px 24px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;position:sticky;top:0;z-index:100;width:100%;box-sizing:border-box}
+.back-link{color:rgba(255,255,255,.55);font-size:11px;text-decoration:none;display:flex;align-items:center;gap:4px;margin-bottom:4px}
+.back-link:hover{color:#fff}
+.header-title{color:#fff;font-family:'Cormorant Garamond',Georgia,serif;font-size:23px;font-weight:600}
+.header-sub{color:rgba(255,255,255,.45);font-size:10px;margin-top:1px}
+.main{max-width:1100px;margin:0 auto;padding:18px 18px 40px;display:grid;grid-template-columns:290px 1fr;gap:16px;align-items:start}
+.left-toggle{display:none;width:100%;padding:13px 16px;background:var(--navy);color:#fff;border:none;font-family:'Inter',system-ui,sans-serif;font-size:13px;font-weight:600;cursor:pointer;align-items:center;justify-content:space-between;-webkit-tap-highlight-color:transparent}
+.left-toggle-chev{font-size:14px;transition:transform .3s}
+.left-toggle-chev.open{transform:rotate(180deg)}
+.left-done{display:none;width:100%;padding:14px;background:var(--teal);color:#fff;border:none;font-family:'Inter',system-ui,sans-serif;font-size:14px;font-weight:700;cursor:pointer;-webkit-tap-highlight-color:transparent}
+.left-panel-body{display:block}
+@media(max-width:700px){
+  .main{grid-template-columns:1fr;padding:8px 12px 24px;gap:10px;width:100%;box-sizing:border-box}
+  /* Left panel toggle */
+  .left-toggle{display:flex}
+  .left-done{display:block}
+  .left-panel-body{overflow:hidden;max-height:0;transition:max-height .45s cubic-bezier(0.4,0,0.2,1)}
+  .left-panel-body.open{max-height:5000px}
+  /* Summary grid 2-col on mobile */
+  .summary-grid-4{grid-template-columns:repeat(2,1fr)!important}
+  /* Hide table columns */
+  .tbl-hide-mobile{display:none!important}
+  /* Be-cards 1-col stack on very small screens */
+  .be-cards{grid-template-columns:1fr!important}
+  /* Hero grid 2-col */
+  .hero-grid-4{grid-template-columns:repeat(2,1fr)!important}
+  /* Slider area - ensure full width */
+  #visSliderM{width:100%}
+  /* Chart height smaller on mobile */
+  .chart-wrap{height:170px!important}
+  /* Panel padding tighter */
+  .panel-body{padding:10px 12px;gap:8px}
+  .coll-body{padding:10px 12px}
+  /* Sum cards smaller text */
+  .sum-you{font-size:14px}
+  .sum-ben{font-size:11px}
+  .sum-diff{font-size:9.5px}
+  /* Insight rows */
+  .i-row{padding:9px 10px;gap:8px}
+  .i-val{font-size:12px}
+}
+@media(min-width:701px){
+  .left-panel-body{max-height:none!important;overflow:visible!important;display:block!important}
+}
+.panel{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);overflow:hidden}
+.panel-hdr{background:var(--surface2);padding:11px 15px;border-bottom:1px solid var(--border);font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--text2)}
+.panel-body{padding:13px 15px;display:flex;flex-direction:column;gap:11px}
+.field label{display:block;font-size:11px;font-weight:600;color:var(--text2);margin-bottom:3px}
+.field input,.field select{width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:var(--rs);background:var(--bg);font-family:'Inter',system-ui,sans-serif;font-size:13px;color:var(--text);outline:none}
+.field input:focus,.field select:focus{border-color:var(--blue)}
+.field-hint{font-size:10px;color:var(--text3);margin-top:3px;line-height:1.4}
+/* Option selector tabs */
+.opt-tabs{display:flex;border:1px solid var(--border);border-radius:var(--rs);overflow:hidden;background:var(--surface2)}
+.opt-tab{flex:1;padding:8px 4px;font-size:11px;font-weight:600;color:var(--text3);background:none;border:none;cursor:pointer;text-align:center;transition:all .15s;line-height:1.3}
+.opt-tab.active{background:var(--navy);color:#fff}
+/* Summary cards */
+.sum-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--rs);padding:13px 13px 11px;text-align:center}
+.sum-opt{font-size:9px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--text3);margin-bottom:5px}
+.sum-you{font-family:'DM Mono',monospace;font-size:17px;font-weight:700;color:var(--text)}
+.sum-annual{font-family:'DM Mono',monospace;font-size:11px;color:var(--text3);margin-top:2px}
+.sum-ben{font-family:'DM Mono',monospace;font-size:13px;color:var(--green);margin-top:6px;padding-top:6px;border-top:1px solid var(--border)}
+.sum-diff{font-size:10px;color:var(--red);margin-top:8px;padding-top:6px;border-top:1px dashed var(--border)}
+/* Chart */
+.chart-wrap{height:210px;position:relative}
+/* Table */
+.tbl-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch}
+.tbl-wrap table{width:100%;border-collapse:collapse;font-size:11px}
+.tbl-wrap th{padding:5px 9px;background:var(--surface2);color:var(--text3);font-size:8px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;text-align:right;border-bottom:1px solid var(--border);white-space:nowrap}
+.tbl-wrap th:first-child{text-align:left}
+.tbl-wrap td{padding:5px 9px;border-bottom:1px solid var(--border);text-align:right;font-family:'DM Mono',monospace;font-size:10.5px;color:var(--text);white-space:nowrap}
+.tbl-wrap td:first-child{text-align:left;font-family:'Inter',system-ui,sans-serif;font-weight:600;color:var(--text2);font-size:11px}
+.tbl-wrap tr.rt td{background:#eaf2fb}
+.tbl-wrap tr.rt td:first-child{color:var(--blue);font-weight:700}
+.tbl-wrap tr.rin td{color:var(--text3);background:var(--surface2)}
+/* Break-even / household */
+.be-cards{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-bottom:12px}
+.be-card{text-align:center;padding:10px 8px;background:var(--surface2);border-radius:var(--rs)}
+.be-label{font-size:9px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--text3);margin-bottom:4px}
+.be-val{font-family:'DM Mono',monospace;font-size:15px;font-weight:700;color:var(--text)}
+.be-val.green{color:var(--green)}
+.be-val.red{color:var(--red)}
+/* Insight box — matches main calculator style */
+.insight-box{background:var(--surface);border:1px solid #b8d4ea;border-radius:var(--r);overflow:hidden}
+.insight-header{background:var(--navy);padding:10px 16px;display:flex;align-items:center;justify-content:space-between}
+.insight-header h3{color:#fff;font-size:10.5px;font-weight:700;letter-spacing:.08em;text-transform:uppercase}
+.insight-header span{color:rgba(255,255,255,.6);font-size:9.5px;font-weight:600;letter-spacing:.06em;text-transform:uppercase}
+.insight-body-inner{padding:12px 14px;display:flex;flex-direction:column;gap:8px;background:#e8f2fb}
+.i-row{display:flex;align-items:flex-start;gap:12px;padding:12px 14px;background:var(--surface);border:1px solid var(--border);border-radius:var(--rs);box-shadow:0 2px 4px rgba(0,0,0,.05)}
+.i-label{font-size:9px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--text3);margin-bottom:3px}
+.i-val{font-size:14px;font-weight:600;color:var(--text);line-height:1.4}
+.i-accent{width:3px;min-width:3px;border-radius:2px;align-self:stretch}
+@media(max-width:700px){.i-row{padding:9px 10px;gap:8px}.i-val{font-size:13px}}
+.coll-hdr{background:#253447;padding:10px 14px;display:flex;align-items:center;justify-content:space-between;cursor:pointer;user-select:none}
+.coll-hdr-title{color:#fff;font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase}
+.coll-hdr-toggle{color:rgba(255,255,255,.6);font-size:10px;white-space:nowrap}
+.coll-body{padding:13px 16px}
+/* Info/footnote sections */
+.sec-hdr{background:var(--navy);border-radius:var(--r) var(--r) 0 0;padding:11px 17px;margin-bottom:-1px}
+.sec-eye{color:rgba(255,255,255,.5);font-size:9px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;margin-bottom:2px}
+.sec-title{color:#fff;font-family:'Cormorant Garamond',Georgia,serif;font-size:18px;font-weight:600}
+.fnotes{padding:8px 13px;border-top:1px solid var(--border);background:var(--surface2)}
+.fnotes p{font-size:10px;color:var(--text3);line-height:1.6;margin-bottom:2px}
+.irrev{background:#fff8e8;border:1px solid #f0c060;border-radius:var(--rs);padding:9px 12px;font-size:11.5px;color:#7a4f10;line-height:1.55}
+/* Slider matching main calculator style */
+input[type=range]#visSliderM{
+  flex:1;height:6px;border-radius:3px;appearance:none;-webkit-appearance:none;
+  background:linear-gradient(to right,#2d6da3 0%,#2d6da3 30%,#c8d4df 30%,#c8d4df 100%);
+  outline:none;cursor:pointer;
+}
+input[type=range]#visSliderM::-webkit-slider-thumb{
+  -webkit-appearance:none;width:22px;height:22px;border-radius:50%;
+  background:#2d6da3;cursor:pointer;border:3px solid #fff;
+  box-shadow:0 2px 6px rgba(45,109,163,.4);
+}
+input[type=range]#visSliderM::-moz-range-thumb{
+  width:22px;height:22px;border-radius:50%;
+  background:#2d6da3;cursor:pointer;border:3px solid #fff;
+}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div>
+    <a class="back-link" id="backLink" href="index.html">← Back to Retirement Calculator</a>
+    <div class="header-title">Beneficiary Option Calculator</div>
+    <div class="header-sub">CalSTRS Modified Benefit — Survivor Planning</div>
+  </div>
+</div>
+
+<div class="main">
+
+<!-- LEFT PANEL -->
+<div style="min-width:0;width:100%">
+  <button class="left-toggle" id="leftToggleBtn" onclick="toggleLeft()">
+    <span id="leftToggleLabel">📋 Your info &amp; settings</span>
+    <span class="left-toggle-chev" id="leftChev">▼</span>
+  </button>
+  <div class="left-panel-body" id="leftPanelBody">
+  <div style="display:flex;flex-direction:column;gap:13px;padding-bottom:4px">
+
+  <!-- Carried from main calculator — first, with border -->
+  <div class="panel" style="border:2px solid var(--teal)">
+    <div class="panel-hdr" style="background:#f0f5f8;color:var(--teal);display:flex;align-items:center;gap:6px">
+      <span style="font-size:13px">📊</span> From Your Retirement Calculator
+    </div>
+    <div class="panel-body" style="gap:7px">
+      <div style="display:flex;justify-content:space-between;align-items:center;padding:6px 10px;background:var(--surface2);border-radius:var(--rs)">
+        <span style="font-size:11px;color:var(--text2)">Member DOB</span>
+        <span style="font-family:'DM Mono',monospace;font-size:12px;font-weight:600;color:var(--text)" id="infoMemberDob">—</span>
+      </div>
+      <div style="display:flex;justify-content:space-between;align-items:center;padding:6px 10px;background:var(--surface2);border-radius:var(--rs)">
+        <span style="font-size:11px;color:var(--text2)">Target Retirement Age</span>
+        <span style="font-family:'DM Mono',monospace;font-size:12px;font-weight:600;color:var(--blue)" id="infoRetirementAge">—</span>
+      </div>
+      <div style="display:flex;justify-content:space-between;align-items:center;padding:6px 10px;background:var(--surface2);border-radius:var(--rs)">
+        <span style="font-size:11px;color:var(--text2)">Beneficiary Age at Retirement</span>
+        <span style="font-family:'DM Mono',monospace;font-size:12px;font-weight:600;color:var(--green)" id="infoBenAge">—</span>
+      </div>
+      <div style="display:flex;justify-content:space-between;align-items:center;padding:7px 10px;background:#eaf2fb;border-radius:var(--rs);border-left:3px solid var(--blue)">
+        <span style="font-size:11px;color:#1a3d5c;font-weight:600">Member-Only Benefit</span>
+        <span style="font-family:'DM Mono',monospace;font-size:13px;font-weight:700;color:#1a3d5c" id="infoMemberBenefit">—</span>
+      </div>
+      <p style="font-size:10px;color:var(--text3);line-height:1.4"><a href="index.html" id="backLink2" style="color:var(--blue)">← Return to main calculator</a> to change these values.</p>
+    </div>
+  </div>
+
+  <!-- Beneficiary Info — top priority input -->
+  <div class="panel" style="border:2px solid var(--blue)">
+    <div class="panel-hdr" style="background:#eaf2fb;color:#1a3d5c;display:flex;align-items:center;gap:6px">
+      <span style="font-size:13px">👤</span> Beneficiary Information
+    </div>
+    <div class="panel-body">
+      <p style="font-size:10.5px;color:var(--text3);margin-bottom:2px">Pre-filled from your calculator inputs. Update here if needed:</p>
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px">
+        <button id="modeAgeBtn" onclick="setBenMode('age')" style="flex:1;padding:6px;font-size:10.5px;font-weight:600;border:1px solid var(--border);border-radius:var(--rs);background:var(--navy);color:#fff;cursor:pointer">Enter Age</button>
+        <span style="font-size:10px;color:var(--text3);font-style:italic">or</span>
+        <button id="modeDobBtn" onclick="setBenMode('dob')" style="flex:1;padding:6px;font-size:10.5px;font-weight:600;border:1px solid var(--border);border-radius:var(--rs);background:var(--surface2);color:var(--text2);cursor:pointer">Date of Birth</button>
+      </div>
+      <div class="field" id="benAgeField">
+        <label>Beneficiary Age at Your Retirement</label>
+        <input type="number" id="benAge" value="60" min="1" max="100">
+      </div>
+      <div class="field" id="benDobField" style="display:none">
+        <label>Beneficiary Date of Birth</label>
+        <input type="date" id="benDob" min="1920-01-01" max="2025-12-31">
+        <p class="field-hint" id="benDobCalc">Age at your retirement will be calculated automatically.</p>
+      </div>
+      <p class="field-hint">A <strong>younger beneficiary</strong> = larger reduction (CalSTRS pays out longer). A <strong>same-age or older</strong> beneficiary = smaller reduction.</p>
+      <div id="ageGapWarning" style="display:none;margin-top:6px;padding:8px 10px;background:#fde8e8;border:1px solid #e8a0a0;border-radius:var(--rs);font-size:10.5px;color:#7a1f1f;line-height:1.5"></div>
+      <p style="font-size:10px;color:var(--text3);margin-top:6px;line-height:1.5">⚖️ <strong>Non-spouse beneficiaries:</strong> federal law limits the age gap — up to 19 years younger for 75%, up to 10 years younger for 100%. Verify with CalSTRS if the gap is large.</p>
+    </div>
+  </div>
+
+  <!-- Collapsible disclaimers + links -->
+  <div class="panel" style="overflow:hidden">
+    <div class="coll-hdr" onclick="toggleColl(this)">
+      <span class="coll-hdr-title">Important Notes &amp; Resources</span>
+      <span class="coll-hdr-toggle">▶ expand</span>
+    </div>
+    <div style="display:none;padding:13px 15px;flex-direction:column;gap:10px" id="disclaimerBody">
+      <p style="font-size:11px;color:var(--text2);line-height:1.65">The option factor is an actuarial calculation. CalSTRS estimates how long they expect to pay — to you, then to your beneficiary. An <strong>older member</strong> retiring later → higher factor (shorter payout). A <strong>younger beneficiary</strong> → lower factor (longer payout).</p>
+      <div style="padding:9px 11px;background:#eaf2fb;border:1px solid #c0d4ec;border-radius:var(--rs)">
+        <p style="font-size:11px;color:#1a3d5c;line-height:1.65"><strong>Option choice matters:</strong> 100% passes your full benefit (most expensive) · 75% passes three-quarters · 50% passes half (least expensive)</p>
+      </div>
+      <p style="font-size:10.5px;color:var(--text2);line-height:1.55">💡 <strong>Multiple beneficiaries:</strong> CalSTRS also offers a <strong>Compound Option</strong> — splitting your benefit among two or more beneficiaries, each with their own percentage. This calculator covers a single beneficiary only.</p>
+      <p style="font-size:10.5px;color:var(--text2);line-height:1.55">📋 <strong>Preretirement election:</strong> You may elect an option before retiring. If you do, you get the higher of your election-date or retirement-date factor. If you die before retiring, your beneficiary receives a lifetime benefit calculated as of your date of death.</p>
+      <p style="font-size:10.5px;color:var(--text2);line-height:1.55">🏦 <strong>Defined Benefit Supplement</strong> account not modeled here — it has separate distribution rules. Contact CalSTRS for details.</p>
+      <div style="font-size:10px;color:var(--text3);line-height:1.6;border-top:1px solid var(--border);padding-top:9px">
+        <p>Factors based on CalSTRS actuarial tables effective Sept 1, 2024. <a href="https://www.calstrs.com/files/6a92c8677/MemberHandbook2025.pdf" target="_blank" rel="noopener" style="color:var(--blue)">Service Retirement Option Factor Tables ↗</a></p>
+        <p style="margin-top:4px"><a href="http://www.calstrs.com/electing-an-option" target="_blank" rel="noopener" style="color:var(--blue)">CalSTRS rules on preretirement elections ↗</a></p>
+        <p style="margin-top:4px"><a href="http://www.calstrs.com/postretirement-option-change-faq" target="_blank" rel="noopener" style="color:var(--blue)">What if my beneficiary dies first? ↗</a></p>
+      </div>
+    </div>
+  </div>
+
+  <div class="irrev">⚠️ <strong>Irrevocable after 30 days.</strong> If your beneficiary predeceases you, your benefit rises back to the full Member-Only amount automatically.</div>
+
+  </div><!-- /inner flex -->
+  <button class="left-done" id="leftDoneBtn" onclick="toggleLeft()">✓ Done — Show Results</button>
+  </div><!-- /left-panel-body -->
+</div>
+
+<!-- RIGHT PANEL -->
+<div style="display:flex;flex-direction:column;gap:14px;min-width:0">
+
+  <!-- Member age slider -->
+  <div class="panel" style="overflow:hidden">
+    <div class="panel-hdr">Member Retirement Age — Explore Different Ages</div>
+    <div style="padding:14px 16px">
+      <div style="display:flex;align-items:baseline;justify-content:space-between;margin-bottom:6px">
+        <span style="font-size:9.5px;font-weight:700;letter-spacing:.09em;text-transform:uppercase;color:var(--text3)">Retirement Age</span>
+        <span style="font-family:'DM Mono',monospace;font-size:28px;font-weight:700;color:var(--blue)" id="visAgeOut">62</span>
+      </div>
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;min-width:0">
+        <span style="font-family:'DM Mono',monospace;font-size:12px;color:var(--text3)">55</span>
+        <input type="range" min="55" max="75" value="62" step="1" id="visSliderM">
+        <span style="font-family:'DM Mono',monospace;font-size:12px;color:var(--text3)">75</span>
+      </div>
+      <!-- Member-Only benefit box -->
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:9px 12px;background:#eaf2fb;border-radius:var(--rs);border-left:3px solid var(--blue);margin-bottom:8px">
+        <div>
+          <p style="font-size:9px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#1a3d5c;margin-bottom:2px">Member-Only Monthly</p>
+          <p style="font-family:'DM Mono',monospace;font-size:20px;font-weight:700;color:#1a3d5c;line-height:1" id="visBenOut">—</p>
+        </div>
+        <div style="text-align:right">
+          <p style="font-size:9px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#1a3d5c;margin-bottom:2px">Annual</p>
+          <p style="font-family:'DM Mono',monospace;font-size:14px;font-weight:600;color:#3d6a8a;line-height:1" id="visBenAnnual">—</p>
+        </div>
+      </div>
+      <!-- Beneficiary age moves with slider -->
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:7px 10px;background:var(--surface2);border-radius:var(--rs)">
+        <span style="font-size:11px;color:var(--text2)">Beneficiary age at this retirement</span>
+        <span style="font-family:'DM Mono',monospace;font-size:13px;font-weight:700;color:var(--green)" id="visBenAgeDisplay">—</span>
+      </div>
+      <p style="font-size:10px;color:var(--text3);font-style:italic;text-align:center;margin-top:7px">Slide to explore — beneficiary age updates automatically to maintain the same age gap</p>
+    </div>
+  </div>
+
+  <!-- Quick Comparison — all 4 equally weighted, no highlight -->
+  <div class="panel">
+    <div class="panel-hdr" style="display:flex;align-items:center;justify-content:space-between">
+      <span>Quick Comparison — All Options vs Member-Only</span>
+      <div class="opt-tabs" style="width:auto;display:inline-flex">
+        <button class="opt-tab active" id="qcMonthlyBtn" onclick="setQcView('monthly')" style="padding:4px 10px;font-size:10px">Monthly</button>
+        <button class="opt-tab" id="qcAnnualBtn" onclick="setQcView('annual')" style="padding:4px 10px;font-size:10px">Annual</button>
+      </div>
+    </div>
+    <div style="padding:12px 14px">
+      <div style="display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px" class="summary-grid-4" id="summaryGrid">
+        <div class="sum-card" style="background:var(--surface2)">
+          <p class="sum-opt">Member-Only</p>
+          <p class="sum-you" id="sMOyou">—</p>
+          <p class="sum-annual" id="sMOannual">—</p>
+          <p class="sum-ben" style="color:var(--text3);font-size:11px">No survivor benefit</p>
+          <p class="sum-diff">&nbsp;</p>
+        </div>
+        <div class="sum-card" id="sum100">
+          <p class="sum-opt">100% Option</p>
+          <p class="sum-you" id="s100you">—</p>
+          <p class="sum-annual" id="s100annual">—</p>
+          <p class="sum-ben" id="s100ben">—</p>
+          <p class="sum-diff" id="s100pct">—</p>
+        </div>
+        <div class="sum-card" id="sum75">
+          <p class="sum-opt">75% Option</p>
+          <p class="sum-you" id="s75you">—</p>
+          <p class="sum-annual" id="s75annual">—</p>
+          <p class="sum-ben" id="s75ben">—</p>
+          <p class="sum-diff" id="s75pct">—</p>
+        </div>
+        <div class="sum-card" id="sum50">
+          <p class="sum-opt">50% Option</p>
+          <p class="sum-you" id="s50you">—</p>
+          <p class="sum-annual" id="s50annual">—</p>
+          <p class="sum-ben" id="s50ben">—</p>
+          <p class="sum-diff" id="s50pct">—</p>
+        </div>
+      </div>
+      <p style="font-size:10px;color:var(--text3);line-height:1.5;margin-top:9px"><strong>You receive</strong> = your monthly benefit · <strong style="color:var(--green)">Green</strong> = beneficiary's monthly amount after your death · <strong style="color:var(--red)">Red</strong> = reduction vs Member-Only</p>
+    </div>
+  </div>
+
+  <!-- Option selector — for detail below -->
+  <div class="panel">
+    <div class="panel-hdr">Select Option to Explore in Detail — What Your Beneficiary Receives</div>
+    <div class="panel-body">
+      <div class="opt-tabs">
+        <button class="opt-tab active" onclick="setOpt(100,this)">100% Option<br><span style="font-size:9px;opacity:.7">Most reduction</span></button>
+        <button class="opt-tab" onclick="setOpt(75,this)">75% Option<br><span style="font-size:9px;opacity:.7">Moderate</span></button>
+        <button class="opt-tab" onclick="setOpt(50,this)">50% Option<br><span style="font-size:9px;opacity:.7">Least reduction</span></button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 10-year view chart -->
+  <div>
+    <div class="sec-hdr"><p class="sec-eye">10-Year View</p><p class="sec-title">How Benefits Change +/- 5 Years Around Your Target Age</p></div>
+    <div class="panel" style="border-radius:0 0 var(--r) var(--r);padding:14px 16px">
+      <div class="chart-wrap"><canvas id="rangeChart"></canvas></div>
+      <p style="font-size:10px;color:var(--text3);margin-top:8px;text-align:center">Member-Only (gray) vs your modified benefit under the selected option (blue). ★ = your target age. Labels in thousands (e.g. 7.5 = $7,500).</p>
+    </div>
+  </div>
+
+  <!-- Hero detail cards -->
+  <div class="panel" style="padding:15px 17px">
+    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:12px" class="hero-grid-4">
+      <div style="background:var(--surface2);border-radius:var(--rs);padding:11px 12px">
+        <p style="font-size:9px;font-weight:700;letter-spacing:.09em;text-transform:uppercase;color:var(--text3);margin-bottom:4px">Member-Only Benefit</p>
+        <p style="font-family:'DM Mono',monospace;font-size:18px;font-weight:700;color:var(--text);line-height:1" id="hMO">—</p>
+        <p style="font-size:9px;color:var(--text3);margin-top:3px">No option elected</p>
+      </div>
+      <div style="background:var(--surface2);border-radius:var(--rs);padding:11px 12px">
+        <p style="font-size:9px;font-weight:700;letter-spacing:.09em;text-transform:uppercase;color:var(--text3);margin-bottom:4px">Your Modified Benefit</p>
+        <p style="font-family:'DM Mono',monospace;font-size:18px;font-weight:700;color:var(--blue);line-height:1" id="hMod">—</p>
+        <p style="font-size:9px;color:var(--text3);margin-top:3px">What you receive/mo</p>
+      </div>
+      <div style="background:var(--surface2);border-radius:var(--rs);padding:11px 12px">
+        <p style="font-size:9px;font-weight:700;letter-spacing:.09em;text-transform:uppercase;color:var(--text3);margin-bottom:4px">Monthly Reduction</p>
+        <p style="font-family:'DM Mono',monospace;font-size:18px;font-weight:700;color:var(--red);line-height:1" id="hRed">—</p>
+        <p style="font-size:9px;color:var(--text3);margin-top:3px">Less than Member-Only</p>
+      </div>
+      <div style="background:var(--surface2);border-radius:var(--rs);padding:11px 12px">
+        <p style="font-size:9px;font-weight:700;letter-spacing:.09em;text-transform:uppercase;color:var(--text3);margin-bottom:4px">Beneficiary Gets</p>
+        <p style="font-family:'DM Mono',monospace;font-size:18px;font-weight:700;color:var(--green);line-height:1" id="hBen">—</p>
+        <p style="font-size:9px;color:var(--text3);margin-top:3px">After your death, for life</p>
+      </div>
+    </div>
+    <div style="font-size:11.5px;padding:9px 12px;background:#eaf2fb;border-radius:var(--rs);border-left:3px solid var(--blue);line-height:1.6;color:#1a3d5c" id="hNote">Select an option and enter beneficiary age to see results.</div>
+  </div>
+
+  <!-- Insights — collapsible, default collapsed -->
+  <div class="insight-box">
+    <div class="insight-header" onclick="toggleColl(this)" style="cursor:pointer;user-select:none">
+      <h3>Insights</h3>
+      <span id="insightToggle">▶ expand</span>
+    </div>
+    <div style="display:none" id="insightCollBody">
+      <div class="insight-body-inner">
+
+        <div class="i-row">
+          <div class="i-accent" style="background:var(--blue)"></div>
+          <div>
+            <p class="i-label">Sweet spot</p>
+            <p class="i-val">The 75% option is often the financial sweet spot</p>
+            <p style="font-size:10.5px;color:var(--text2);line-height:1.6;margin-top:4px">The 100% option gives your beneficiary the most but costs you the most monthly. The 50% option is cheapest but may leave your survivor short. The 75% option typically balances the tradeoff best — meaningful survivor income at a moderate reduction to your check.</p>
+          </div>
+        </div>
+
+        <div class="i-row">
+          <div class="i-accent" style="background:var(--green)"></div>
+          <div>
+            <p class="i-label">Risk profile</p>
+            <p class="i-val">The downside risk is asymmetric — in your favor</p>
+            <p style="font-size:10.5px;color:var(--text2);line-height:1.6;margin-top:4px">If your beneficiary predeceases you, your benefit automatically rises back to the full Member-Only amount for the rest of your life. The reduction only applies while both of you are living. This makes the election much less of a one-way bet than most people assume.</p>
+          </div>
+        </div>
+
+        <div class="i-row">
+          <div class="i-accent" style="background:#c08030"></div>
+          <div>
+            <p class="i-label">Inflation</p>
+            <p class="i-val">The survivor's payment doesn't keep up with inflation</p>
+            <p style="font-size:10.5px;color:var(--text2);line-height:1.6;margin-top:4px">Your beneficiary's monthly amount is fixed at your retirement — it receives no COLA. A $4,000/mo survivor payment today will have meaningfully less purchasing power 20 years from now. If your beneficiary is much younger than you, factor this into which option you choose.</p>
+          </div>
+        </div>
+
+        <div class="i-row">
+          <div class="i-accent" style="background:var(--teal)"></div>
+          <div>
+            <p class="i-label">Preretirement election</p>
+            <p class="i-val">Electing early locks in a floor, not a ceiling</p>
+            <p style="font-size:10.5px;color:var(--text2);line-height:1.6;margin-top:4px">If you make a preretirement election, CalSTRS uses the <em>higher</em> of your election-date or retirement-date factor. So if your benefit grows before you retire, you keep the better factor. Electing early is risk-free from a factor standpoint. See <a href="http://www.calstrs.com/electing-an-option" target="_blank" rel="noopener" style="color:var(--blue)">CalSTRS preretirement election rules ↗</a>.</p>
+          </div>
+        </div>
+
+        <div class="i-row">
+          <div class="i-accent" style="background:var(--text3)"></div>
+          <div>
+            <p class="i-label">Age gap</p>
+            <p class="i-val">A younger beneficiary costs more — but not linearly</p>
+            <p style="font-size:10.5px;color:var(--text2);line-height:1.6;margin-top:4px">The option factor drops as your beneficiary gets younger because CalSTRS expects to pay longer. But the penalty accelerates — a 10-year gap costs more than twice as much as a 5-year gap. Try the age slider above to see how your beneficiary's age shifts the numbers.</p>
+          </div>
+        </div>
+
+        <div class="i-row">
+          <div class="i-accent" style="background:#5577aa"></div>
+          <div>
+            <p class="i-label">Household vs individual</p>
+            <p class="i-val">Household math favors electing — individual math never does</p>
+            <p style="font-size:10.5px;color:var(--text2);line-height:1.6;margin-top:4px">Viewed alone, staying Member-Only always wins for you — you keep more every month. But when you add your beneficiary's lifetime collections, electing an option almost always produces a higher combined total. The question is whether you're optimizing for your income or your household's long-term security.</p>
+          </div>
+        </div>
+
+        <div class="i-row">
+          <div class="i-accent" style="background:var(--red)"></div>
+          <div>
+            <p class="i-label">Factor timing</p>
+            <p class="i-val">The factor is calculated at retirement, not at election</p>
+            <p style="font-size:10.5px;color:var(--text2);line-height:1.6;margin-top:4px">If you elect preretirement, the factor is recalculated at actual retirement using both ages at that time (with the higher-of rule). You can't lock in a younger age's factor by electing early. Plan around your expected retirement-date ages.</p>
+          </div>
+        </div>
+
+        <p style="font-size:10px;color:var(--text3);line-height:1.5;padding:4px 0">Planning observations only — not financial advice. Verify all decisions with CalSTRS or a licensed advisor before making any irrevocable election.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Break-even — collapsible, default collapsed -->
+  <div class="panel" style="overflow:hidden">
+    <div class="coll-hdr" onclick="toggleColl(this)">
+      <span class="coll-hdr-title">Break-Even — Is This Option Worth It?</span>
+      <span class="coll-hdr-toggle">▶ expand</span>
+    </div>
+    <div style="display:none" id="breakEvenBody">
+      <div class="coll-body">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;flex-wrap:wrap">
+          <span style="font-size:11.5px;color:var(--text2)">If you collect your pension for</span>
+          <input type="range" min="1" max="35" value="20" step="1" id="beYearsSlider" style="width:140px;accent-color:var(--blue)">
+          <span style="font-family:'DM Mono',monospace;font-size:14px;font-weight:700;color:var(--blue);min-width:60px" id="beYearsOut">20 years</span>
+        </div>
+        <div class="be-cards">
+          <div class="be-card"><p class="be-label">You Give Up</p><p class="be-val red" id="beGiveUp">—</p><p style="font-size:9px;color:var(--text3);margin-top:3px">Total over your retirement</p></div>
+          <div class="be-card" style="background:#eaf2fb;border:1px solid #c0d4ec"><p class="be-label">Beneficiary Breaks Even</p><p class="be-val" style="color:var(--blue)" id="beYrs">—</p><p style="font-size:9px;color:var(--text3);margin-top:3px">Years they must then collect</p></div>
+          <div class="be-card"><p class="be-label">At Age</p><p class="be-val green" id="beAtAge">—</p><p style="font-size:9px;color:var(--text3);margin-top:3px">Beneficiary's age at that point</p></div>
+        </div>
+        <p style="font-size:11px;color:var(--text3);line-height:1.5;font-style:italic">Financial break-even only — peace of mind and your beneficiary's health are equally important factors.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Full schedule table -->
+  <div>
+    <div class="sec-hdr"><p class="sec-eye">Full Schedule</p><p class="sec-title">Modified Benefit by Retirement Age</p></div>
+    <div class="panel" style="border-radius:0 0 var(--r) var(--r);overflow:hidden">
+      <div class="tbl-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Retire Age</th>
+              <th>Member-Only</th>
+              <th class="tbl-hide-mobile">Option Factor</th>
+              <th>Your Modified Benefit</th>
+              <th class="tbl-hide-mobile">% of Member-Only</th>
+              <th>Beneficiary Gets</th>
+              <th class="tbl-hide-mobile">Monthly Reduction</th>
+            </tr>
+          </thead>
+          <tbody id="tableBody"></tbody>
+        </table>
+      </div>
+      <div class="fnotes">
+        <p>★ = your target retirement age. Member-Only benefit uses your real schedule from the main calculator where available.</p>
+        <p>Option factors approximate based on CalSTRS actuarial tables (Sept 1, 2024). Calibrated to known CalSTRS data: member 61, ben 59 → 100%: 0.8822, 75%: 0.9160, 50%: 0.9451. Verify all figures with CalSTRS before making any irrevocable election.</p>
+        <p><a href="index.html" id="backLink3" style="color:var(--blue)">← Return to Retirement Calculator</a> · <a href="https://www.calstrs.com/electing-an-option" target="_blank" rel="noopener" style="color:var(--blue)">Learn more at CalSTRS.com ↗</a></p>
+      </div>
+    </div>
+  </div>
+
+</div>
+</div>
+
+<!-- Site footer -->
+<div style="max-width:1100px;margin:0 auto;padding:14px 18px 28px;text-align:center;border-top:1px solid var(--border)">
+  <p style="font-size:10.5px;color:var(--text3);line-height:1.6">
+    Last updated <strong style="color:var(--text2)">June 2026</strong> · Option factor tables effective <strong style="color:var(--text2)">September 1, 2024</strong><br>
+    Independent educational tool, not affiliated with CalSTRS or any school district. Always verify figures directly with CalSTRS before making any irrevocable election.
+  </p>
+</div>
+
+<script>
+var params = new URLSearchParams(window.location.search);
+var memberBenefit = parseFloat(params.get('benefit')) || 5000;
+var memberAge = parseInt(params.get('memberAge')) || 62;
+var benAgeParam = parseInt(params.get('benAge')) || (memberAge - 2);
+var benModeParam = params.get('benMode') || 'age';
+var memberDob = params.get('dob') || '';
+var benDobParam = params.get('benDob') || '';
+
+// Clamp URL-passed values
+memberBenefit = Math.max(0, Math.min(50000, memberBenefit)) || 5000;
+memberAge = Math.max(50, Math.min(75, memberAge)) || 62;
+benAgeParam = Math.max(1, Math.min(100, benAgeParam)) || (memberAge - 2);
+
+// Populate "Carried From Your Calculator" info panel
+(function(){
+  var el = document.getElementById('infoMemberDob');
+  if(el) el.textContent = memberDob || 'Not provided';
+  var el2 = document.getElementById('infoRetirementAge');
+  if(el2) el2.textContent = 'Age ' + memberAge;
+  var el3 = document.getElementById('infoMemberBenefit');
+  if(el3) el3.textContent = new Intl.NumberFormat('en-US',{style:'currency',currency:'USD',maximumFractionDigits:0}).format(memberBenefit) + '/mo';
+})();
+
+// Keep back-links updated with current state
+function updateBackLinks(){
+  var benAgeNow = parseInt(document.getElementById('benAge').value) || benAgeParam;
+  var benDobNow = document.getElementById('benDob').value || benDobParam;
+  var dobPart = benDobNow ? '&fromBenDob=' + encodeURIComponent(benDobNow) : '';
+  var url = 'index.html?targetAge=' + memberAge + '&fromBenAge=' + benAgeNow + '&fromBenMode=' + benMode + dobPart;
+  ['backLink','backLink2','backLink3'].forEach(function(id){
+    var el = document.getElementById(id);
+    if(el) el.href = url;
+  });
+}
+
+var currentOpt = 100;
+var qcView = 'monthly';
+
+function setQcView(view){
+  qcView = view;
+  document.getElementById('qcMonthlyBtn').classList.toggle('active', view === 'monthly');
+  document.getElementById('qcAnnualBtn').classList.toggle('active', view === 'annual');
+  update();
+}
+
+function fmtC(n){ return new Intl.NumberFormat('en-US',{style:'currency',currency:'USD',maximumFractionDigits:0}).format(n); }
+function fmtT(n){ return n>=1000000 ? '$'+(n/1000000).toFixed(1)+'M' : '$'+Math.round(n/1000)+'k'; }
+
+// ── REAL SCHEDULE from main calculator via localStorage ──
+var ageScaleTable={55:0.62,56:0.66,57:0.70,58:0.74,59:0.79,60:0.85,61:0.92,62:1.00,63:1.08,64:1.14,65:1.19,66:1.23,67:1.27,68:1.30,69:1.33,70:1.35,71:1.37,72:1.39,73:1.40,74:1.41,75:1.42};
+var realSchedule = null;
+try {
+  var savedRaw = localStorage.getItem('calstrs_real_schedule');
+  if(savedRaw){ var saved=JSON.parse(savedRaw); if(saved&&saved.schedule) realSchedule=saved.schedule; }
+} catch(e){}
+
+function benefitAtAge(age){
+  if(realSchedule && realSchedule[age] != null) return realSchedule[age];
+  var baseScale = ageScaleTable[memberAge]||1.00;
+  var currScale = ageScaleTable[age]||1.00;
+  return Math.round(memberBenefit * currScale / baseScale);
+}
+
+// ── TOP SLIDER ──
+function buildVis(){
+  var mAge = parseInt(document.getElementById('visSliderM').value);
+  document.getElementById('visAgeOut').textContent = mAge;
+
+  // Update slider fill (matches main calculator style)
+  var sl = document.getElementById('visSliderM');
+  var pct = ((mAge - 55) / (75 - 55)) * 100;
+  sl.style.background = 'linear-gradient(to right,#2d6da3 0%,#2d6da3 '+pct+'%,#c8d4df '+pct+'%,#c8d4df 100%)';
+
+  var currBen = benefitAtAge(mAge);
+  document.getElementById('visBenOut').textContent = fmtC(currBen) + '/mo';
+  document.getElementById('visBenAnnual').textContent = fmtC(currBen * 12) + '/yr';
+
+  // Also update the info panel Member-Only Benefit so it tracks the slider
+  var infoMB = document.getElementById('infoMemberBenefit');
+  if(infoMB) infoMB.textContent = fmtC(currBen) + '/mo';
+
+  // Maintain age gap
+  var benAgeInput = document.getElementById('benAge');
+  var oldGap = memberAge - parseInt(benAgeInput.value || memberAge - 2);
+  memberAge = mAge;
+  memberBenefit = currBen;
+  var newBenAge = Math.max(1, Math.min(100, mAge - oldGap));
+  benAgeInput.value = newBenAge;
+
+  // Update beneficiary age display below slider
+  document.getElementById('visBenAgeDisplay').textContent = 'Age ' + newBenAge;
+  // Update info panel
+  var el2 = document.getElementById('infoRetirementAge');
+  if(el2) el2.textContent = 'Age ' + mAge;
+
+  update();
+}
+
+document.getElementById('visSliderM').addEventListener('input', buildVis);
+document.getElementById('visSliderM').value = memberAge;
+
+// ── OPTION FACTOR ──
+function getFactor(mAge, bAge, opt){
+  var base, mRate, bRate;
+  if(opt===100){base=0.9022;mRate=0.004;bRate=0.010;}
+  else if(opt===75){base=0.9280;mRate=0.003;bRate=0.006;}
+  else{base=0.9531;mRate=0.002;bRate=0.004;}
+  var f = base + (mAge-61)*mRate - (61-bAge)*bRate;
+  return Math.max(0.50, Math.min(0.99, Math.round(f*10000)/10000));
+}
+
+var benChart;
+
+function update(){
+  updateBackLinks();
+  var benAgeInput = document.getElementById('benAge');
+  var benAge = parseInt(benAgeInput.value);
+  if(isNaN(benAge)||benAge<1||benAge>100){
+    benAge = Math.max(1,Math.min(100,isNaN(benAge)?60:benAge));
+    benAgeInput.value = benAge;
+  }
+
+  // Update info panel beneficiary age
+  var infoBen = document.getElementById('infoBenAge');
+  if(infoBen) infoBen.textContent = 'Age ' + benAge;
+
+  // Update slider beneficiary display
+  var visBenAgeEl = document.getElementById('visBenAgeDisplay');
+  if(visBenAgeEl) visBenAgeEl.textContent = 'Age ' + benAge;
+
+  // Federal age-gap warning
+  var gapWarnEl = document.getElementById('ageGapWarning');
+  var ageDiff = memberAge - benAge;
+  if(gapWarnEl){
+    if(currentOpt===100 && ageDiff>10){
+      gapWarnEl.style.display='block';
+      gapWarnEl.innerHTML='⚠️ Your beneficiary is <strong>'+ageDiff+' years younger</strong>. If they are <strong>not your spouse</strong>, federal law does not allow the 100% option (max gap: 10 yrs). Consider 75% or verify with CalSTRS.';
+    } else if(currentOpt===75 && ageDiff>19){
+      gapWarnEl.style.display='block';
+      gapWarnEl.innerHTML='⚠️ Your beneficiary is <strong>'+ageDiff+' years younger</strong>. If they are <strong>not your spouse</strong>, federal law does not allow the 75% option (max gap: 19 yrs).';
+    } else {
+      gapWarnEl.style.display='none';
+    }
+  }
+
+  // Summary grid
+  var qcMult = qcView==='annual' ? 12 : 1;
+  var qcSuf = qcView==='annual' ? '/yr' : '/mo';
+
+  var sMO = document.getElementById('sMOyou');
+  if(sMO) sMO.textContent = fmtC(memberBenefit*qcMult) + qcSuf;
+  var sMOa = document.getElementById('sMOannual');
+  if(sMOa) sMOa.textContent = qcView==='monthly' ? fmtC(memberBenefit*12)+'/yr' : fmtC(memberBenefit)+'/mo';
+
+  var opts=[100,75,50];
+  opts.forEach(function(o){
+    var f = getFactor(memberAge, benAge, o);
+    var mod = Math.round(memberBenefit * f);
+    var benGets = Math.round(mod * o / 100);
+    var diff = mod - memberBenefit;
+    document.getElementById('s'+o+'you').textContent = fmtC(mod*qcMult) + qcSuf;
+    var annualEl = document.getElementById('s'+o+'annual');
+    if(annualEl) annualEl.textContent = qcView==='monthly' ? fmtC(mod*12)+'/yr' : fmtC(mod)+'/mo';
+    document.getElementById('s'+o+'ben').textContent = fmtC(benGets*qcMult) + qcSuf + ' to beneficiary';
+    document.getElementById('s'+o+'pct').innerHTML = '<span style="color:var(--red)">' + fmtC(diff*qcMult) + qcSuf + '</span> vs Member-Only';
+    // Remove active highlight — all cards equal
+    document.getElementById('sum'+o).className = 'sum-card';
+  });
+
+  // Hero detail
+  var f = getFactor(memberAge, benAge, currentOpt);
+  var mod = Math.round(memberBenefit * f);
+  var benGets = Math.round(mod * currentOpt / 100);
+  var red = memberBenefit - mod;
+
+  var hMO=document.getElementById('hMO'); if(hMO) hMO.textContent=fmtC(memberBenefit)+'/mo';
+  var hMod=document.getElementById('hMod'); if(hMod) hMod.textContent=fmtC(mod)+'/mo';
+  var hRed=document.getElementById('hRed'); if(hRed) hRed.textContent='-'+fmtC(red)+'/mo';
+  var hBen=document.getElementById('hBen'); if(hBen) hBen.textContent=fmtC(benGets)+'/mo';
+
+  var younger = benAge < memberAge;
+  var ageNote = younger
+    ? 'Your beneficiary is '+(memberAge-benAge)+' year'+((memberAge-benAge)===1?'':'s')+' younger.'
+    : benAge > memberAge ? 'Your beneficiary is '+(benAge-memberAge)+' year'+((benAge-memberAge)===1?'':'s')+' older.'
+    : 'Same age as you at retirement.';
+  var hNote=document.getElementById('hNote'); if(hNote) hNote.innerHTML=ageNote+' Under the <strong>'+currentOpt+'% option</strong>, your '+fmtC(memberBenefit)+'/mo becomes <strong>'+fmtC(mod)+'/mo</strong> ('+((1-f)*100).toFixed(1)+'% reduction). Your beneficiary receives <strong>'+fmtC(benGets)+'/mo for life</strong> after you die.';
+
+  // 10-year chart
+  var ages=[], moData=[], modData=[];
+  var rangeStart=Math.max(50,memberAge-5), rangeEnd=Math.min(75,memberAge+5);
+  for(var age=rangeStart;age<=rangeEnd;age++){
+    var moBen=benefitAtAge(age);
+    var ff=getFactor(age,benAge,currentOpt);
+    ages.push(age===memberAge ? age+' ★' : age);
+    moData.push(moBen);
+    modData.push(Math.round(moBen*ff));
+  }
+  var rangeCanvas=document.getElementById('rangeChart');
+  if(rangeCanvas){
+    if(benChart) benChart.destroy();
+    var barValueLabelPlugin={
+      id:'bvl',
+      afterDatasetsDraw:function(chart){
+        var c=chart.ctx; c.save();
+        c.font='bold 9px Inter,sans-serif'; c.textAlign='center'; c.fillStyle='#1a2332';
+        chart.data.datasets.forEach(function(ds,di){
+          chart.getDatasetMeta(di).data.forEach(function(bar,i){
+            c.fillText((ds.data[i]/1000).toFixed(1),bar.x,bar.y-4);
+          });
+        });
+        c.restore();
+      }
+    };
+    benChart=new Chart(rangeCanvas.getContext('2d'),{
+      type:'bar',
+      data:{labels:ages,datasets:[
+        {label:'Member-Only',data:moData,backgroundColor:'#dde2e7',borderRadius:3},
+        {label:'Modified ('+currentOpt+'% option)',data:modData,backgroundColor:'#6ba3d6',borderRadius:3}
+      ]},
+      plugins:[barValueLabelPlugin],
+      options:{responsive:true,maintainAspectRatio:false,layout:{padding:{top:16}},
+        plugins:{legend:{position:'top',labels:{font:{size:11},boxWidth:12}},
+          tooltip:{callbacks:{label:function(ctx){return ctx.dataset.label+': $'+ctx.raw.toLocaleString()+'/mo';}}}},
+        scales:{
+          x:{ticks:{font:{size:10}},grid:{display:false}},
+          y:{ticks:{callback:function(v){return '$'+(v/1000).toFixed(0)+'k';},font:{size:10}},grid:{color:'#eee'}}
+        }}
+    });
+  }
+
+  // Break-even
+  var beYearsSlider=document.getElementById('beYearsSlider');
+  var beYears=parseInt(beYearsSlider.value)||20;
+  document.getElementById('beYearsOut').textContent=beYears+' year'+(beYears===1?'':'s');
+  var totalGiveUp=red*12*beYears;
+  var benBEYrs=benGets>0?totalGiveUp/(benGets*12):0;
+  document.getElementById('beGiveUp').textContent=fmtT(totalGiveUp);
+  document.getElementById('beYrs').textContent=benBEYrs.toFixed(1)+' yrs';
+  document.getElementById('beAtAge').textContent='Age '+Math.round(benAge+beYears+benBEYrs);
+
+
+
+  // Persist to localStorage for PDF
+  try{
+    var qcData={memberAge:memberAge,benAge:benAge,memberBenefit:memberBenefit,options:{}};
+    [100,75,50].forEach(function(o){
+      var ff2=getFactor(memberAge,benAge,o);
+      var m2=Math.round(memberBenefit*ff2);
+      qcData.options[o]={modified:m2,beneficiaryGets:Math.round(m2*o/100),factor:ff2};
+    });
+    localStorage.setItem('calstrs_beneficiary_data',JSON.stringify(qcData));
+  }catch(e){}
+
+  // Full schedule table
+  var tbody=document.getElementById('tableBody');
+  tbody.innerHTML='';
+  for(var a=50;a<=75;a++){
+    var isElig=a>=55, isTarget=a===memberAge;
+    var moBen2=isElig?benefitAtAge(a):0;
+    var ff3=getFactor(a,benAge,currentOpt);
+    var modBen=isElig?Math.round(moBen2*ff3):0;
+    var benG=isElig?Math.round(modBen*currentOpt/100):0;
+    var redAmt=isElig?moBen2-modBen:0;
+    var pct2=isElig&&moBen2>0?(ff3*100).toFixed(2)+'%':'—';
+    var tr=document.createElement('tr');
+    if(isTarget) tr.className='rt';
+    else if(!isElig) tr.className='rin';
+    tr.innerHTML='<td>'+a+(isTarget?' ★':'')+(!isElig?' (ineligible)':'')+'</td>'
+      +'<td>'+(isElig?fmtC(moBen2)+'/mo':'—')+'</td>'
+      +'<td class="tbl-hide-mobile">'+pct2+'</td>'
+      +'<td style="color:var(--blue);font-weight:'+(isTarget?'700':'400')+'">'+(isElig?fmtC(modBen)+'/mo':'—')+'</td>'
+      +'<td class="tbl-hide-mobile">'+(isElig&&moBen2>0?(ff3*100).toFixed(1)+'%':'—')+'</td>'
+      +'<td style="color:var(--green)">'+(isElig?fmtC(benG)+'/mo':'—')+'</td>'
+      +'<td class="tbl-hide-mobile" style="color:var(--red)">'+(isElig?'-'+fmtC(redAmt)+'/mo':'—')+'</td>';
+    tbody.appendChild(tr);
+  }
+}
+
+function setOpt(opt,btn){
+  currentOpt=opt;
+  document.querySelectorAll('.opt-tab').forEach(function(t){t.classList.remove('active');});
+  btn.classList.add('active');
+  update();
+}
+
+// ── COLLAPSIBLE TOGGLE ──
+function toggleColl(header){
+  var body=header.nextElementSibling;
+  var toggle=header.querySelector('.coll-hdr-toggle') || header.querySelector('span:last-child');
+  if(!body) return;
+  var isOpen=body.style.display!=='none' && body.style.display!=='';
+  body.style.display=isOpen?'none':'block';
+  if(toggle) toggle.textContent=isOpen?'▶ expand':'▼ collapse';
+}
+
+// ── MOBILE LEFT PANEL TOGGLE ──────────────────────────────────────────────
+function toggleLeft(){
+  var body = document.getElementById('leftPanelBody');
+  var chev = document.getElementById('leftChev');
+  var label = document.getElementById('leftToggleLabel');
+  var done = document.getElementById('leftDoneBtn');
+  var isOpen = body.classList.contains('open');
+  body.classList.toggle('open', !isOpen);
+  chev.classList.toggle('open', !isOpen);
+  if(!isOpen){
+    label.textContent = '📋 Your info & settings';
+    if(done) done.style.display = 'block';
+  } else {
+    label.textContent = '📋 Your info & settings';
+    if(done) done.style.display = 'none';
+    window.scrollTo({top: 0, behavior: 'smooth'});
+  }
+}
+
+function initMobileBen(){
+  var isMobile = window.innerWidth <= 700;
+  var body = document.getElementById('leftPanelBody');
+  var done = document.getElementById('leftDoneBtn');
+  if(isMobile){
+    // Start collapsed on mobile — show results first
+    body.classList.remove('open');
+    if(done) done.style.display = 'none';
+  } else {
+    body.classList.add('open');
+    if(done) done.style.display = 'none';
+  }
+}
+
+window.addEventListener('resize', initMobileBen);
+initMobileBen();
+
+// ─────────────────────────────────────────────────────────────────────────
+
+// ── DOB / AGE TOGGLE ──
+var benMode=(benModeParam==='dob')?'dob':'age';
+
+function setBenMode(mode){
+  benMode=mode;
+  var ageBtn=document.getElementById('modeAgeBtn');
+  var dobBtn=document.getElementById('modeDobBtn');
+  var ageField=document.getElementById('benAgeField');
+  var dobField=document.getElementById('benDobField');
+  if(mode==='age'){
+    ageBtn.style.background='var(--navy)'; ageBtn.style.color='#fff';
+    dobBtn.style.background='var(--surface2)'; dobBtn.style.color='var(--text2)';
+    ageField.style.display='block'; dobField.style.display='none';
+    update();
+  } else {
+    dobBtn.style.background='var(--navy)'; dobBtn.style.color='#fff';
+    ageBtn.style.background='var(--surface2)'; ageBtn.style.color='var(--text2)';
+    ageField.style.display='none'; dobField.style.display='block';
+    syncDobToAge();
+  }
+}
+
+function syncDobToAge(){
+  var dobVal=document.getElementById('benDob').value;
+  if(!dobVal) return;
+  var dob=new Date(dobVal);
+  if(isNaN(dob.getTime())) return;
+  var ageToday=Math.floor((new Date()-dob)/(365.25*24*3600*1000));
+  var clamped=Math.max(1,Math.min(100,ageToday));
+  document.getElementById('benAge').value=clamped;
+  document.getElementById('benDobCalc').textContent='Beneficiary will be approximately age '+clamped+' at your retirement.';
+  update();
+}
+
+document.getElementById('benDob').addEventListener('input',syncDobToAge);
+document.getElementById('benDob').addEventListener('change',syncDobToAge);
+document.getElementById('benAge').addEventListener('input',update);
+document.getElementById('benAge').addEventListener('change',update);
+document.getElementById('beYearsSlider').addEventListener('input',update);
+document.getElementById('benAge').value=benAgeParam;
+// Pre-fill beneficiary DOB if passed from main calculator
+if(benDobParam){
+  var benDobEl = document.getElementById('benDob');
+  if(benDobEl) benDobEl.value = benDobParam;
+}
+if(benMode==='dob'){setBenMode('dob');}
+buildVis();
+update();
+</script>
+</body>
+</html>
