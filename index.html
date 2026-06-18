@@ -1162,6 +1162,7 @@ function setMC(id,cls,val,sub,bText,bCls){
 
 function update(){
   const inp=getInputs();
+  saveInputs(); // persist all inputs to localStorage on every update
 
   // ── INPUT VALIDATION ──────────────────────────────────────────────────
   const vWarn=document.getElementById('validationWarning');
@@ -1722,7 +1723,75 @@ html+=`<div class="i-row">
   });
 }
 
+const CALSTRS_STORAGE_KEY = 'calstrs_calc_inputs';
+
+function saveInputs(){
+  try{
+    const sdEl=document.getElementById('salaryDisplay');
+    const shEl=document.getElementById('salary');
+    const benDobEl=document.getElementById('benDobMain');
+    const data={
+      dob: document.getElementById('dob').value,
+      hireDate: document.getElementById('hireDate').value,
+      salary: shEl?shEl.value:'85000',
+      salaryGrowth: document.getElementById('salaryGrowth').value,
+      serviceYears: document.getElementById('serviceYears').value,
+      districtYears: document.getElementById('districtYears').value,
+      sickDaysPerYear: document.getElementById('sickDaysPerYear').value,
+      baseDays: document.getElementById('baseDays').value,
+      targetAge: document.getElementById('targetAge').value,
+      formula: formula,
+      compMode: compMode,
+      finalCompOverride: document.getElementById('finalCompOverride').value||'',
+      pre1996: document.getElementById('pre1996Check')?.checked||false,
+      benDobMain: benDobEl?benDobEl.value:'',
+      savedAt: Date.now()
+    };
+    localStorage.setItem(CALSTRS_STORAGE_KEY, JSON.stringify(data));
+  }catch(e){}
+}
+
+function loadSavedInputs(){
+  try{
+    const raw=localStorage.getItem(CALSTRS_STORAGE_KEY);
+    if(!raw) return false;
+    const d=JSON.parse(raw);
+    if(!d||!d.dob) return false;
+    // Don't restore if saved more than 30 days ago
+    if(d.savedAt && Date.now()-d.savedAt > 30*24*3600*1000) return false;
+
+    document.getElementById('dob').value=d.dob||'1980-01-01';
+    document.getElementById('hireDate').value=d.hireDate||'2000-07-01';
+    const sdEl=document.getElementById('salaryDisplay');
+    const shEl=document.getElementById('salary');
+    if(sdEl&&shEl&&d.salary){
+      shEl.value=d.salary;
+      sdEl.value=parseInt(d.salary).toLocaleString('en-US');
+    }
+    document.getElementById('salaryGrowth').value=d.salaryGrowth||'0.75';
+    document.getElementById('serviceYears').value=d.serviceYears||'25';
+    document.getElementById('districtYears').value=d.districtYears||'25';
+    document.getElementById('sickDaysPerYear').value=d.sickDaysPerYear||'2';
+    document.getElementById('baseDays').value=d.baseDays||'182';
+    document.getElementById('targetAge').value=d.targetAge||'62';
+    const sl=document.getElementById('ageSlider');
+    if(sl){sl.value=d.targetAge||'62';if(document.getElementById('sliderAgeDisplay'))document.getElementById('sliderAgeDisplay').textContent=d.targetAge||'62';updateSliderFill(sl);}
+    if(d.formula) setFormula(d.formula);
+    if(d.compMode) setCompMode(d.compMode);
+    if(d.finalCompOverride){
+      const foEl=document.getElementById('finalCompOverride');
+      if(foEl) foEl.value=d.finalCompOverride;
+    }
+    const p=document.getElementById('pre1996Check');
+    if(p) p.checked=!!d.pre1996;
+    const benDobEl=document.getElementById('benDobMain');
+    if(benDobEl&&d.benDobMain) benDobEl.value=d.benDobMain;
+    return true;
+  }catch(e){ return false; }
+}
+
 function resetToDefaults(){
+  try{ localStorage.removeItem(CALSTRS_STORAGE_KEY); }catch(e){}
   document.getElementById('dob').value='1980-01-01';
   document.getElementById('hireDate').value='2000-07-01';
   const autoD=autoDistrictYrs('2000-07-01');
@@ -1899,8 +1968,7 @@ document.getElementById('dob').addEventListener('change',()=>{
 // ─── PDF GENERATION ───────────────────────────────────────────────
 async function generatePDF(){
   const btn=document.getElementById('pdfBtn');
-  btn.classList.add('loading');
-  btn.textContent='Generating…';
+  if(btn){ btn.classList.add('loading'); btn.textContent='Generating…'; }
 
   // Snapshot chart at high resolution for crisp PDF labels
   const chartCanvas=document.getElementById('benefitChart');
@@ -2071,12 +2139,13 @@ async function generatePDF(){
     if(raw) benData=JSON.parse(raw);
   }catch(e){ /* localStorage unavailable */ }
 
-  // Section header — matches RETIREMENT TIMING INSIGHTS style
-  setTxt(COL.navy); doc.setFont('helvetica','bold'); doc.setFontSize(8);
-  doc.text('BENEFICIARY OPTION COMPARISON',ML,cy+12);
-  cy+=18;
-
+  // Only show this section if beneficiary data actually exists
   if(benData&&benData.options){
+    // Section header — matches RETIREMENT TIMING INSIGHTS style
+    setTxt(COL.navy); doc.setFont('helvetica','bold'); doc.setFontSize(8);
+    doc.text('BENEFICIARY OPTION COMPARISON',ML,cy+12);
+    cy+=18;
+
     // Validate that saved member benefit matches current target benefit (loose check ±5%)
     const savedBen = benData.memberBenefit;
     const currentBen = target ? target.monthly : 0;
@@ -2086,70 +2155,74 @@ async function generatePDF(){
     setTxt(COL.text3); doc.setFont('helvetica','normal'); doc.setFontSize(7);
     const benAgeStr = 'Beneficiary age at retirement: '+benData.benAge;
     const sourceStr = mismatch
-      ? '⚠ Benefit may differ from current inputs — visit Beneficiary Calculator to refresh'
-      : 'From your Beneficiary Calculator session · Verify with CalSTRS before any irrevocable election';
-    doc.text(benAgeStr+'  ·  '+sourceStr, ML, cy);
-    cy+=12;
-
-    // 4 cards: Member-Only + 100/75/50 — matching insight card layout
-    const benCards=[
-      {label:'Member-Only',col:COL.slate,you:target?target.monthly:savedBen,ben:0,pct:null,sub:'No survivor benefit'},
-      {label:'100% Option',col:[45,109,163],you:benData.options[100].modified,ben:benData.options[100].beneficiaryGets,pct:benData.options[100].factor,sub:'Full benefit to beneficiary'},
-      {label:'75% Option',col:[42,122,90],you:benData.options[75].modified,ben:benData.options[75].beneficiaryGets,pct:benData.options[75].factor,sub:'75% to beneficiary'},
-      {label:'50% Option',col:[90,90,140],you:benData.options[50].modified,ben:benData.options[50].beneficiaryGets,pct:benData.options[50].factor,sub:'50% to beneficiary'},
-    ];
-
-    const bcW=(CW-15)/4; const bcH=62;
-    benCards.forEach((bc,i)=>{
-      const x=ML+i*(bcW+5), y=cy;
-      setFill(COL.light); sf(x,y,bcW,bcH,4);
-      doc.setFillColor(...bc.col); doc.rect(x,y,3,bcH,'F');
-      // Label
-      doc.setTextColor(...bc.col); doc.setFont('helvetica','bold'); doc.setFontSize(6.5);
-      doc.text(bc.label.toUpperCase(),x+8,y+12);
-      // Your benefit — big
-      setTxt(COL.text); doc.setFont('helvetica','bold'); doc.setFontSize(11);
-      doc.text(fmtN(bc.you)+'/mo',x+8,y+28);
-      // You receive label
-      setTxt(COL.text3); doc.setFont('helvetica','normal'); doc.setFontSize(6.5);
-      doc.text('you receive',x+8,y+37);
-      // Beneficiary amount
-      if(bc.ben>0){
-        doc.setTextColor(...[42,122,90]); doc.setFont('helvetica','bold'); doc.setFontSize(8);
-        doc.text(fmtN(bc.ben)+'/mo',x+8,y+49);
-        setTxt(COL.text3); doc.setFont('helvetica','normal'); doc.setFontSize(6);
-        doc.text('beneficiary receives',x+8,y+57);
-      } else {
-        setTxt(COL.text3); doc.setFont('helvetica','normal'); doc.setFontSize(7);
-        doc.text(bc.sub,x+8,y+49);
-      }
-      // Factor pill
-      if(bc.pct){
-        setTxt(COL.text3); doc.setFontSize(5.5);
-        doc.text('factor: '+(bc.pct*100).toFixed(2)+'%',x+8,y+59);
-      }
-    });
-    cy+=bcH+8;
-
-    // Diff row — shows reduction vs Member-Only for each option
-    setTxt(COL.text3); doc.setFont('helvetica','normal'); doc.setFontSize(6.5);
-    const moYou = target ? target.monthly : savedBen;
-    [100,75,50].forEach((o,i)=>{
-      const x=ML+(i+1)*(bcW+5)+8;
-      const diff=benData.options[o].modified-moYou;
-      doc.setTextColor(139,74,58); // red
-      doc.text(fmtN(diff)+'/mo vs Member-Only',x,cy);
-    });
+      ? '\u26a0 Refresh from Beneficiary Calculator — figures may be outdated'
+      : 'From your Beneficiary Calculator session';
+    doc.text(benAgeStr+'  \u00b7  '+sourceStr, ML, cy);
     cy+=14;
 
+    // 4 cards: Member-Only + 100/75/50 — wider, taller cards for clean text fit
+    const moYou = target ? target.monthly : savedBen;
+    const benCards=[
+      {label:'Member-Only',col:COL.slate,you:moYou,ben:0,pct:null,sub:'No survivor benefit',diff:null},
+      {label:'100% Option',col:[45,109,163],you:benData.options[100].modified,ben:benData.options[100].beneficiaryGets,pct:benData.options[100].factor,diff:benData.options[100].modified-moYou},
+      {label:'75% Option',col:[42,122,90],you:benData.options[75].modified,ben:benData.options[75].beneficiaryGets,pct:benData.options[75].factor,diff:benData.options[75].modified-moYou},
+      {label:'50% Option',col:[90,90,140],you:benData.options[50].modified,ben:benData.options[50].beneficiaryGets,pct:benData.options[50].factor,diff:benData.options[50].modified-moYou},
+    ];
+
+    const bcGap=6;
+    const bcW=(CW-bcGap*3)/4;
+    const bcH=88;
+    const padX=9;
+
+    benCards.forEach((bc,i)=>{
+      const x=ML+i*(bcW+bcGap), y=cy;
+      setFill(COL.light); sf(x,y,bcW,bcH,4);
+      doc.setFillColor(...bc.col); doc.rect(x,y,3,bcH,'F');
+
+      let ty=y+13;
+      // Label
+      doc.setTextColor(...bc.col); doc.setFont('helvetica','bold'); doc.setFontSize(7);
+      doc.text(bc.label.toUpperCase(),x+padX,ty);
+      ty+=15;
+
+      // Your benefit — big
+      setTxt(COL.text); doc.setFont('helvetica','bold'); doc.setFontSize(11);
+      doc.text(fmtN(bc.you)+'/mo',x+padX,ty);
+      ty+=10;
+      setTxt(COL.text3); doc.setFont('helvetica','normal'); doc.setFontSize(6.5);
+      doc.text('you receive',x+padX,ty);
+      ty+=14;
+
+      // Beneficiary amount or no-survivor note
+      if(bc.ben>0){
+        doc.setTextColor(42,122,90); doc.setFont('helvetica','bold'); doc.setFontSize(9);
+        doc.text(fmtN(bc.ben)+'/mo',x+padX,ty);
+        ty+=10;
+        setTxt(COL.text3); doc.setFont('helvetica','normal'); doc.setFontSize(6.5);
+        doc.text('beneficiary receives',x+padX,ty);
+        ty+=12;
+      } else {
+        setTxt(COL.text3); doc.setFont('helvetica','normal'); doc.setFontSize(7);
+        doc.text(bc.sub,x+padX,ty);
+        ty+=12;
+      }
+
+      // Factor + diff on their own line, sized to fit
+      if(bc.pct){
+        setTxt(COL.text3); doc.setFontSize(6);
+        doc.text('Factor '+(bc.pct*100).toFixed(1)+'%',x+padX,ty);
+      }
+      if(bc.diff!=null){
+        doc.setTextColor(139,74,58); doc.setFont('helvetica','bold'); doc.setFontSize(6);
+        const diffStr=(bc.diff>=0?'+':'')+fmtN(bc.diff)+'/mo';
+        const diffW=doc.getTextWidth(diffStr);
+        doc.text(diffStr,x+bcW-padX-diffW,ty);
+      }
+    });
+    cy+=bcH+12;
+
   } else {
-    // Fallback when no beneficiary data
-    setFill(COL.light); sf(ML,cy,CW,40,4);
-    doc.setFillColor(...COL.slate); doc.rect(ML,cy,3,40,'F');
-    setTxt(COL.text2); doc.setFont('helvetica','normal'); doc.setFontSize(8);
-    doc.text('Visit the Beneficiary Calculator (linked on the main page) to model',ML+9,cy+16);
-    doc.text('how electing a 100%, 75%, or 50% option affects your monthly benefit.',ML+9,cy+28);
-    cy+=50;
+    // No beneficiary data — section is omitted entirely from the PDF
   }
 
   // Optimal window note removed — users determine their own optimal age
@@ -2286,8 +2359,8 @@ async function generatePDF(){
   const fname=`CalSTRS_Retirement_Report_Age${inp.targetAge}_${new Date().toISOString().slice(0,10)}.pdf`;
   doc.save(fname);
 
-  btn.classList.remove('loading');
-  btn.innerHTML='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14,2 14,8 20,8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10,9 9,9 8,9"/></svg> Download PDF Report';
+  btn?.classList.remove('loading');
+  if(btn) btn.innerHTML='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14,2 14,8 20,8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10,9 9,9 8,9"/></svg> Download PDF Report';
 }
 // ──────────────────────────────────────────────────────────────────
 
@@ -2456,18 +2529,30 @@ window.addEventListener('resize',()=>{
   update();
 });
 initMobile();
-resetToDefaults(); // always start fresh with defaults on every page load
 
-// ── Restore state when returning from the beneficiary calculator ──────────
+// ── Restore saved inputs or start with defaults ───────────────────────────
 (function(){
   var p = new URLSearchParams(window.location.search);
+  var isReturn = p.has('targetAge') || p.has('fromBenAge');
+
+  // Try to restore saved inputs first; fall back to defaults for first-time visitors
+  var restored = loadSavedInputs();
+  if(!restored){
+    resetToDefaults();
+  } else {
+    update();
+  }
+
+  // Then apply any URL params from beneficiary page return (override saved state)
   var retAge = parseInt(p.get('targetAge'));
   var fromBenAge = p.get('fromBenAge');
   var fromBenMode = p.get('fromBenMode');
   var fromBenDob = p.get('fromBenDob');
   if (retAge && retAge >= 50 && retAge <= 75) {
     var ta = document.getElementById('targetAge');
-    if (ta) { ta.value = retAge; }
+    if(ta){ ta.value = retAge; }
+    var sl = document.getElementById('ageSlider');
+    if(sl){ sl.value = retAge; if(document.getElementById('sliderAgeDisplay')) document.getElementById('sliderAgeDisplay').textContent = retAge; updateSliderFill(sl); }
   }
   if (fromBenAge) {
     window._lastBenAge = fromBenAge;
@@ -2475,11 +2560,22 @@ resetToDefaults(); // always start fresh with defaults on every page load
   }
   if (fromBenDob) {
     window._lastBenDob = fromBenDob;
-    // Also restore into the main calculator DOB field if it's empty
     var benDobEl = document.getElementById('benDobMain');
     if (benDobEl && !benDobEl.value) benDobEl.value = fromBenDob;
   }
-  if (retAge || fromBenAge) update();
+  if (isReturn) update();
+
+  // Auto-trigger PDF download if requested (from beneficiary page's PDF button)
+  if (p.get('autoPdf') === '1') {
+    setTimeout(function(){
+      if (typeof generatePDF === 'function') generatePDF();
+      // Clean the URL so refreshing doesn't re-trigger the download
+      if (window.history && window.history.replaceState) {
+        var cleanUrl = window.location.pathname;
+        window.history.replaceState({}, document.title, cleanUrl);
+      }
+    }, 400); // small delay to ensure chart/canvas is fully rendered
+  }
 })();
 
 // ─────────────────────────────────────────────────────────────────────────

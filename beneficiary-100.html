@@ -144,6 +144,16 @@ input[type=range]#visSliderM::-moz-range-thumb{
     <div class="header-title">Beneficiary Option Calculator</div>
     <div class="header-sub">CalSTRS Modified Benefit — Survivor Planning</div>
   </div>
+  <a id="pdfLinkBtn" href="index.html?autoPdf=1" style="display:inline-flex;align-items:center;gap:7px;padding:9px 16px;background:var(--blue);color:#fff;border:none;border-radius:var(--rs);font-family:'Inter',system-ui,sans-serif;font-size:12px;font-weight:600;letter-spacing:.03em;cursor:pointer;text-decoration:none;white-space:nowrap">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14,2 14,8 20,8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10,9 9,9 8,9"/></svg>
+    Download PDF Report
+  </a>
+</div>
+
+<div id="standaloneBanner" style="display:none;max-width:1100px;margin:12px auto 0;padding:0 18px">
+  <div style="background:#fff8e8;border:1px solid #f0c060;border-radius:var(--rs);padding:10px 14px;font-size:11.5px;color:#7a4f10;line-height:1.5">
+    ⚠️ <strong>You're viewing example numbers.</strong> This page works best when opened from your <a href="index.html" style="color:#7a4f10;text-decoration:underline">Retirement Calculator</a> results — it will carry over your actual benefit and ages automatically.
+  </div>
 </div>
 
 <div class="main">
@@ -189,7 +199,7 @@ input[type=range]#visSliderM::-moz-range-thumb{
       <span style="font-size:13px">👤</span> Beneficiary Information
     </div>
     <div class="panel-body">
-      <p style="font-size:10.5px;color:var(--text3);margin-bottom:2px">Pre-filled from your calculator inputs. Update here if needed:</p>
+      <p style="font-size:10.5px;color:var(--text3);margin-bottom:2px">Pre-filled from your calculator. Update below if the age is wrong, or if you want to model a different beneficiary.</p>
       <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px">
         <button id="modeAgeBtn" onclick="setBenMode('age')" style="flex:1;padding:6px;font-size:10.5px;font-weight:600;border:1px solid var(--border);border-radius:var(--rs);background:var(--navy);color:#fff;cursor:pointer">Enter Age</button>
         <span style="font-size:10px;color:var(--text3);font-style:italic">or</span>
@@ -333,7 +343,7 @@ input[type=range]#visSliderM::-moz-range-thumb{
 
   <!-- 10-year view chart -->
   <div>
-    <div class="sec-hdr"><p class="sec-eye">10-Year View</p><p class="sec-title">How Benefits Change +/- 5 Years Around Your Target Age</p></div>
+    <div class="sec-hdr"><p class="sec-eye">10-Year View</p><p class="sec-title">How Benefits Change ±5 Years Around Your Target Age</p></div>
     <div class="panel" style="border-radius:0 0 var(--r) var(--r);padding:14px 16px">
       <div class="chart-wrap"><canvas id="rangeChart"></canvas></div>
       <p style="font-size:10px;color:var(--text3);margin-top:8px;text-align:center">Member-Only (gray) vs your modified benefit under the selected option (blue). ★ = your target age. Labels in thousands (e.g. 7.5 = $7,500).</p>
@@ -508,6 +518,7 @@ input[type=range]#visSliderM::-moz-range-thumb{
 
 <script>
 var params = new URLSearchParams(window.location.search);
+var hasRealData = params.has('benefit') && params.has('memberAge'); // came from main calculator
 var memberBenefit = parseFloat(params.get('benefit')) || 5000;
 var memberAge = parseInt(params.get('memberAge')) || 62;
 var benAgeParam = parseInt(params.get('benAge')) || (memberAge - 2);
@@ -528,6 +539,11 @@ benAgeParam = Math.max(1, Math.min(100, benAgeParam)) || (memberAge - 2);
   if(el2) el2.textContent = 'Age ' + memberAge;
   var el3 = document.getElementById('infoMemberBenefit');
   if(el3) el3.textContent = new Intl.NumberFormat('en-US',{style:'currency',currency:'USD',maximumFractionDigits:0}).format(memberBenefit) + '/mo';
+
+  if(!hasRealData){
+    var banner = document.getElementById('standaloneBanner');
+    if(banner) banner.style.display = 'block';
+  }
 })();
 
 // Keep back-links updated with current state
@@ -540,6 +556,8 @@ function updateBackLinks(){
     var el = document.getElementById(id);
     if(el) el.href = url;
   });
+  var pdfEl = document.getElementById('pdfLinkBtn');
+  if(pdfEl) pdfEl.href = url + '&autoPdf=1';
 }
 
 var currentOpt = 100;
@@ -749,16 +767,18 @@ function update(){
 
 
 
-  // Persist to localStorage for PDF
-  try{
-    var qcData={memberAge:memberAge,benAge:benAge,memberBenefit:memberBenefit,options:{}};
-    [100,75,50].forEach(function(o){
-      var ff2=getFactor(memberAge,benAge,o);
-      var m2=Math.round(memberBenefit*ff2);
-      qcData.options[o]={modified:m2,beneficiaryGets:Math.round(m2*o/100),factor:ff2};
-    });
-    localStorage.setItem('calstrs_beneficiary_data',JSON.stringify(qcData));
-  }catch(e){}
+  // Persist to localStorage for PDF — only if this page has real data from the main calculator
+  if(hasRealData){
+    try{
+      var qcData={memberAge:memberAge,benAge:benAge,memberBenefit:memberBenefit,options:{}};
+      [100,75,50].forEach(function(o){
+        var ff2=getFactor(memberAge,benAge,o);
+        var m2=Math.round(memberBenefit*ff2);
+        qcData.options[o]={modified:m2,beneficiaryGets:Math.round(m2*o/100),factor:ff2};
+      });
+      localStorage.setItem('calstrs_beneficiary_data',JSON.stringify(qcData));
+    }catch(e){}
+  }
 
   // Full schedule table
   var tbody=document.getElementById('tableBody');
@@ -867,10 +887,21 @@ function syncDobToAge(){
   if(!dobVal) return;
   var dob=new Date(dobVal);
   if(isNaN(dob.getTime())) return;
-  var ageToday=Math.floor((new Date()-dob)/(365.25*24*3600*1000));
-  var clamped=Math.max(1,Math.min(100,ageToday));
+  var benAgeNow=(new Date()-dob)/(365.25*24*3600*1000);
+  // Calculate years until member's retirement using member DOB if available
+  var yearsToRetirement=0;
+  if(memberDob){
+    var mDob=new Date(memberDob);
+    if(!isNaN(mDob.getTime())){
+      var memberAgeNow=(new Date()-mDob)/(365.25*24*3600*1000);
+      yearsToRetirement=Math.max(0, memberAge-memberAgeNow);
+    }
+  }
+  var benAgeAtRetirement=Math.floor(benAgeNow+yearsToRetirement);
+  var clamped=Math.max(1,Math.min(100,benAgeAtRetirement));
   document.getElementById('benAge').value=clamped;
-  document.getElementById('benDobCalc').textContent='Beneficiary will be approximately age '+clamped+' at your retirement.';
+  var yr=yearsToRetirement>0?' (in ~'+Math.round(yearsToRetirement)+' years)':'';
+  document.getElementById('benDobCalc').textContent='Beneficiary will be approximately age '+clamped+' at your retirement'+yr+'.';
   update();
 }
 
