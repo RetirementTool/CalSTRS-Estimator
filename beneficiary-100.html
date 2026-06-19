@@ -27,6 +27,7 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--t
 .left-toggle-chev.open{transform:rotate(180deg)}
 .left-done{display:none;width:100%;padding:14px;background:var(--teal);color:#fff;border:none;font-family:'Inter',system-ui,sans-serif;font-size:14px;font-weight:700;cursor:pointer;-webkit-tap-highlight-color:transparent}
 .left-panel-body{display:block}
+.coll-body, #breakEvenBody, .left-panel-body{touch-action:pan-y}
 @media(max-width:700px){
   .main{grid-template-columns:1fr;padding:8px 12px 24px;gap:10px;width:100%;box-sizing:border-box}
   /* Left panel toggle */
@@ -822,6 +823,15 @@ function toggleColl(header){
   if(toggle) toggle.textContent=isOpen?'▶ expand':'▼ collapse';
 }
 
+// Prevent clicks/touches inside an open collapsible body from ever bubbling up
+// to a parent toggle header (defensive — guards against any nested onclick delegation)
+document.addEventListener('click', function(e){
+  var body = e.target.closest && e.target.closest('[id$="Body"], .coll-body, .left-panel-body');
+  if(body && !e.target.closest('.coll-hdr, .insight-header, .left-toggle, .left-done')){
+    e.stopPropagation();
+  }
+}, true);
+
 // ── MOBILE LEFT PANEL TOGGLE ──────────────────────────────────────────────
 function toggleLeft(){
   var body = document.getElementById('leftPanelBody');
@@ -846,16 +856,28 @@ function initMobileBen(){
   var body = document.getElementById('leftPanelBody');
   var done = document.getElementById('leftDoneBtn');
   if(isMobile){
-    // Start collapsed on mobile — show results first
-    body.classList.remove('open');
-    if(done) done.style.display = 'none';
+    // Only force-collapse on true first init, never on a resize caused by
+    // the on-screen keyboard opening/closing while the panel is in use
+    if(!window._benMobileInited){
+      body.classList.remove('open');
+      if(done) done.style.display = 'none';
+    }
   } else {
     body.classList.add('open');
     if(done) done.style.display = 'none';
   }
+  window._benMobileInited = true;
 }
 
-window.addEventListener('resize', initMobileBen);
+// Only react to actual width changes (breakpoint crossing), not height-only
+// changes from the mobile keyboard opening, which also fires 'resize'
+var _lastInnerWidth = window.innerWidth;
+window.addEventListener('resize', function(){
+  if(window.innerWidth !== _lastInnerWidth){
+    _lastInnerWidth = window.innerWidth;
+    initMobileBen();
+  }
+});
 initMobileBen();
 
 // ─────────────────────────────────────────────────────────────────────────
