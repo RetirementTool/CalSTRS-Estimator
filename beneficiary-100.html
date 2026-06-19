@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>Beneficiary Option Calculator — CalSTRS</title>
+<title>Beneficiary Analysis — CalSTRS</title>
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;600&family=Inter:wght@300;400;500;600&family=DM+Mono:wght@400;500;700&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
 <style>
@@ -33,7 +33,7 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--t
   .left-toggle{display:flex}
   .left-done{display:block}
   .left-panel-body{overflow:hidden;max-height:0;transition:max-height .45s cubic-bezier(0.4,0,0.2,1)}
-  .left-panel-body.open{max-height:5000px}
+  .left-panel-body.open{max-height:5000px;overflow:visible}
   /* Summary grid 2-col on mobile */
   .summary-grid-4{grid-template-columns:repeat(2,1fr)!important}
   /* Hide table columns */
@@ -141,8 +141,8 @@ input[type=range]#visSliderM::-moz-range-thumb{
 <div class="header">
   <div>
     <a class="back-link" id="backLink" href="index.html">← Back to Retirement Calculator</a>
-    <div class="header-title">Beneficiary Option Calculator</div>
-    <div class="header-sub">CalSTRS Modified Benefit — Survivor Planning</div>
+    <div class="header-title">Beneficiary Analysis</div>
+    <div class="header-sub">CalSTRS Survivor Planning — Beneficiary Analysis</div>
   </div>
   <a id="pdfLinkBtn" href="index.html?autoPdf=1" style="display:inline-flex;align-items:center;gap:7px;padding:9px 16px;background:var(--blue);color:#fff;border:none;border-radius:var(--rs);font-family:'Inter',system-ui,sans-serif;font-size:12px;font-weight:600;letter-spacing:.03em;cursor:pointer;text-decoration:none;white-space:nowrap">
     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14,2 14,8 20,8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10,9 9,9 8,9"/></svg>
@@ -287,9 +287,9 @@ input[type=range]#visSliderM::-moz-range-thumb{
 
   <!-- Quick Comparison — all 4 equally weighted, no highlight -->
   <div class="panel">
-    <div class="panel-hdr" style="display:flex;align-items:center;justify-content:space-between">
-      <span>Quick Comparison — All Options vs Member-Only</span>
-      <div class="opt-tabs" style="width:auto;display:inline-flex">
+    <div class="panel-hdr" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:6px">
+      <span>Quick Comparison</span>
+      <div class="opt-tabs" style="width:auto;display:inline-flex;flex-shrink:0">
         <button class="opt-tab active" id="qcMonthlyBtn" onclick="setQcView('monthly')" style="padding:4px 10px;font-size:10px">Monthly</button>
         <button class="opt-tab" id="qcAnnualBtn" onclick="setQcView('annual')" style="padding:4px 10px;font-size:10px">Annual</button>
       </div>
