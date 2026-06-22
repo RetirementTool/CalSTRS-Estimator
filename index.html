@@ -20,9 +20,9 @@
   gtag('js', new Date());
   gtag('config', 'G-KSXWB876QS');
 </script>
-<meta name="description" content="Estimate your CalSTRS pension benefit, district health eligibility, and optimal retirement timing. Free tool for LAUSD certificated staff and teachers.">
+<meta name="description" content="Estimate your CalSTRS pension benefit, district health eligibility, and optimal retirement timing. Free independent tool for California public school educators.">
 <meta property="og:title" content="CalSTRS Retirement Planning Calculator">
-<meta property="og:description" content="Estimate your pension benefit and determine optimal retirement timing. Free tool for LAUSD certificated staff and teachers.">
+<meta property="og:description" content="Estimate your pension benefit and determine optimal retirement timing. Free independent tool for California public school educators.">
 <meta property="og:image" content="https://retirementtool.github.io/CalSTRS-Estimator//og-preview.png">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
@@ -459,8 +459,8 @@
 
   /* Landscape phone — hide inputs toggle, show results full width */
   @media(max-height:500px) and (orientation:landscape){
-    .inputs-toggle{display:none!important}
-    .inputs-panel-body{display:none!important}
+    .inputs-toggle{display:flex!important} /* keep toggle visible so user can open inputs */
+    .inputs-panel-body{max-height:70vh;overflow-y:auto} /* scrollable in landscape, not hidden */
     .main{grid-template-columns:1fr;padding:6px 10px 20px}
     .header{position:relative} /* unstick in landscape to save screen height */
     .header-inner{flex-direction:row}
@@ -618,7 +618,7 @@
       <p class="header-subtitle">Estimate your pension benefit and determine optimal retirement timing</p>
     </div>
     <div class="header-right">
-      <p class="header-notaffiliated">★ Independent educational tool — not affiliated with LAUSD or CalSTRS</p>
+      <p class="header-notaffiliated">★ Independent educational tool — not affiliated with CalSTRS or any school district</p>
       <p class="header-disclaimer">Unofficial calculator for planning purposes only. Verify all figures with CalSTRS or a retirement planner before making any retirement decision.</p>
     </div>
   </div>
@@ -704,8 +704,13 @@
             Beneficiary Date of Birth
             <span style="font-size:9px;font-weight:500;color:var(--text3);background:var(--surface2);border:1px solid var(--border);border-radius:3px;padding:1px 5px;letter-spacing:.04em">OPTIONAL</span>
           </label>
-          <input type="date" id="benDobMain" min="1920-01-01" max="2025-12-31" placeholder="yyyy-mm-dd" onfocus="if(!this.value)this.value='1980-01-01'" onblur="if(this.value==='1980-01-01')this.value=''">
+          <input type="date" id="benDobMain" min="1920-01-01" max="2025-12-31" placeholder="yyyy-mm-dd" onfocus="if(!this.value)this.value='1980-01-01'" onblur="if(this.value==='1980-01-01')this.value='';" onchange="if(this.value){var cb=document.getElementById('noBeneficiaryCheck');if(cb)cb.checked=false;}">
           <p class="field-hint" id="benDobMainHint" style="margin-top:4px">Powers the Beneficiary Options comparison below and pre-fills the Beneficiary Analysis.</p>
+        </div>
+
+        <div style="display:flex;align-items:center;gap:8px;margin-top:8px">
+          <input type="checkbox" id="noBeneficiaryCheck" style="width:15px;height:15px;accent-color:#2d6da3;cursor:pointer" onchange="handleNoBenCheck(this)">
+          <label for="noBeneficiaryCheck" style="font-size:11px;color:var(--text2);cursor:pointer;user-select:none">No beneficiary — Member-Only benefit</label>
         </div>
 
         <!-- Salary cap silently applied to calculation based on formula/hire date -->
@@ -714,39 +719,53 @@
         <input type="checkbox" id="pre1996Check" style="display:none">
 
         <div class="divider"></div>
-        <p class="sec-label">Service &amp; Sick Leave</p>
-        <div class="field">
-          <label>CalSTRS Service Credit (Years) <span style="font-weight:400;color:var(--text3);font-size:10px">— as of today</span></label>
-          <input type="number" id="serviceYears" value="25" min="0" max="55" step="0.01">
-          <p class="field-hint" id="serviceYearsHint">Auto-calculated from hire date; adjust if your CalSTRS credit differs (log in to myCalSTRS for your precise value)</p>
-        </div>
-        <div class="field">
-          <label>Continuous District Service (Years) <span style="font-weight:400;color:var(--text3);font-size:10px">— as of today</span></label>
-          <input type="number" id="districtYears" value="25" min="0" max="55" step="0.01">
-          <p class="field-hint">Auto-calculated from hire date; adjust if needed</p>
-        </div>
-        <div class="field">
-          <label>Avg. Unused Sick Days Per Year</label>
-          <input type="number" id="sickDaysPerYear" value="2" min="0" max="15" step="1">
-          <p class="field-hint" id="sickDaysHint">10 days/yr typically granted; enter how many you typically keep unused</p>
-        </div>
-        <div class="field">
-          <label>Base Days for Full-Time Service</label>
-          <select id="baseDays">
-            <option value="180">180 days</option>
-            <option value="182" selected>182 days (standard)</option>
-            <option value="185">185 days</option>
-            <option value="190">190 days</option>
-          </select>
-        </div>
-
-        <div class="divider"></div>
         <p class="sec-label">Target</p>
         <div class="field">
           <label>Your Target Retirement Age</label>
           <input type="number" id="targetAge" value="62" min="50" max="75" step="1">
           <p class="field-hint" style="color:#2d6da3;font-weight:500">You can also adjust this anytime using the slider on the results panel — no need to come back here.</p>
         </div>
+
+        <div class="divider"></div>
+        <!-- Advanced inputs collapsible -->
+        <div style="border:1px solid var(--border);border-radius:var(--rs);overflow:hidden;margin-bottom:4px">
+          <button onclick="toggleAdvInputs(this)" id="advInputsToggle" style="width:100%;padding:9px 13px;background:var(--surface2);border:none;cursor:pointer;display:flex;align-items:center;justify-content:space-between;font-family:'Inter',system-ui,sans-serif;text-align:left">
+            <div>
+              <span style="font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--text2)">Other Inputs</span>
+              <span style="display:block;font-size:9.5px;color:var(--text3);font-weight:400;margin-top:1px">Service, sick leave, base days — defaults work for most users</span>
+            </div>
+            <span id="advInputsChev" style="font-size:11px;color:var(--text3);transition:transform .25s">▶</span>
+          </button>
+          <div id="advInputsBody" style="display:none;padding:12px 14px;display:none;flex-direction:column;gap:10px">
+            <p style="font-size:10.5px;color:var(--text3);line-height:1.5;margin-bottom:4px">These fields are auto-calculated from your hire date. Only adjust if you have a specific reason to — e.g. a service break, part-time history, or a precise sick leave count from your myCalSTRS account.</p>
+            <p class="sec-label" style="margin:0">Service &amp; Sick Leave</p>
+            <div class="field">
+              <label>CalSTRS Service Credit (Years) <span style="font-weight:400;color:var(--text3);font-size:10px">— as of today</span></label>
+              <input type="number" id="serviceYears" value="25" min="0" max="55" step="0.01">
+              <p class="field-hint" id="serviceYearsHint">Auto-calculated from hire date; adjust if your CalSTRS credit differs (log in to myCalSTRS for your precise value)</p>
+            </div>
+            <div class="field">
+              <label>Continuous District Service (Years) <span style="font-weight:400;color:var(--text3);font-size:10px">— as of today</span></label>
+              <input type="number" id="districtYears" value="25" min="0" max="55" step="0.01">
+              <p class="field-hint">Auto-calculated from hire date; adjust if needed</p>
+            </div>
+            <div class="field">
+              <label>Avg. Unused Sick Days Per Year</label>
+              <input type="number" id="sickDaysPerYear" value="2" min="0" max="15" step="1">
+              <p class="field-hint" id="sickDaysHint">10 days/yr typically granted; enter how many you typically keep unused</p>
+            </div>
+            <div class="field">
+              <label>Base Days for Full-Time Service</label>
+              <select id="baseDays">
+                <option value="180">180 days</option>
+                <option value="182" selected>182 days (standard)</option>
+                <option value="185">185 days</option>
+                <option value="190">190 days</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
         <div class="divider"></div>
         <button onclick="resetToDefaults()" style="width:100%;padding:9px 0;background:var(--surface2);border:1.5px solid var(--text);border-radius:var(--rs);font-family:'Inter',system-ui,sans-serif;font-size:11.5px;font-weight:600;color:var(--text);cursor:pointer;letter-spacing:.02em;transition:background .15s" onmouseover="this.style.background='#e2e0d8'" onmouseout="this.style.background='var(--surface2)'">↺ Reset to Defaults</button>
       </div>
@@ -789,7 +808,7 @@
 
     <!-- Salary cap warning banner -->
     <div id="salaryCapWarning" style="display:none;margin-bottom:0;padding:9px 13px;background:#fff8e8;border:1px solid #f0c060;border-radius:var(--rs);font-size:11.5px;color:#7a4f10;line-height:1.5">
-      ⚠ <strong>Salary cap applied.</strong> Your entered salary exceeds the CalSTRS pensionable limit. The benefit calculations use the capped amount — <strong id="salaryCapAmount">—</strong> — not your full salary. Rows marked ⚠ in the Final Comp column reflect this cap.
+      ⚠ <strong>Salary cap applied.</strong> Your entered salary exceeds the CalSTRS pensionable compensation limit of <strong id="salaryCapAmount">—</strong>. All benefit calculations use this capped amount as the Final Compensation — not your full salary. Note: the pension benefit itself will be well below the cap since it equals <em>age factor × years of service × capped salary</em>. Rows marked ⚠ in the Final Comp column reflect this. <strong>Note:</strong> The official CalSTRS Retirement Benefits Calculator does not apply this IRS compensation limit — inputs above the cap will show a higher (overstated) benefit there. This tool applies the cap correctly per IRS Section 401(a)(17).
     </div>
 
     <!-- Hero metrics -->
@@ -817,7 +836,7 @@
         </div>
       </div>
       <div class="hero-note" id="heroNote">—</div>
-      <p style="font-size:9.5px;color:var(--text3);margin-top:6px;line-height:1.4">* CalSTRS provides a 2% simple annual COLA on your original benefit amount. Benefit values shown do not include COLA — your actual purchasing power will be higher over time.</p>
+      <p style="font-size:9.5px;color:var(--text3);margin-top:6px;line-height:1.4">* CalSTRS provides a 2% simple annual COLA on your original benefit amount (applied each September 1st as a fixed dollar increase, not compounded). Benefit values shown do not include COLA — your actual purchasing power may be higher over time.</p>
     </div><!-- /hero -->
     </div><!-- /slider+hero group -->
 
@@ -845,7 +864,7 @@
     <!-- Chart -->
     <div class="chart-panel">
       <div class="chart-header">
-        <h3>Calculated Benefit by Retirement Age</h3>
+        <h3>Calculated Benefit by Retirement Age <span style="font-size:11px;font-weight:400;color:var(--text3);font-style:italic">— Member-Only (no beneficiary option)</span></h3>
         <div class="chart-tabs">
           <button class="chart-tab active" onclick="setCV('monthly',this)">Monthly Benefit</button>
           <button class="chart-tab" onclick="setCV('annual',this)">Annual Benefit</button>
@@ -891,7 +910,7 @@
         <p><strong>Table symbols:</strong> ★ = your target retirement age &nbsp;·&nbsp; ⭐ = within the optimal retirement window &nbsp;·&nbsp; ⚠ = salary capped at CalSTRS pensionable limit (benefit calculated on capped amount, not your full salary)</p>
         <p><strong>Flags:</strong> <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#3a5a7c" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg> Pension eligible &nbsp;·&nbsp; <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#2a7a5a" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="4" x2="12" y2="20"/><line x1="4" y1="12" x2="20" y2="12"/></svg> Lifetime health benefit met &nbsp;·&nbsp; <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#1a2e42" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><text x="0" y="17" font-size="7" font-family="sans-serif" font-weight="800" fill="#1a2e42" stroke="none">AGE</text><polyline points="11 3 16 3 16 8"/><line x1="9" y1="9" x2="16" y2="3"/></svg> Age factor at max 2.4% &nbsp;·&nbsp; <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#7a4f10" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a10 10 0 100 20A10 10 0 0012 2z"/><text x="4.5" y="16" font-size="8" font-family="sans-serif" font-weight="800" fill="#7a4f10" stroke="none">Rx</text></svg> Medicare eligible (age 65)</p>
         <p>Sick leave: accumulated unused days ÷ base days = additional service credit. Cannot satisfy minimum eligibility requirements.</p>
-        <p>* Benefit values shown do not include CalSTRS COLA. CalSTRS provides a 2% simple annual COLA on your original benefit — your actual purchasing power will be higher over time.</p>
+        <p>* Benefit values shown do not include CalSTRS COLA. CalSTRS provides a 2% simple annual COLA on your original benefit — your actual purchasing power may be higher over time. How it works: each September 1st, CalSTRS increases your monthly benefit by 2% of your <em>original</em> benefit amount (not the prior year's adjusted amount), so the dollar increase is constant each year. A separate ad hoc Purchasing Power Protection Allowance (PPPA) may also apply if cumulative inflation erodes your benefit below 85% of its original purchasing power.</p>
 
       </div>
     </div>
@@ -899,13 +918,16 @@
     <!-- Break-even + Lifetime Benefit (rendered by JS) -->
     <div id="breakEvenSection"></div>
 
+    <!-- Salary Replacement + Sick Leave collapsibles (below lifetime benefit) -->
+    <div id="salSickSection" style="display:flex;flex-direction:column;gap:10px;margin-top:0"></div>
+
   </div>
 </div>
 
 <!-- ── DISCLAIMER ── -->
 <div style="max-width:1120px;margin:0 auto;padding:2px 18px 16px">
   <div style="padding:14px 18px;background:var(--surface2);border:1px solid var(--border);border-radius:var(--r)">
-    <p style="font-size:10.5px;color:var(--text2);font-weight:500;line-height:1.7"><strong>Disclaimer:</strong> This calculator is an independent, unofficial educational tool. It is completely unaffiliated with, authorized by, or endorsed by the Los Angeles Unified School District (LAUSD) or the California State Teachers' Retirement System (CalSTRS). All calculations are rough estimates for planning purposes only and are non-binding. This calculator may not capture uncommon situations such as service breaks, part-time service, mid-year retirements, concurrent employment, disability retirement, or other non-standard circumstances that could materially affect your benefit. Pension benefits are strictly governed by California law. Users must verify all official estimates directly through a <a href="http://www.calstrs.com/calculators" target="_blank" rel="noopener" style="color:var(--blue)">myCalSTRS account</a> or by consulting a CalSTRS benefits specialist before making retirement decisions.</p>
+    <p style="font-size:10.5px;color:var(--text2);font-weight:500;line-height:1.7"><strong>Disclaimer:</strong> This calculator is an independent, unofficial educational tool. It is completely unaffiliated with, authorized by, or endorsed by CalSTRS or any school district. All calculations are rough estimates for planning purposes only and are non-binding. This calculator may not capture uncommon situations such as service breaks, part-time service, mid-year retirements, concurrent employment, disability retirement, or other non-standard circumstances that could materially affect your benefit. Pension benefits are strictly governed by California law. Users must verify all official estimates directly through a <a href="http://www.calstrs.com/calculators" target="_blank" rel="noopener" style="color:var(--blue)">myCalSTRS account</a> or by consulting a CalSTRS benefits specialist before making retirement decisions.</p>
   </div>
 </div>
 
@@ -962,7 +984,7 @@
 <div style="max-width:1120px;margin:0 auto;padding:18px 18px 32px;text-align:center;border-top:1px solid var(--border)">
   <p style="font-size:10.5px;color:var(--text3);line-height:1.6">
     Last updated <strong style="color:var(--text2)">June 2026</strong> · Salary caps current through <strong style="color:var(--text2)">2026–27</strong> · CalSTRS option factor tables effective <strong style="color:var(--text2)">September 1, 2024</strong><br>
-    This is an independent educational tool, not affiliated with CalSTRS, LAUSD, or any school district. Always verify figures directly with CalSTRS before making retirement decisions.
+    This is an independent educational tool, not affiliated with CalSTRS or any school district. Always verify figures directly with CalSTRS before making retirement decisions.
   </p>
 </div>
 
@@ -1027,7 +1049,7 @@ function getInputs(){
     sickPerYear:        parseFloat(document.getElementById('sickDaysPerYear').value)||0,
     baseDays:           parseInt(document.getElementById('baseDays').value)||182,
     finalCompOverride:  compMode==='override'?(parseFloat(document.getElementById('finalCompOverride').value)||null):null,
-    pre1996:            document.getElementById('pre1996Check')?.checked||false,
+    pre1996:            false, // UI is hidden — no pre-1996 grandfathering in current version
   };
 }
 function ageNowFn(dob){return(new Date()-new Date(dob))/(365.25*24*3600*1000)}
@@ -1051,6 +1073,8 @@ const IRS_COLA=0.027; // approximate annual IRS COLA
 
 // Pre-July 1, 1996 continuous members: NO cap applies
 function getSalaryCap(formula, retireYear, pre1996){
+  // pre1996 grandfathering has no active UI — guard against stale localStorage values
+  // by only honoring it if the hidden checkbox is genuinely checked (not from old storage)
   if(pre1996) return Infinity; // grandfathered, no cap
   if(formula==='2at62'){
     // PEPRA cap, projected forward
@@ -1220,16 +1244,6 @@ function update(){
   const sdHint=document.getElementById('sickDaysHint');
   if(sdHint) sdHint.innerHTML=`10 days/yr typically granted. At ${inp.sickPerYear} unused/yr → <strong style="color:var(--text);font-weight:700">~${totalSickAtTarget} total days</strong> by age ${inp.targetAge} = <strong style="color:var(--text);font-weight:700">+${sickCredit} yrs</strong> service credit`;
 
-  // Update final comp override hint based on projected service at target
-  const fcHint=document.getElementById('finalCompOverrideHint');
-  if(fcHint){
-    const projSvcAtTarget=inp.serviceYears+yrsToTarget;
-    if(projSvcAtTarget>=25){
-      fcHint.textContent=`At age ${inp.targetAge} you'll have ~${projSvcAtTarget.toFixed(1)} yrs → enter your single highest annual salary (12 consecutive months).`;
-    } else {
-      fcHint.textContent=`At age ${inp.targetAge} you'll have ~${projSvcAtTarget.toFixed(1)} yrs → enter your highest 3-year average annual salary (36 consecutive months).`;
-    }
-  }
 
   const rows=buildSchedule();
   const tier=getTier(inp.hireDate);
@@ -1316,30 +1330,7 @@ function update(){
     </div>`;
   }
 
-  // 2 – District health
-  if(firstHealth){
-    const isNow=nowAge>=firstHealth.age;
-    const plusIcon=`<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#3a5a7c" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="4" x2="12" y2="20"/><line x1="4" y1="12" x2="20" y2="12"/></svg>`;
-    html+=`<div class="i-row">
-      <div class="i-icon">${plusIcon}</div>
-      <div>
-        <p class="i-label">District Lifetime Health Benefit</p>
-        <p class="i-val">Age ${firstHealth.age} · ${firstHealth.points.toFixed(0)} pts</p>
-        <p class="i-desc">Your tier requires ${tier.pointThreshold?'age + service ≥ '+tier.pointThreshold+' pts, ':''}<strong>${tier.minConsec} consecutive district years</strong>. Secures district-paid health coverage for life. ${isNow?'<strong>Already eligible.</strong>':'<strong>'+rel(inp.dob,firstHealth.age)+' away.</strong>'}</p>
-      </div>
-    </div>`;
-  } else {
-    const warnIcon=`<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#8b4a3a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>`;
-    html+=`<div class="i-row">
-      <div class="i-icon">${warnIcon}</div>
-      <div>
-        <p class="i-label">District Lifetime Health Benefit</p>
-        <p class="i-val">Not reached by age 75</p>
-        <p class="i-desc">Current inputs don't meet the ${tier.minConsec}-yr consecutive service requirement before age 75. Verify with HR.</p>
-      </div>
-    </div>`;
-  }
-
+  // 2 (moved to after growth window below)
   // 3 – Age factor cap
   if(firstMaxAF){
     const isNow=nowAge>=firstMaxAF.age;
@@ -1382,7 +1373,7 @@ function update(){
           <div>
             <p class="i-label">Highest Annual Benefit Growth Window</p>
             <p class="i-val">Ages ${winStart}–${winEnd} · avg ~${Math.round(avgPct)}%/yr</p>
-            <p class="i-desc">Each year you work between ages ${winStart} and ${winEnd} adds roughly <strong>${avgPct.toFixed(0)}% to your annual benefit</strong> — the fastest growth period, driven by both a rising age factor multiplier and accumulating service credit simultaneously. Peak gain is at age ${peakRow.age} (+${peakRow.pct.toFixed(1)}%). ${isPast?'<strong>This window is past.</strong>':isNow?'<strong>You are in this window now.</strong>':'After this window, annual increases slow significantly.'}</p>
+            <p class="i-desc">The fastest growth period — both the age factor and service credit are rising simultaneously. Peak gain at age ${peakRow.age} (+${peakRow.pct.toFixed(1)}%). ${isPast?'<strong>This window is past.</strong>':isNow?'<strong>You are in this window now.</strong>':'After this window, benefit growth slows.'}</p>
           </div>
         </div>`;
       } else {
@@ -1402,80 +1393,108 @@ function update(){
     }
   }
 
-  // Salary Replacement Milestones — clean card matching other insight rows
+  // 4 – District health (last insight)
+  if(firstHealth){
+    const isNow=nowAge>=firstHealth.age;
+    const plusIcon=`<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#3a5a7c" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="4" x2="12" y2="20"/><line x1="4" y1="12" x2="20" y2="12"/></svg>`;
+    html+=`<div class="i-row">
+      <div class="i-icon">${plusIcon}</div>
+      <div>
+        <p class="i-label">District Lifetime Health Benefit</p>
+        <p class="i-val">Age ${firstHealth.age} · ${firstHealth.points.toFixed(0)} pts</p>
+        <p class="i-desc">Your tier requires ${tier.pointThreshold?'age + service ≥ '+tier.pointThreshold+' pts, ':''}<strong>${tier.minConsec} consecutive district years</strong>. Secures district-paid health coverage for life. ${isNow?'<strong>Already eligible.</strong>':'<strong>'+rel(inp.dob,firstHealth.age)+' away.</strong>'} <em style="color:var(--text3)">(LAUSD rules — verify with your district)</em></p>
+      </div>
+    </div>`;
+  } else {
+    const warnIcon=`<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#8b4a3a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>`;
+    html+=`<div class="i-row">
+      <div class="i-icon">${warnIcon}</div>
+      <div>
+        <p class="i-label">District Lifetime Health Benefit</p>
+        <p class="i-val">Not reached by age 75</p>
+        <p class="i-desc">Current inputs don't meet the ${tier.minConsec}-yr consecutive service requirement before age 75. Verify with HR.</p>
+      </div>
+    </div>`;
+  }
+
+  // ── SALARY REPLACEMENT (collapsible, rendered into salSickSection) ──────────
   const targets60=rows.find(r=>r.pe&&r.pctSal>=60);
   const targets80=rows.find(r=>r.pe&&r.pctSal>=80);
   const targets100=rows.find(r=>r.pe&&r.pctSal>=100);
-  const milestones=[
-    {pct:'60%',row:targets60},
-    {pct:'80%',row:targets80},
-    {pct:'100%',row:targets100},
-  ];
-  if(milestones.some(m=>m.row)){
-    const mRows=milestones.map(m=>{
-      if(!m.row) return `<tr><td style="font-weight:700;color:var(--text3);padding:7px 12px">${m.pct}</td><td colspan="4" style="padding:7px 12px;color:var(--text3);font-style:italic">Not reached by age 75</td></tr>`;
-      const yrs=Math.max(0,Math.round(m.row.age-nowAge));
-      const yLbl=yrs===0?`<strong style="color:#2d6da3">Now eligible</strong>`:yrs===1?'1 yr':yrs+' yrs';
-      return `<tr style="border-top:1px solid var(--border)">
-        <td style="padding:7px 12px;font-family:'DM Mono',monospace;font-weight:700;color:#2d6da3;font-size:14px">${m.pct}</td>
-        <td style="padding:7px 12px;font-family:'DM Mono',monospace;font-weight:600">Age ${m.row.age}</td>
-        <td style="padding:7px 12px;font-family:'DM Mono',monospace;font-weight:600">${fmt(m.row.monthly)}/mo</td>
-        <td style="padding:7px 12px;font-family:'DM Mono',monospace;font-weight:600;color:var(--text2)">${fmt(m.row.annual)}/yr</td>
-        <td style="padding:7px 12px;color:var(--text2)">${yLbl}</td>
-      </tr>`;
-    }).join('');
-    html+=`<div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--rs);overflow:hidden;box-shadow:0 2px 4px rgba(0,0,0,.05)">
-      <div style="padding:9px 13px;border-bottom:1px solid var(--border);background:var(--surface2);display:flex;align-items:center;justify-content:space-between">
-        <span style="font-size:9px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--text2)">Salary Replacement Milestones</span>
-        <span style="font-size:9px;color:var(--text3)">% of projected salary at each retirement age</span>
+  const milestones=[{pct:'60%',row:targets60},{pct:'80%',row:targets80},{pct:'100%',row:targets100}];
+  const salSickEl=document.getElementById('salSickSection');
+  if(salSickEl){
+    let ssHtml='';
+    if(milestones.some(m=>m.row)){
+      const mRows2=milestones.map(m=>{
+        if(!m.row) return `<tr><td style="padding:7px 12px;color:var(--text3)">${m.pct} — not reached by 75</td></tr>`;
+        const yrs2=Math.max(0,Math.round(m.row.age-nowAge));
+        const yLbl2=yrs2===0?'<strong style="color:#2d6da3">Now</strong>':yrs2===1?'1 yr':yrs2+' yrs';
+        return `<tr style="border-top:1px solid var(--border)">
+          <td style="padding:7px 12px;font-family:'DM Mono',monospace;font-weight:700;color:#2d6da3;font-size:14px">${m.pct}</td>
+          <td style="padding:7px 12px;font-family:'DM Mono',monospace;font-weight:600">Age ${m.row.age}</td>
+          <td style="padding:7px 12px;font-family:'DM Mono',monospace">${fmt(m.row.monthly)}/mo</td>
+          <td style="padding:7px 12px;font-family:'DM Mono',monospace;color:var(--text2)">${fmt(m.row.annual)}/yr</td>
+          <td style="padding:7px 12px;color:var(--text2)">${yLbl2}</td>
+        </tr>`;
+      }).join('');
+      ssHtml+=`<div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--r);overflow:hidden">
+        <div style="background:#253447;padding:9px 14px;display:flex;align-items:center;justify-content:space-between;cursor:pointer" onclick="toggleSection(this)">
+          <span style="color:#fff;font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase">Salary Replacement Milestones</span>
+          <span style="color:rgba(255,255,255,.6);font-size:10px">▶ expand</span>
+        </div>
+        <div style="display:none">
+          <table style="width:100%;border-collapse:collapse;font-size:12px">
+            <thead><tr style="background:var(--surface2)">
+              <th style="padding:5px 12px;text-align:left;font-size:9px;letter-spacing:.08em;text-transform:uppercase;color:var(--text3);font-weight:700">% of Salary</th>
+              <th style="padding:5px 12px;text-align:left;font-size:9px;letter-spacing:.08em;text-transform:uppercase;color:var(--text3);font-weight:700">Age</th>
+              <th style="padding:5px 12px;text-align:left;font-size:9px;letter-spacing:.08em;text-transform:uppercase;color:var(--text3);font-weight:700">Monthly</th>
+              <th style="padding:5px 12px;text-align:left;font-size:9px;letter-spacing:.08em;text-transform:uppercase;color:var(--text3);font-weight:700">Annual</th>
+              <th style="padding:5px 12px;text-align:left;font-size:9px;letter-spacing:.08em;text-transform:uppercase;color:var(--text3);font-weight:700">Years Away</th>
+            </tr></thead>
+            <tbody>${mRows2}</tbody>
+          </table>
+        </div>
+      </div>`;
+    }
+    if(target){
+      const days2=Math.round(inp.sickPerYear*(inp.serviceYears+Math.max(0,inp.targetAge-nowAge)));
+      const cred2=target.sickCredit;
+      const extra2=target.af?fmt(target.af*target.finalComp*cred2/12):'—';
+      ssHtml+=`<div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--r);overflow:hidden">
+        <div style="background:#253447;padding:9px 14px;display:flex;align-items:center;justify-content:space-between;cursor:pointer" onclick="toggleSection(this)">
+          <span style="color:#fff;font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase">Sick Leave Credit</span>
+          <span style="color:rgba(255,255,255,.6);font-size:10px">▶ expand</span>
+        </div>
+        <div style="display:none;padding:13px 15px">
+          <div class="i-row" style="border:none;padding:0;box-shadow:none">
+            <div class="i-icon">🌿</div>
+            <div>
+              <p class="i-label">Sick Leave Credit at Age ${target.age}</p>
+              <p class="i-val">~${days2} days → +${cred2.toFixed(2)} yrs service credit</p>
+              <p class="i-desc">Worth <strong>${extra2}/mo</strong> added to your benefit at retirement. Based on ${inp.sickPerYear} unused days/yr over your career.</p>
+            </div>
+          </div>
+        </div>
+      </div>`;
+    }
+    // District Health Eligibility Rules at the bottom
+    ssHtml+=`<div class="rules-box" style="margin-top:0">
+      <button class="rules-toggle" onclick="toggleRules(this)">
+        <h3>District Lifetime Health Eligibility Rules</h3>
+        <div class="rules-toggle-right">
+          <span class="rules-toggle-tier" id="rulesTierLabel">Your tier: …</span>
+          <span class="rules-chevron" style="color:rgba(255,255,255,.6);font-size:10px">▶ expand</span>
+        </div>
+      </button>
+      <div class="rules-body" id="rulesBody">
+        <div class="rules-body-inner" id="rulesInner"></div>
       </div>
-      <table style="width:100%;border-collapse:collapse;font-size:12px">
-        <thead><tr style="background:var(--surface2)">
-          <th style="padding:5px 12px;text-align:left;font-size:9px;letter-spacing:.08em;text-transform:uppercase;color:var(--text3);font-weight:700">% of Salary</th>
-          <th style="padding:5px 12px;text-align:left;font-size:9px;letter-spacing:.08em;text-transform:uppercase;color:var(--text3);font-weight:700">Age</th>
-          <th style="padding:5px 12px;text-align:left;font-size:9px;letter-spacing:.08em;text-transform:uppercase;color:var(--text3);font-weight:700">Monthly</th>
-          <th style="padding:5px 12px;text-align:left;font-size:9px;letter-spacing:.08em;text-transform:uppercase;color:var(--text3);font-weight:700">Annual</th>
-          <th style="padding:5px 12px;text-align:left;font-size:9px;letter-spacing:.08em;text-transform:uppercase;color:var(--text3);font-weight:700">Years Away</th>
-        </tr></thead>
-        <tbody>${mRows}</tbody>
-      </table>
     </div>`;
+    salSickEl.innerHTML=ssHtml;
   }
-
-  // Sick leave card — moved into insights
-  if(target){
-    const days=Math.round(inp.sickPerYear*(inp.serviceYears+Math.max(0,inp.targetAge-nowAge)));
-    const cred=target.sickCredit;
-    const extra=target.af?fmt(target.af*target.finalComp*cred/12):'—';
-html+=`<div class="i-row">
-      <div class="i-icon">🌿</div>
-      <div>
-        <p class="i-label">Sick Leave Credit at Age ${target.age}</p>
-        <p class="i-val"><span class="sick-total">~${days} days</span> → <span class="sick-total">+${cred.toFixed(2)} yrs</span> service credit</p>
-        <p class="i-desc">Worth <strong>${extra}/mo</strong> added to your benefit at retirement. Based on ${inp.sickPerYear} unused days/yr over your career.</p>
-      </div>
-    </div>`;
-  }
-
-  // Health rules collapsible — moved into insights
-  html+=`<div class="rules-box" style="margin-top:0">
-    <button class="rules-toggle" onclick="toggleRules(this)">
-      <h3>District Lifetime Health Eligibility Rules</h3>
-      <div class="rules-toggle-right">
-        <span class="rules-toggle-tier" id="rulesTierLabel">Your tier: …</span>
-        <span style="color:rgba(255,255,255,.55);font-size:9px;font-style:italic;pointer-events:none">click to expand</span>
-        <span class="rules-chevron">▼</span>
-      </div>
-    </button>
-    <div class="rules-body" id="rulesBody">
-      <div class="rules-body-inner" id="rulesInner"></div>
-    </div>
-  </div>`;
-
-
-
   // Next step note
-  html+=`<p style="margin-top:0;padding:10px 12px;background:var(--surface2);border-radius:var(--rs);font-size:12.5px;color:var(--text);font-weight:700;line-height:1.5;border-left:3px solid #2d6da3">📋 Next step: Review the full retirement schedule below. Consider your full financial picture — Social Security eligibility (if applicable), spouse or household income, other retirement accounts, and investment income — before choosing the age that best fits your situation. Want to see how adding a beneficiary affects your check? <a href="#" onclick="document.getElementById('benQuickSection').scrollIntoView({behavior:'smooth'});return false;" style="color:#2d6da3;font-weight:700">See beneficiary options above ↑</a> — or open the <a href="#" onclick="document.getElementById('benLink2')?.click();return false;" style="color:#2d6da3;font-weight:700">Beneficiary Analysis</a> for break-even, 10-year projections, and more detail.</p>`;
+  html+=`<p style="margin-top:0;padding:10px 12px;background:var(--surface2);border-radius:var(--rs);font-size:12.5px;color:var(--text);font-weight:700;line-height:1.5;border-left:3px solid #2d6da3">📋 Next step: Review the full retirement schedule below. Consider your full financial picture — Social Security eligibility (if applicable), spouse or household income, other retirement accounts, and investment income — before choosing the age that best fits your situation.</p>`;
 
   document.getElementById('insightBody').innerHTML=html;
 
@@ -1515,7 +1534,7 @@ html+=`<div class="i-row">
   const rulesTierEl=document.getElementById('rulesTierLabel');
   if(rulesTierEl) rulesTierEl.textContent='Your tier: '+(tier.tier||tier.label||'').split('(')[0].trim();
   const rulesInnerEl=document.getElementById('rulesInner');
-  if(rulesInnerEl) rulesInnerEl.innerHTML=rHtml;
+  if(rulesInnerEl) rulesInnerEl.innerHTML=`<div style="padding:8px 14px 4px;background:#fff8e8;border-bottom:1px solid #f0c060;font-size:10.5px;color:#7a4f10;line-height:1.5">⚠ <strong>LAUSD health benefit tiers only.</strong> These eligibility rules apply to certificated employees of the Los Angeles Unified School District. Health benefits vary by district and are collectively bargained — additional districts will be added over time. Verify your district's specific rules with your HR department.</div>`+rHtml;
 
   /* ── SICK BOX — now rendered in insight body, skip standalone update ── */
 
@@ -1709,8 +1728,9 @@ function saveInputs(){
       formula: formula,
       compMode: compMode,
       finalCompOverride: document.getElementById('finalCompOverride').value||'',
-      pre1996: document.getElementById('pre1996Check')?.checked||false,
+      pre1996: false, // always false — UI is hidden
       benDobMain: benDobEl?benDobEl.value:'',
+      noBeneficiary: document.getElementById('noBeneficiaryCheck')?.checked||false,
       savedAt: Date.now()
     };
     localStorage.setItem(CALSTRS_STORAGE_KEY, JSON.stringify(data));
@@ -1749,9 +1769,11 @@ function loadSavedInputs(){
       if(foEl) foEl.value=d.finalCompOverride;
     }
     const p=document.getElementById('pre1996Check');
-    if(p) p.checked=!!d.pre1996;
+    if(p) p.checked=false; // pre1996 UI is hidden — always false, never restore from localStorage
     const benDobEl=document.getElementById('benDobMain');
     if(benDobEl&&d.benDobMain) benDobEl.value=d.benDobMain;
+    const nbCb=document.getElementById('noBeneficiaryCheck');
+    if(nbCb) nbCb.checked=!!d.noBeneficiary;
     return true;
   }catch(e){ return false; }
 }
@@ -1791,9 +1813,39 @@ function resetToDefaults(){
   const bB=document.getElementById('beAgeB');
   if(bA) bA.value='';
   if(bB) bB.value='';
-  // Reset beneficiary DOB
+  // Reset beneficiary DOB and no-beneficiary checkbox
   const benDobEl=document.getElementById('benDobMain');
   if(benDobEl) benDobEl.value='';
+  const nbCb2=document.getElementById('noBeneficiaryCheck');
+  if(nbCb2){ nbCb2.checked=false; }
+  if(benDobEl){ benDobEl.disabled=false; benDobEl.style.opacity=''; }
+  update();
+}
+
+function toggleAdvInputs(btn){
+  var body = document.getElementById('advInputsBody');
+  var chev = document.getElementById('advInputsChev');
+  if(!body) return;
+  var isOpen = body.style.display !== 'none' && body.style.display !== '';
+  body.style.display = isOpen ? 'none' : 'flex';
+  if(chev) chev.style.transform = isOpen ? '' : 'rotate(90deg)';
+}
+
+function handleNoBenCheck(cb){
+  var benDobEl = document.getElementById('benDobMain');
+  var hintEl = document.getElementById('benDobMainHint');
+  if(cb.checked){
+    // Checked = no beneficiary: clear DOB and disable field
+    if(benDobEl){ benDobEl.value = ''; benDobEl.disabled = true; benDobEl.style.opacity = '0.4'; }
+    if(hintEl) hintEl.textContent = 'No beneficiary selected — Member-Only benefit shown.';
+    window._lastBenDob = null;
+    window._lastBenAge = null;
+    window._lastBenMode = null;
+  } else {
+    // Unchecked: re-enable DOB field
+    if(benDobEl){ benDobEl.disabled = false; benDobEl.style.opacity = ''; }
+    if(hintEl) hintEl.textContent = 'Powers the Beneficiary Options comparison below and pre-fills the Beneficiary Analysis.';
+  }
   update();
 }
 
@@ -1811,7 +1863,7 @@ function toggleRules(btn){
   const chev=btn.querySelector('.rules-chevron');
   const isOpen=body.classList.contains('open');
   body.classList.toggle('open',!isOpen);
-  chev.classList.toggle('open',!isOpen);
+  if(chev) chev.textContent=isOpen?'▶ expand':'▼ collapse';
 }
 
 function setFormula(f){
@@ -2502,6 +2554,9 @@ window.addEventListener('resize',()=>{
 });
 initMobile();
 
+// Force-clear pre1996 — UI is hidden, ensure stale localStorage never bypasses salary cap
+(function(){ const p=document.getElementById('pre1996Check'); if(p) p.checked=false; })();
+
 // ── Restore saved inputs or start with defaults ───────────────────────────
 (function(){
   var p = new URLSearchParams(window.location.search);
@@ -2565,9 +2620,11 @@ function renderBenQuick(target){
   const fmtM = n => new Intl.NumberFormat('en-US',{style:'currency',currency:'USD',maximumFractionDigits:0}).format(n);
   const inp = getInputs();
 
-  // Check if beneficiary DOB was entered
+  // Check if beneficiary DOB was entered — also respect "No beneficiary" checkbox
   const benDobEl = document.getElementById('benDobMain');
-  const hasBenDob = benDobEl && benDobEl.value && benDobEl.value !== '';
+  const noBenCheck = document.getElementById('noBeneficiaryCheck');
+  const noBen = noBenCheck && noBenCheck.checked;
+  const hasBenDob = !noBen && benDobEl && benDobEl.value && benDobEl.value !== '';
 
   // Compute beneficiary age at retirement directly from DOB
   let benAge = null;
@@ -2643,10 +2700,15 @@ function renderBenQuick(target){
 
   // Body content inside the collapsible
   let bodyContent;
-  if(!hasBenDob){
+  if(noBen){
+    bodyContent = `<div style="padding:14px 16px">
+      <p style="font-size:11.5px;color:var(--text2);line-height:1.6;margin-bottom:12px">Member-Only benefit selected — your full pension passes to no one after your death. This is the highest monthly benefit available. You can change this election at retirement.</p>
+      ${ctaBtn}
+    </div>`;
+  } else if(!hasBenDob){
     bodyContent = `<div style="padding:14px 16px">
       <p style="font-size:11px;font-weight:600;color:#8b4a3a;margin-bottom:4px">No beneficiary DOB provided.</p>
-      <p style="font-size:11.5px;color:var(--text3);line-height:1.6;margin-bottom:12px">Enter a <strong>Beneficiary Date of Birth</strong> in the input panel above — the comparison below will calculate automatically. Or open the Beneficiary Analysis to explore all options in detail.</p>
+      <p style="font-size:11.5px;color:var(--text3);line-height:1.6;margin-bottom:12px">Enter a <strong>Beneficiary Date of Birth</strong> if applicable. Or open the Beneficiary Analysis to explore all options in detail.</p>
       ${ctaBtn}
     </div>`;
   } else {
