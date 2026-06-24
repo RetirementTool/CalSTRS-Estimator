@@ -933,6 +933,7 @@
         <p><strong>Flags:</strong> <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#3a5a7c" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg> Pension eligible &nbsp;·&nbsp; <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#2a7a5a" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="4" x2="12" y2="20"/><line x1="4" y1="12" x2="20" y2="12"/></svg> Lifetime health benefit met &nbsp;·&nbsp; <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#1a2e42" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><text x="0" y="17" font-size="7" font-family="sans-serif" font-weight="800" fill="#1a2e42" stroke="none">AGE</text><polyline points="11 3 16 3 16 8"/><line x1="9" y1="9" x2="16" y2="3"/></svg> Age factor at max 2.4% &nbsp;·&nbsp; <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#7a4f10" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a10 10 0 100 20A10 10 0 0012 2z"/><text x="4.5" y="16" font-size="8" font-family="sans-serif" font-weight="800" fill="#7a4f10" stroke="none">Rx</text></svg> Medicare eligible (age 65)</p>
         <p>Sick leave: accumulated unused days ÷ base days = additional service credit. Cannot satisfy minimum eligibility requirements.</p>
         <p>* Benefit values shown do not include CalSTRS COLA. CalSTRS provides a 2% simple annual COLA on your original benefit — your actual purchasing power may be higher over time. How it works: each September 1st, CalSTRS increases your monthly benefit by 2% of your <em>original</em> benefit amount (not the prior year's adjusted amount), so the dollar increase is constant each year. A separate ad hoc Purchasing Power Protection Allowance (PPPA) may also apply if cumulative inflation erodes your benefit below 85% of its original purchasing power.</p>
+        <p>† Age factors are applied at whole ages. Your actual factor will be based on your exact age at retirement and may differ slightly.</p>
 
       </div>
     </div>
@@ -2828,9 +2829,9 @@ function renderBenQuick(target){
   // Option factor function — same calibration as beneficiary-100.html
   function getFactor(mAge, bAge, opt){
     let base, mRate, bRate;
-    if(opt===100){base=0.9022;mRate=0.004;bRate=0.010;}
-    else if(opt===75){base=0.9280;mRate=0.003;bRate=0.006;}
-    else{base=0.9531;mRate=0.002;bRate=0.004;}
+    if(opt===100){base=0.8982;mRate=0.004;bRate=0.010;}
+    else if(opt===75){base=0.9250;mRate=0.003;bRate=0.006;}
+    else{base=0.9511;mRate=0.002;bRate=0.004;}
     const f = base + (mAge-61)*mRate - (61-bAge)*bRate;
     return Math.max(0.50, Math.min(0.99, Math.round(f*10000)/10000));
   }

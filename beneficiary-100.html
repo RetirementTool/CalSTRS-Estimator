@@ -650,9 +650,9 @@ document.getElementById('visSliderM').value = memberAge;
 // ── OPTION FACTOR ──
 function getFactor(mAge, bAge, opt){
   var base, mRate, bRate;
-  if(opt===100){base=0.9022;mRate=0.004;bRate=0.010;}
-  else if(opt===75){base=0.9280;mRate=0.003;bRate=0.006;}
-  else{base=0.9531;mRate=0.002;bRate=0.004;}
+  if(opt===100){base=0.8982;mRate=0.004;bRate=0.010;}
+  else if(opt===75){base=0.9250;mRate=0.003;bRate=0.006;}
+  else{base=0.9511;mRate=0.002;bRate=0.004;}
   var f = base + (mAge-61)*mRate - (61-bAge)*bRate;
   return Math.max(0.50, Math.min(0.99, Math.round(f*10000)/10000));
 }
