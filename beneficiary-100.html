@@ -238,12 +238,12 @@ input[type=range]#visSliderM::-moz-range-thumb{
       <p style="font-size:10.5px;color:var(--text2);line-height:1.55">📋 <strong>Preretirement election:</strong> You may elect an option before retiring. If you do, you get the higher of your election-date or retirement-date factor. If you die before retiring, your beneficiary receives a lifetime benefit calculated as of your date of death.</p>
       <p style="font-size:10.5px;color:var(--text2);line-height:1.55">🏦 <strong>Defined Benefit Supplement</strong> account not modeled here — it has separate distribution rules. Contact CalSTRS for details.</p>
       <div style="font-size:10px;color:var(--text3);line-height:1.6;border-top:1px solid var(--border);padding-top:9px">
-        <p>Factors based on CalSTRS actuarial tables effective Sept 1, 2024. <a href="https://www.calstrs.com/files/6a92c8677/MemberHandbook2025.pdf" target="_blank" rel="noopener" style="color:var(--blue)">Service Retirement Option Factor Tables ↗</a></p>
+        <p>Factors based on CalSTRS actuarial tables effective Sept 1, 2024. <a href="https://www.calstrs.com/files/44f960e51/MemberHandbook2026.pdf" target="_blank" rel="noopener" style="color:var(--blue)">Service Retirement Option Factor Tables ↗</a></p>
         <p style="margin-top:4px"><a href="http://www.calstrs.com/electing-an-option" target="_blank" rel="noopener" style="color:var(--blue)">CalSTRS rules on preretirement elections ↗</a></p>
         <p style="margin-top:4px"><a href="http://www.calstrs.com/postretirement-option-change-faq" target="_blank" rel="noopener" style="color:var(--blue)">What if my beneficiary dies first? ↗</a></p>
         <p style="margin-top:8px;padding-top:8px;border-top:1px solid var(--border);color:var(--text2);font-weight:600">Key CalSTRS resources — verify before any irrevocable election:</p>
-        <p style="margin-top:4px"><a href="https://www.calstrs.com/files/6a92c8677/MemberHandbook2025.pdf" target="_blank" rel="noopener" style="color:var(--blue)">📖 Member Handbook (COM-1519) ↗</a></p>
-        <p style="margin-top:4px"><a href="https://www.calstrs.com/understanding-defined-benefit-formula" target="_blank" rel="noopener" style="color:var(--blue)">📐 Understanding the Formula (COM-1667) ↗</a></p>
+        <p style="margin-top:4px"><a href="https://www.calstrs.com/files/44f960e51/MemberHandbook2026.pdf" target="_blank" rel="noopener" style="color:var(--blue)">📖 Member Handbook (COM-1519) ↗</a></p>
+        <p style="margin-top:4px"><a href="https://www.calstrs.com/understanding-the-formula" target="_blank" rel="noopener" style="color:var(--blue)">📐 Understanding the Formula (COM-1667) ↗</a></p>
         <p style="margin-top:4px"><a href="https://forms.calstrs.com/CalSTRSOnlineFormRequestWebUI/Root/Pages/Order.aspx" target="_blank" rel="noopener" style="color:var(--blue)">📋 All CalSTRS Forms &amp; Publications ↗</a></p>
       </div>
     </div>
@@ -648,13 +648,42 @@ document.getElementById('visSliderM').addEventListener('input', buildVis);
 document.getElementById('visSliderM').value = memberAge;
 
 // ── OPTION FACTOR ──
+// ── Service Retirement Option Factor Tables (Member Handbook 2025, pp.79+83) ──
+// Format: OPTION_FACTORS[mbrAge][benAge] = [100%_factor, 75%_factor, 50%_factor]
+// Beneficiary ages in 5-yr increments; intermediate ages linearly interpolated.
+const OPTION_FACTORS = {
+  55:{20:[0.8335,0.8737,0.9141],25:[0.8399,0.8791,0.9180],30:[0.8481,0.8858,0.9229],35:[0.8584,0.8942,0.9290],40:[0.8710,0.9044,0.9363],45:[0.8860,0.9164,0.9447],50:[0.9027,0.9295,0.9538],55:[0.9198,0.9427,0.9628],60:[0.9358,0.9548,0.9709],65:[0.9496,0.9650,0.9777],70:[0.9608,0.9732,0.9830]},
+  56:{20:[0.8246,0.8666,0.9090],25:[0.8310,0.8720,0.9129],30:[0.8392,0.8788,0.9179],35:[0.8495,0.8873,0.9241],40:[0.8623,0.8977,0.9316],45:[0.8776,0.9100,0.9403],50:[0.8950,0.9237,0.9499],55:[0.9131,0.9377,0.9595],60:[0.9304,0.9508,0.9683],65:[0.9455,0.9621,0.9758],70:[0.9578,0.9712,0.9817]},
+  57:{20:[0.8153,0.8592,0.9036],25:[0.8217,0.8646,0.9076],30:[0.8299,0.8714,0.9126],35:[0.8403,0.8800,0.9189],40:[0.8532,0.8905,0.9266],45:[0.8688,0.9031,0.9356],50:[0.8868,0.9174,0.9456],55:[0.9059,0.9323,0.9559],60:[0.9245,0.9465,0.9655],65:[0.9410,0.9589,0.9737],70:[0.9546,0.9689,0.9802]},
+  58:{20:[0.8056,0.8514,0.8979],25:[0.8121,0.8568,0.9020],30:[0.8203,0.8637,0.9071],35:[0.8306,0.8723,0.9134],40:[0.8437,0.8830,0.9212],45:[0.8595,0.8959,0.9305],50:[0.8780,0.9107,0.9410],55:[0.8981,0.9264,0.9519],60:[0.9180,0.9417,0.9623],65:[0.9360,0.9553,0.9713],70:[0.9509,0.9663,0.9786]},
+  59:{20:[0.7955,0.8431,0.8919],25:[0.8019,0.8486,0.8960],30:[0.8101,0.8555,0.9012],35:[0.8205,0.8642,0.9076],40:[0.8336,0.8750,0.9155],45:[0.8497,0.8882,0.9251],50:[0.8687,0.9035,0.9360],55:[0.8896,0.9200,0.9475],60:[0.9109,0.9364,0.9588],65:[0.9305,0.9513,0.9687],70:[0.9469,0.9635,0.9767]},
+  60:{20:[0.7850,0.8345,0.8855],25:[0.7914,0.8399,0.8897],30:[0.7996,0.8469,0.8949],35:[0.8100,0.8556,0.9014],40:[0.8231,0.8666,0.9095],45:[0.8394,0.8800,0.9193],50:[0.8588,0.8957,0.9306],55:[0.8806,0.9130,0.9428],60:[0.9031,0.9306,0.9549],65:[0.9243,0.9468,0.9657],70:[0.9424,0.9603,0.9746]},
+  61:{20:[0.7739,0.8253,0.8788],25:[0.7803,0.8308,0.8829],30:[0.7884,0.8378,0.8882],35:[0.7988,0.8466,0.8948],40:[0.8120,0.8576,0.9030],45:[0.8284,0.8712,0.9130],50:[0.8482,0.8874,0.9247],55:[0.8708,0.9055,0.9375],60:[0.8946,0.9242,0.9505],65:[0.9175,0.9417,0.9624],70:[0.9374,0.9566,0.9723]},
+  62:{20:[0.7623,0.8157,0.8716],25:[0.7687,0.8212,0.8758],30:[0.7768,0.8282,0.8811],35:[0.7872,0.8370,0.8878],40:[0.8003,0.8481,0.8961],45:[0.8168,0.8619,0.9063],50:[0.8370,0.8785,0.9184],55:[0.8603,0.8973,0.9318],60:[0.8853,0.9171,0.9457],65:[0.9099,0.9361,0.9586],70:[0.9317,0.9525,0.9695]},
+  63:{20:[0.7502,0.8056,0.8640],25:[0.7566,0.8111,0.8682],30:[0.7646,0.8181,0.8736],35:[0.7749,0.8269,0.8803],40:[0.7881,0.8381,0.8888],45:[0.8047,0.8520,0.8992],50:[0.8250,0.8689,0.9116],55:[0.8490,0.8884,0.9256],60:[0.8752,0.9093,0.9403],65:[0.9015,0.9298,0.9544],70:[0.9252,0.9478,0.9664]},
+  64:{20:[0.7376,0.7949,0.8559],25:[0.7438,0.8004,0.8601],30:[0.7519,0.8074,0.8656],35:[0.7621,0.8162,0.8724],40:[0.7752,0.8274,0.8809],45:[0.7918,0.8415,0.8915],50:[0.8124,0.8587,0.9042],55:[0.8369,0.8788,0.9188],60:[0.8642,0.9008,0.9344],65:[0.8922,0.9227,0.9496],70:[0.9180,0.9424,0.9629]},
+  65:{20:[0.7242,0.7835,0.8472],25:[0.7304,0.7890,0.8515],30:[0.7384,0.7960,0.8570],35:[0.7486,0.8049,0.8638],40:[0.7616,0.8161,0.8725],45:[0.7782,0.8303,0.8832],50:[0.7989,0.8477,0.8963],55:[0.8238,0.8684,0.9114],60:[0.8522,0.8914,0.9279],65:[0.8819,0.9148,0.9442],70:[0.9098,0.9363,0.9588]},
+  66:{20:[0.7102,0.7715,0.8380],25:[0.7163,0.7770,0.8423],30:[0.7242,0.7839,0.8478],35:[0.7343,0.7928,0.8547],40:[0.7472,0.8041,0.8634],45:[0.7637,0.8183,0.8743],50:[0.7844,0.8360,0.8877],55:[0.8098,0.8571,0.9033],60:[0.8391,0.8811,0.9206],65:[0.8703,0.9060,0.9381],70:[0.9004,0.9293,0.9541]},
+  67:{20:[0.6954,0.7588,0.8281],25:[0.7014,0.7643,0.8325],30:[0.7092,0.7712,0.8380],35:[0.7192,0.7801,0.8450],40:[0.7320,0.7913,0.8538],45:[0.7484,0.8056,0.8648],50:[0.7692,0.8234,0.8784],55:[0.7948,0.8450,0.8945],60:[0.8249,0.8698,0.9127],65:[0.8576,0.8962,0.9314],70:[0.8899,0.9214,0.9488]},
+  68:{20:[0.6799,0.7455,0.8176],25:[0.6859,0.7509,0.8220],30:[0.6936,0.7578,0.8275],35:[0.7034,0.7666,0.8346],40:[0.7161,0.7778,0.8435],45:[0.7324,0.7921,0.8546],50:[0.7530,0.8101,0.8685],55:[0.7788,0.8320,0.8850],60:[0.8096,0.8577,0.9039],65:[0.8437,0.8854,0.9239],70:[0.8781,0.9126,0.9428]},
+  69:{20:[0.6637,0.7314,0.8065],25:[0.6696,0.7367,0.8109],30:[0.6771,0.7436,0.8164],35:[0.6869,0.7524,0.8235],40:[0.6994,0.7636,0.8325],45:[0.7155,0.7779,0.8438],50:[0.7360,0.7959,0.8578],55:[0.7618,0.8182,0.8748],60:[0.7931,0.8445,0.8944],65:[0.8286,0.8736,0.9155],70:[0.8651,0.9027,0.9360]},
+  70:{20:[0.6468,0.7166,0.7947],25:[0.6526,0.7219,0.7991],30:[0.6600,0.7288,0.8047],35:[0.6696,0.7375,0.8118],40:[0.6819,0.7487,0.8208],45:[0.6978,0.7629,0.8322],50:[0.7182,0.7810,0.8464],55:[0.7440,0.8034,0.8638],60:[0.7756,0.8304,0.8841],65:[0.8122,0.8608,0.9064],70:[0.8507,0.8918,0.9285]}
+};
+
 function getFactor(mAge, bAge, opt){
-  var base, mRate, bRate;
-  if(opt===100){base=0.8982;mRate=0.004;bRate=0.010;}
-  else if(opt===75){base=0.9250;mRate=0.003;bRate=0.006;}
-  else{base=0.9511;mRate=0.002;bRate=0.004;}
-  var f = base + (mAge-61)*mRate - (61-bAge)*bRate;
-  return Math.max(0.50, Math.min(0.99, Math.round(f*10000)/10000));
+  var optIdx = opt===100?0:opt===75?1:2;
+  var mClamped = Math.max(55, Math.min(70, Math.round(mAge)));
+  var bClamped = Math.max(20, Math.min(70, Math.round(bAge)));
+  var mRow = OPTION_FACTORS[mClamped];
+  if(!mRow) return 0.90;
+  var bLow  = Math.floor(bClamped/5)*5;
+  var bHigh = Math.min(70, bLow===bClamped?bLow:bLow+5);
+  bLow = Math.max(20, bLow);
+  var lo = mRow[bLow], hi = mRow[bHigh];
+  if(!lo) return (hi||[0.9,0.93,0.95])[optIdx];
+  if(!hi || bLow===bHigh) return lo[optIdx];
+  var t = (bClamped-bLow)/(bHigh-bLow);
+  return Math.round((lo[optIdx]+t*(hi[optIdx]-lo[optIdx]))*10000)/10000;
 }
 
 var benChart;
