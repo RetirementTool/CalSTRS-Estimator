@@ -251,6 +251,37 @@
   .footnotes p{font-size:10px;color:var(--text3);line-height:1.6;margin-bottom:2px}
   .footnotes p:last-child{margin-bottom:0}
   .tag-row{display:flex;gap:3px;flex-wrap:wrap;align-items:center;justify-content:flex-end}
+
+  /* ── Toggle + Done button — base styles outside media query so JS can show them in landscape too ── */
+  .inputs-toggle{
+    display:none;align-items:center;justify-content:space-between;
+    padding:14px 16px;background:var(--teal);border-radius:var(--r);
+    cursor:pointer;user-select:none;margin-bottom:0;border:none;
+    width:100%;box-sizing:border-box;
+    -webkit-tap-highlight-color:transparent;
+    box-shadow:0 2px 8px rgba(15,118,110,.25);
+  }
+  .inputs-toggle-label{
+    color:#fff;font-size:14px;font-weight:700;letter-spacing:.02em;pointer-events:none;
+    display:flex;align-items:center;gap:8px;
+  }
+  .inputs-toggle-label::before{content:"📋";font-size:16px}
+  .inputs-toggle-chevron{
+    color:rgba(255,255,255,.9);font-size:15px;transition:transform .25s;
+    line-height:1;pointer-events:none;
+    background:rgba(255,255,255,.18);padding:4px 8px;border-radius:5px;
+  }
+  .inputs-toggle-chevron.open{transform:rotate(180deg)}
+  .inputs-panel-body{overflow:hidden;max-height:0;transition:max-height .4s cubic-bezier(0.4,0,0.2,1);width:100%;box-sizing:border-box}
+  .inputs-panel-body.open{max-height:3200px;overflow:visible}
+  .inputs-done-btn{
+    display:none;width:100%;padding:14px;background:var(--teal);color:#fff;
+    border:none;font-family:"Inter",system-ui,sans-serif;font-size:14px;
+    font-weight:700;cursor:pointer;letter-spacing:.02em;
+    -webkit-tap-highlight-color:transparent;
+  }
+  .inputs-done-btn:active{background:var(--teal-mid)}
+
   /* ── MOBILE ── */
   @media(max-width:700px){
     /* Full-bleed layout — nothing wider than screen */
@@ -276,43 +307,32 @@
     /* Layout: single column, clamped to screen */
     .main{grid-template-columns:1fr;padding:8px 8px 32px;gap:8px;width:100%;max-width:100vw;overflow-x:hidden;box-sizing:border-box}
 
-    /* Inputs toggle — prominent, clearly tappable */
-    .inputs-toggle{
-      display:flex!important;align-items:center;justify-content:space-between;
-      padding:14px 16px;background:var(--teal);border-radius:var(--r);
-      cursor:pointer;user-select:none;margin-bottom:0;border:none;
-      width:100%;box-sizing:border-box;
-      -webkit-tap-highlight-color:transparent;
-      box-shadow:0 2px 8px rgba(15,118,110,.25);
-    }
-    .inputs-toggle-label{
-      color:#fff;font-size:14px;font-weight:700;letter-spacing:.02em;pointer-events:none;
-      display:flex;align-items:center;gap:8px;
-    }
-    .inputs-toggle-label::before{content:"📋";font-size:16px}
-    .inputs-toggle-chevron{
-      color:rgba(255,255,255,.9);font-size:15px;transition:transform .25s;
-      line-height:1;pointer-events:none;
-      background:rgba(255,255,255,.18);padding:4px 8px;border-radius:5px;
-    }
-    .inputs-toggle-chevron.open{transform:rotate(180deg)}
+    /* Inputs toggle label spacing */
+    .inputs-toggle-label{gap:6px}
 
     /* Inputs panel */
-    .inputs-panel-body{overflow:hidden;max-height:0;transition:max-height .4s cubic-bezier(0.4,0,0.2,1);width:100%;box-sizing:border-box}
-    .inputs-panel-body.open{max-height:3200px}
     .inputs-panel-body .panel{border-radius:0 0 var(--r) var(--r);margin-bottom:0;border-top:none;width:100%;box-sizing:border-box}
+    /* Prevent any inner element from overflowing the viewport */
+    .inputs-panel-body *{max-width:100%;box-sizing:border-box;min-width:0}
+    .inputs-panel-body input,.inputs-panel-body select{width:100%!important}
+    .inputs-panel-body .pfx-wrap{width:100%!important;max-width:100%!important}
+    /* Advanced inputs collapsible */
+    #advInputsBody{width:100%;box-sizing:border-box}
 
-    /* Done button */
-    .inputs-done-btn{display:block;width:100%;padding:14px;background:var(--teal);color:#fff;border:none;font-family:"Inter",system-ui,sans-serif;font-size:14px;font-weight:700;cursor:pointer;letter-spacing:.02em;-webkit-tap-highlight-color:transparent}
-    .inputs-done-btn:active{background:var(--teal-mid)}
-
-    /* Results panels: full width */
-    .results-col,.result-hero,.insight-box,.chart-panel,.beneficiary-box,.panel,.rules-box,.sick-box,.ideal-window,.contact-box{width:100%;max-width:100%;box-sizing:border-box}
+    /* Scenario comparison — stack cards vertically on mobile */
+    #scBody .sc-card-grid{grid-template-columns:1fr!important}
+    #scBody .sc-card-grid > div:first-child{order:2}
+    #scBody .sc-card-grid > div:last-child{order:1}
+    /* Results panels: full width, never overflow */
+    .results-col,.result-hero,.insight-box,.chart-panel,.beneficiary-box,.panel,.rules-box,.sick-box,.ideal-window,.contact-box{width:100%;max-width:100%;box-sizing:border-box;min-width:0}
+    .results-col{overflow-x:hidden}
 
     /* Hero */
     .hero-grid{grid-template-columns:1fr 1fr;gap:10px}
     .hero-grid>div:last-child{grid-column:1/-1}
     .m-val{font-size:18px}
+    /* Scenario card age number smaller on mobile */
+    #scBody [style*="font-size:22px"]{font-size:16px!important}
     .result-hero{padding:12px}
     .hero-note{font-size:10px;padding:7px 9px}
 
@@ -457,12 +477,14 @@
     }
   }
 
-  /* Landscape phone — hide inputs toggle, show results full width */
+  /* Landscape phone — keep inputs toggle visible, make panel scrollable */
   @media(max-height:500px) and (orientation:landscape){
-    .inputs-toggle{display:flex!important} /* keep toggle visible so user can open inputs */
-    .inputs-panel-body{max-height:70vh;overflow-y:auto} /* scrollable in landscape, not hidden */
+    .inputs-toggle{display:flex!important;width:100%}
+    .inputs-done-btn{display:none} /* JS controls this — just ensure it can show */
+    .inputs-panel-body{max-height:calc(100vh - 60px)!important;overflow-y:auto!important;-webkit-overflow-scrolling:touch}
+    .inputs-panel-body.open{overflow-y:auto!important}
     .main{grid-template-columns:1fr;padding:6px 10px 20px}
-    .header{position:relative} /* unstick in landscape to save screen height */
+    .header{position:relative}
     .header-inner{flex-direction:row}
     .header-content{padding:8px 14px}
     .header-title{font-size:14px}
@@ -864,7 +886,7 @@
     <!-- Chart -->
     <div class="chart-panel">
       <div class="chart-header">
-        <h3>Calculated Benefit by Retirement Age <span style="font-size:11px;font-weight:400;color:var(--text3);font-style:italic">— Member-Only (no beneficiary option)</span></h3>
+        <h3>Calculated Benefit by Retirement Age <span style="font-size:9px;font-weight:400;color:var(--text3);font-style:italic;display:block;margin-top:2px">Member-Only (no beneficiary option elected)</span></h3>
         <div class="chart-tabs">
           <button class="chart-tab active" onclick="setCV('monthly',this)">Monthly Benefit</button>
           <button class="chart-tab" onclick="setCV('annual',this)">Annual Benefit</button>
@@ -915,11 +937,12 @@
       </div>
     </div>
 
-    <!-- Break-even + Lifetime Benefit (rendered by JS) -->
-    <div id="breakEvenSection"></div>
-
-    <!-- Salary Replacement + Sick Leave collapsibles (below lifetime benefit) -->
-    <div id="salSickSection" style="display:flex;flex-direction:column;gap:10px;margin-top:0"></div>
+    <!-- Bottom sections: equal 10px gap between all 4 collapsibles -->
+    <div style="display:flex;flex-direction:column;gap:10px">
+      <div id="breakEvenSection"></div>
+      <div id="colaSection"></div>
+      <div id="salSickSection" style="display:contents"></div>
+    </div>
 
   </div>
 </div>
@@ -927,7 +950,14 @@
 <!-- ── DISCLAIMER ── -->
 <div style="max-width:1120px;margin:0 auto;padding:2px 18px 16px">
   <div style="padding:14px 18px;background:var(--surface2);border:1px solid var(--border);border-radius:var(--r)">
-    <p style="font-size:10.5px;color:var(--text2);font-weight:500;line-height:1.7"><strong>Disclaimer:</strong> This calculator is an independent, unofficial educational tool. It is completely unaffiliated with, authorized by, or endorsed by CalSTRS or any school district. All calculations are rough estimates for planning purposes only and are non-binding. This calculator may not capture uncommon situations such as service breaks, part-time service, mid-year retirements, concurrent employment, disability retirement, or other non-standard circumstances that could materially affect your benefit. Pension benefits are strictly governed by California law. Users must verify all official estimates directly through a <a href="http://www.calstrs.com/calculators" target="_blank" rel="noopener" style="color:var(--blue)">myCalSTRS account</a> or by consulting a CalSTRS benefits specialist before making retirement decisions.</p>
+    <p style="font-size:11px;color:var(--text2);font-weight:600;line-height:1.6;margin-bottom:8px">📚 <strong>Key CalSTRS Resources</strong> — always verify your figures directly with CalSTRS before making any retirement decisions:</p>
+    <div style="display:flex;flex-wrap:wrap;gap:10px;margin-bottom:10px">
+      <a href="https://www.calstrs.com/files/6a92c8677/MemberHandbook2025.pdf" target="_blank" rel="noopener" style="display:inline-flex;align-items:center;gap:5px;padding:7px 12px;background:#fff;border:1px solid #b8d4ea;border-radius:var(--rs);color:#1a3d5c;font-size:11px;font-weight:600;text-decoration:none">📖 Member Handbook (COM-1519) ↗</a>
+      <a href="https://www.calstrs.com/understanding-defined-benefit-formula" target="_blank" rel="noopener" style="display:inline-flex;align-items:center;gap:5px;padding:7px 12px;background:#fff;border:1px solid #b8d4ea;border-radius:var(--rs);color:#1a3d5c;font-size:11px;font-weight:600;text-decoration:none">📐 Understanding the Formula (COM-1667) ↗</a>
+      <a href="https://forms.calstrs.com/CalSTRSOnlineFormRequestWebUI/Root/Pages/Order.aspx" target="_blank" rel="noopener" style="display:inline-flex;align-items:center;gap:5px;padding:7px 12px;background:#fff;border:1px solid #b8d4ea;border-radius:var(--rs);color:#1a3d5c;font-size:11px;font-weight:600;text-decoration:none">📋 All CalSTRS Forms &amp; Publications ↗</a>
+      <a href="http://www.calstrs.com/calculators" target="_blank" rel="noopener" style="display:inline-flex;align-items:center;gap:5px;padding:7px 12px;background:#fff;border:1px solid #b8d4ea;border-radius:var(--rs);color:#1a3d5c;font-size:11px;font-weight:600;text-decoration:none">🔢 Official CalSTRS Calculators ↗</a>
+    </div>
+    <p style="font-size:10.5px;color:var(--text2);font-weight:500;line-height:1.7"><strong>Disclaimer:</strong> This calculator is an independent, unofficial educational tool. It is completely unaffiliated with, authorized by, or endorsed by CalSTRS or any school district. All calculations are rough estimates for planning purposes only and are non-binding. This calculator may not capture uncommon situations such as service breaks, part-time service, mid-year retirements, concurrent employment, disability retirement, or other non-standard circumstances that could materially affect your benefit. Pension benefits are strictly governed by California law. Always verify all figures directly with CalSTRS before making any retirement decisions.</p>
   </div>
 </div>
 
@@ -1494,7 +1524,17 @@ function update(){
     salSickEl.innerHTML=ssHtml;
   }
   // Next step note
-  html+=`<p style="margin-top:0;padding:10px 12px;background:var(--surface2);border-radius:var(--rs);font-size:12.5px;color:var(--text);font-weight:700;line-height:1.5;border-left:3px solid #2d6da3">📋 Next step: Review the full retirement schedule below. Consider your full financial picture — Social Security eligibility (if applicable), spouse or household income, other retirement accounts, and investment income — before choosing the age that best fits your situation.</p>`;
+  html+=`<p style="margin-top:0;padding:10px 12px;background:var(--surface2);border-radius:var(--rs);font-size:12.5px;color:var(--text);font-weight:700;line-height:1.5;border-left:3px solid #2d6da3">📋 Next step: Review the schedule below and consider your full financial picture before choosing a retirement age. Use these insights to prepare for any conversation with a financial advisor. Always verify directly with CalSTRS: <a href="https://www.calstrs.com/files/6a92c8677/MemberHandbook2025.pdf" target="_blank" rel="noopener" style="color:#2d6da3;font-weight:700">Member Handbook ↗</a> · <a href="https://www.calstrs.com/understanding-defined-benefit-formula" target="_blank" rel="noopener" style="color:#2d6da3;font-weight:700">Understanding the Formula ↗</a> · <a href="https://forms.calstrs.com/CalSTRSOnlineFormRequestWebUI/Root/Pages/Order.aspx" target="_blank" rel="noopener" style="color:#2d6da3;font-weight:700">All CalSTRS Forms ↗</a></p>`;
+
+  // WEP / GPO callout — always shown as informational
+  html+=`<div class="i-row" style="background:#f0f5fb;border-color:#b8d4ea">
+    <div class="i-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#2d6da3" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg></div>
+    <div>
+      <p class="i-label" style="color:#1a3d5c">Social Security — WEP &amp; GPO</p>
+      <p class="i-val" style="color:#1a3d5c;font-size:13px">Most CalSTRS teachers do not pay into Social Security</p>
+      <p class="i-desc" style="margin-top:4px">If you have Social Security credits from prior employment or a second job, two federal rules may significantly reduce what you receive: <strong>WEP</strong> (Windfall Elimination Provision) can reduce your own Social Security benefit by up to ~$600/mo; <strong>GPO</strong> (Government Pension Offset) can reduce or eliminate spousal or survivor Social Security benefits by two-thirds of your CalSTRS pension. These are commonly overlooked in retirement planning. <a href="https://www.ssa.gov/benefits/retirement/planner/gpo-calc.html" target="_blank" rel="noopener" style="color:#2d6da3">Check your WEP/GPO impact at SSA.gov ↗</a></p>
+    </div>
+  </div>`;
 
   document.getElementById('insightBody').innerHTML=html;
 
@@ -1541,6 +1581,7 @@ function update(){
 
   /* ── BREAK-EVEN + LIFETIME BENEFIT ── */
   renderBreakEven(rows, target, firstPen, firstMaxAF);
+  renderCOLA(target);
   renderBenQuick(target);
 
   // Update beneficiary page link with current target age data
@@ -1807,12 +1848,8 @@ function resetToDefaults(){
   // Uncheck pre1996
   const p=document.getElementById('pre1996Check');
   if(p) p.checked=false;
-  // Reset break-even dropdowns — will be repopulated by renderBreakEven after update()
-  // Store sentinel values so renderBreakEven ignores prevA/prevB and uses smart defaults
-  const bA=document.getElementById('beAgeA');
-  const bB=document.getElementById('beAgeB');
-  if(bA) bA.value='';
-  if(bB) bB.value='';
+  // Reset scenario comparison stash
+  window._scBAge = null;
   // Reset beneficiary DOB and no-beneficiary checkbox
   const benDobEl=document.getElementById('benDobMain');
   if(benDobEl) benDobEl.value='';
@@ -2135,9 +2172,9 @@ async function generatePDF(){
 
   const mi4=[
     {label:'Earliest Pension',val:firstPen?'Age '+firstPen.age:'—',sub:firstPen?fmtN(firstPen.monthly)+'/mo':'—',ok:firstPen&&nowAge>=firstPen.age},
-    {label:'District Health Benefit',val:firstHealth?'Age '+firstHealth.age:'Not met by 75',sub:firstHealth?tier.minConsec+' consec yrs req':'Verify with HR',ok:firstHealth&&nowAge>=firstHealth.age},
     {label:'Age Factor Peaks (2.4%)',val:firstMaxAF?'Age '+firstMaxAF.age:'—',sub:firstMaxAF?fmtN(firstMaxAF.monthly)+'/mo':'—',ok:firstMaxAF&&nowAge>=firstMaxAF.age},
     {label:'High Growth Window (~10%/yr)',val:growthWinStart?'Ages '+growthWinStart+'-'+growthWinEnd:'—',sub:growthWinStart?'Fastest benefit growth period':'—',ok:false},
+    {label:'District Health Benefit',val:firstHealth?'Age '+firstHealth.age:'Not met by 75',sub:firstHealth?tier.minConsec+' consec yrs req':'Verify with HR',ok:firstHealth&&nowAge>=firstHealth.age},
   ];
   const miW=(CW-15)/4, miH=52;
   mi4.forEach((m,i)=>{
@@ -2161,8 +2198,10 @@ async function generatePDF(){
     if(raw) benData=JSON.parse(raw);
   }catch(e){ /* localStorage unavailable */ }
 
-  // Only show this section if beneficiary data actually exists
-  if(benData&&benData.options){
+  // Only show if beneficiary data exists AND user hasn't selected "no beneficiary"
+  const noBenPDF = document.getElementById('noBeneficiaryCheck')?.checked || false;
+  const benDobPDF = document.getElementById('benDobMain')?.value || '';
+  if(benData&&benData.options&&!noBenPDF&&benDobPDF){
     // Section header — matches RETIREMENT TIMING INSIGHTS style
     setTxt(COL.navy); doc.setFont('helvetica','bold'); doc.setFontSize(8);
     doc.text('BENEFICIARY OPTION COMPARISON',ML,cy+12);
@@ -2251,7 +2290,7 @@ async function generatePDF(){
 
   // ── CHART with legend ──
   setTxt(COL.navy); doc.setFont('helvetica','bold'); doc.setFontSize(8);
-  doc.text('MONTHLY BENEFIT BY RETIREMENT AGE',ML,cy+12);
+  doc.text('MONTHLY BENEFIT BY RETIREMENT AGE (MEMBER-ONLY)',ML,cy+12);
   cy+=18;
   const chartH=135;
   try{
@@ -2392,17 +2431,39 @@ function toggleInputs(){
   const label=document.getElementById('inputsToggleLabel');
   const doneBtn=document.getElementById('inputsDoneBtn');
   const isOpen=body.classList.contains('open');
-  body.classList.toggle('open',!isOpen);
-  chev.classList.toggle('open',!isOpen);
-  if(!isOpen){
-    label.textContent='Tap to enter your information';
-    doneBtn.style.display='block';
+  const isLandscape=window.innerHeight<=500&&window.orientation!==undefined;
+
+  if(isLandscape){
+    // In landscape: skip max-height animation, just show/hide directly
+    if(isOpen){
+      body.style.display='none';
+      body.classList.remove('open');
+      chev.classList.remove('open');
+      doneBtn.style.display='none';
+      window.scrollTo({top:0,behavior:'smooth'});
+    } else {
+      body.style.display='block';
+      body.style.maxHeight='calc(100vh - 60px)';
+      body.style.overflowY='auto';
+      body.classList.add('open');
+      chev.classList.add('open');
+      doneBtn.style.display='block';
+    }
   } else {
-    label.textContent='Tap to enter your information';
-    doneBtn.style.display='none';
-    // Scroll to top when collapsing (Done tapped)
-    window.scrollTo({top:0,behavior:'smooth'});
+    // Portrait: use normal max-height animation
+    body.style.display='';
+    body.style.maxHeight='';
+    body.style.overflowY='';
+    body.classList.toggle('open',!isOpen);
+    chev.classList.toggle('open',!isOpen);
+    if(!isOpen){
+      doneBtn.style.display='block';
+    } else {
+      doneBtn.style.display='none';
+      window.scrollTo({top:0,behavior:'smooth'});
+    }
   }
+  label.textContent='Tap to enter your information';
 }
 
 
@@ -2415,112 +2476,225 @@ function renderBreakEven(rows, target, firstPen, firstMaxAF){
   var fmtM=function(n){return new Intl.NumberFormat('en-US',{style:'currency',currency:'USD',maximumFractionDigits:0}).format(n);};
   var fmtT=function(v){return v>=1000000?'$'+(v/1000000).toFixed(1)+'M':'$'+(v/1000).toFixed(0)+'k';};
 
-  var pA=parseInt((document.getElementById('beAgeA')||{}).value)||0;
-  var pB=parseInt((document.getElementById('beAgeB')||{}).value)||0;
-  var dA=pA&&ep.find(function(r){return r.age===pA;})?pA:ep[0].age;
-  var has62=ep.find(function(r){return r.age===62;});
-  var dB=pB&&ep.find(function(r){return r.age===pB;})?pB:(has62?62:(target?target.age:ep[Math.min(3,ep.length-1)].age));
+  var minAge=ep[0].age, maxAge=ep[ep.length-1].age;
+  var defA=target?target.age:minAge;
+  var defB=Math.min(maxAge, defA+3);
+  var prevA=window._scAAge||defA, prevB=window._scBAge||defB;
+  var curA=ep.find(function(r){return r.age===prevA;})?prevA:defA;
+  var curB=ep.find(function(r){return r.age===prevB;})?prevB:defB;
 
-  function mkOpts(sel){
-    return ep.map(function(r){
-      return '<option value="'+r.age+'"'+(r.age===sel?' selected':'')+'>'+r.age+'</option>';
-    }).join('');
-  }
+  function getRow(age){ return ep.find(function(r){return r.age===age;}); }
 
-  function calcResult(aA,aB){
-    if(aA===aB) return '<p style="padding:12px 16px;font-size:12px;color:#7a8a9a;font-style:italic">Select two different ages to compare.</p>';
-    var eA=Math.min(aA,aB), lA=Math.max(aA,aB);
-    var rE=ep.find(function(r){return r.age===eA;}), rL=ep.find(function(r){return r.age===lA;});
-    if(!rE||!rL) return '';
-    var mE=rE.monthly, mL=rL.monthly, mD=mL-mE;
-    var fg=mE*(lA-eA)*12;
-    var beA=mD>0?Math.round(lA+fg/mD/12):0;
-    var html='<div style="padding:13px 16px">';
-    html+='<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:12px">';
-    html+='<div style="text-align:center;padding:10px 8px;background:var(--surface2);border-radius:var(--rs)"><p style="font-size:9px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--text3);margin-bottom:4px">Retire Age '+eA+'</p><p style="font-size:15px;font-weight:700;color:var(--text)">'+fmtM(mE)+'/mo</p><p style="font-size:9px;color:var(--text3)">'+fmtM(mE*12)+'/yr</p></div>';
-    html+='<div style="text-align:center;padding:10px 8px;background:var(--surface2);border-radius:var(--rs)"><p style="font-size:9px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--text3);margin-bottom:4px">Retire Age '+lA+'</p><p style="font-size:15px;font-weight:700;color:var(--text)">'+fmtM(mL)+'/mo</p><p style="font-size:9px;color:var(--text3)">+'+fmtM(mD)+'/mo more</p></div>';
-    html+='<div style="text-align:center;padding:10px 8px;background:#eaf2fb;border:1px solid #c0d4ec;border-radius:var(--rs)"><p style="font-size:9px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--text3);margin-bottom:4px">Break-Even Age</p><p style="font-size:15px;font-weight:700;color:#2d6da3">'+(beA||'N/A')+'</p></div>';
-    html+='</div>';
-    html+='<p style="font-size:11.5px;color:var(--text2);line-height:1.65">You can retire as early as age '+eA+' at '+fmtM(mE)+'/mo, or work until age '+lA+' and earn '+fmtM(mL)+'/mo &mdash; <strong>'+fmtM(mD)+'/mo more, for life.</strong></p>';
-    html+='<p style="font-size:11.5px;color:var(--text2);line-height:1.65;margin-top:7px">The question is: is the extra '+fmtM(mD)+'/mo worth '+(lA-eA)+' more year'+(lA-eA===1?'':'s')+' of work? By staying until '+lA+', you pass on <strong>'+fmtT(fg)+'</strong> in pension you could have already been collecting. The extra monthly income pays that back by age <strong>'+(beA||'N/A')+'</strong>. From that point forward, the person who waited is ahead.</p>';
-    html+='<p style="font-size:11px;color:var(--text3);line-height:1.5;margin-top:7px;font-style:italic">The later you retire, the bigger your monthly check &mdash; but it takes time to make up for the years you did not collect.</p>';
-    html+='</div>';
-    return html;
-  }
+  function buildHTML(aA,aB){
+    var rA=getRow(aA), rB=getRow(aB);
+    if(!rA||!rB) return '';
 
-  // Lifetime table
-  var lAges=[75,80,85,90];
-  var cAgesRaw=[firstPen?firstPen.age:null, target?target.age:null, firstMaxAF?firstMaxAF.age:null];
-  var cAges=cAgesRaw.filter(function(a,i,arr){return a!==null&&arr.indexOf(a)===i;}).sort(function(a,b){return a-b;});
-  var ltHTML='';
-  if(cAges.length>=2){
-    var bestA=lAges.map(function(la){
-      var best=null,bT=0;
-      cAges.forEach(function(ra){
-        var rr=ep.find(function(r){return r.age===ra;});
-        if(!rr) return;
-        var t=rr.monthly*12*Math.max(0,la-ra);
-        if(t>bT){bT=t;best=ra;}
-      });
-      return {la:la,best:best};
-    });
-    var notBest=bestA.some(function(b){return b.best!==(target?target.age:null);});
-    var hCols=cAges.map(function(a){return '<th style="padding:6px 12px;text-align:right;font-size:9px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--text3)">Retire '+a+'</th>';}).join('');
-    var tRows=lAges.map(function(la){
-      var best=null;
-      bestA.forEach(function(b){if(b.la===la) best=b.best;});
-      var cols=cAges.map(function(ra){
-        var rr=ep.find(function(r){return r.age===ra;});
-        if(!rr) return '<td style="padding:7px 12px;text-align:right;font-size:12px;color:var(--text3)">&#8212;</td>';
-        var yrs=Math.max(0,la-ra), tot=rr.monthly*12*yrs;
-        var isT=ra===(target?target.age:null), isB=ra===best;
-        return '<td style="padding:7px 12px;text-align:right;font-size:12px;font-weight:'+(isT||isB?'700':'400')+';color:'+(isT?'#2d6da3':isB?'#2a7a5a':'var(--text)')+'">'+( yrs<=0?'&#8212;':fmtT(tot))+(isB&&!isT?' &#10003;':'')+'</td>';
+    // build slider options
+    function mkOpts(sel){
+      return ep.map(function(r){
+        return '<option value="'+r.age+'"'+(r.age===sel?' selected':'')+'>'+r.age+'</option>';
       }).join('');
-      return '<tr style="border-top:1px solid var(--border)"><td style="padding:7px 12px;font-size:12px;font-weight:600;color:var(--text2)">Live to '+la+'</td>'+cols+'</tr>';
-    }).join('');
-    ltHTML='<div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--r);overflow:hidden;margin-top:10px">'
-      +'<table style="width:100%;border-collapse:collapse;font-size:12px"><thead><tr style="background:var(--surface2)"><th style="padding:6px 12px;text-align:left;font-size:9px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--text3)">If you live to&hellip;</th>'+hCols+'</tr></thead><tbody>'+tRows+'</tbody></table>'
-      +'<p style="font-size:9.5px;color:var(--text3);padding:7px 12px;border-top:1px solid var(--border)">Cumulative pension collected. <strong style="color:#2d6da3">Blue = your target.</strong> <strong style="color:#2a7a5a">Green &#10003; = highest total for that life expectancy.</strong> Before COLA.</p>'
-      +(notBest?'<p style="font-size:11px;color:var(--text2);padding:9px 12px;border-top:1px solid var(--border);background:var(--surface2);line-height:1.55">&#128161; <strong>Worth noting:</strong> A higher monthly benefit does not always mean more total pension collected. An earlier retirement date can result in a larger lifetime payout &#8212; even with a lower monthly check. Review the table and consider what fits your situation.</p>':'')
-      +'</div>';
+    }
+
+    var mA=rA.monthly, mB=rB.monthly;
+    var annA=mA*12, annB=mB*12;
+    var pctA=rA.pctSal?Math.round(rA.pctSal)+'%':'—';
+    var pctB=rB.pctSal?Math.round(rB.pctSal)+'%':'—';
+    var svcA=rA.totalSvc?rA.totalSvc.toFixed(1)+' yrs':'—';
+    var svcB=rB.totalSvc?rB.totalSvc.toFixed(1)+' yrs':'—';
+
+    // lifetime totals
+    var lt80A=mA*12*Math.max(0,80-aA), lt80B=mB*12*Math.max(0,80-aB);
+    var lt85A=mA*12*Math.max(0,85-aA), lt85B=mB*12*Math.max(0,85-aB);
+    var lt90A=mA*12*Math.max(0,90-aA), lt90B=mB*12*Math.max(0,90-aB);
+
+    // break-even
+    var mDiff=mB-mA, foregone=mA*(aB-aA)*12;
+    var beAge=null;
+    if(aA!==aB && mDiff!==0){
+      var eR=aA<aB?rA:rB, lR=aA<aB?rB:rA;
+      var mE=eR.monthly, mL=lR.monthly, mD2=mL-mE;
+      var fg2=mE*(lR.age-eR.age)*12;
+      if(mD2>0) beAge=Math.round(lR.age+fg2/mD2/12);
+    }
+
+    var winnerA=lt90A>lt90B, winnerB=lt90B>lt90A;
+
+    var h='';
+    if(isMob){
+      h+='<div style="padding:10px 14px;background:var(--surface2);border-bottom:1px solid var(--border);display:flex;flex-direction:column;gap:8px">';
+      h+='<div style="display:flex;align-items:center;justify-content:space-between;gap:8px"><span style="color:var(--text2);font-size:10px;font-weight:600;white-space:nowrap">Scenario A — retire at</span><select id="scSelA" onchange="updateSc()" style="padding:7px 10px;border-radius:5px;border:2px solid #4a8cc4;background:#fff;color:#1a2332;font-size:13px;font-weight:600;cursor:pointer">'+mkOpts(aA)+'</select></div>';
+      h+='<div style="display:flex;align-items:center;justify-content:space-between;gap:8px"><span style="color:var(--text2);font-size:10px;font-weight:600;white-space:nowrap">Scenario B — retire at</span><select id="scSelB" onchange="updateSc()" style="padding:7px 10px;border-radius:5px;border:2px solid #3a9a6a;background:#fff;color:#1a2332;font-size:13px;font-weight:600;cursor:pointer">'+mkOpts(aB)+'</select></div>';
+      h+='</div>';
+    } else {
+      h+='<div style="padding:10px 14px;background:var(--surface2);border-bottom:1px solid var(--border);display:flex;align-items:center;gap:12px;flex-wrap:wrap">';
+      h+='<div style="display:inline-flex;align-items:center;gap:6px"><span style="color:var(--text2);font-size:10px;font-weight:600;white-space:nowrap">Scenario A — retire at</span><select id="scSelA" onchange="updateSc()" style="padding:7px 12px;border-radius:5px;border:2px solid #4a8cc4;background:#fff;color:#1a2332;font-size:14px;font-weight:600;cursor:pointer">'+mkOpts(aA)+'</select></div>';
+      h+='<div style="display:inline-flex;align-items:center;gap:6px"><span style="color:var(--text2);font-size:10px;font-weight:600;white-space:nowrap">Scenario B — retire at</span><select id="scSelB" onchange="updateSc()" style="padding:7px 12px;border-radius:5px;border:2px solid #3a9a6a;background:#fff;color:#1a2332;font-size:14px;font-weight:600;cursor:pointer">'+mkOpts(aB)+'</select></div>';
+      h+='</div>';
+    }
+    h+='<div style="padding:6px 14px;background:var(--surface2);border-bottom:1px solid var(--border)">';
+    h+='<p style="font-size:10px;color:var(--text3);font-style:italic;line-height:1.5">💡 Most useful if you are close to retirement and weighing whether to retire now or work a few more years. Both dropdowns are fully independent.</p>';
+    h+='</div>';
+
+    // two side-by-side cards — on mobile, render B first so it appears on top
+    var isMob = window.innerWidth <= 700;
+    var gridCols = isMob ? '1fr' : '1fr 1fr';
+    h+='<div class="sc-card-grid" style="display:grid;grid-template-columns:'+gridCols+';gap:12px;padding:13px 14px">';
+
+    // Card A HTML
+    var cardA = '';
+    cardA+='<div style="border:1.5px solid #2d6da3;border-radius:var(--r);overflow:hidden">';
+    cardA+='<div style="background:#eaf2fb;padding:9px 12px;display:flex;align-items:center;justify-content:space-between">';
+    cardA+='<div><span style="font-size:9px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#1a3d5c">Scenario A</span><div style="font-size:22px;font-weight:700;color:#2d6da3;line-height:1.1">Age '+aA+'</div></div>';
+    cardA+='<div style="text-align:right"><p style="font-size:9px;color:#3d6a8a;text-transform:uppercase;letter-spacing:.07em">monthly</p><p style="font-size:18px;font-weight:700;color:#2d6da3">'+fmtM(mA)+'</p></div>';
+    cardA+='</div>';
+    cardA+='<div style="padding:10px 12px;display:flex;flex-direction:column;gap:7px">';
+    cardA+='<div style="display:flex;justify-content:space-between;font-size:12px;padding:4px 0;border-bottom:1px solid var(--border)"><span style="color:var(--text3)">Annual</span><span style="font-weight:600">'+fmtM(annA)+'/yr</span></div>';
+    cardA+='<div style="display:flex;justify-content:space-between;font-size:12px;padding:4px 0;border-bottom:1px solid var(--border)"><span style="color:var(--text3)">Service credit</span><span style="font-weight:600">'+svcA+'</span></div>';
+    cardA+='<div style="display:flex;justify-content:space-between;font-size:12px;padding:4px 0;border-bottom:1px solid var(--border)"><span style="color:var(--text3)">% of salary</span><span style="font-weight:600">'+pctA+'</span></div>';
+    cardA+='<div style="font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.07em;margin-top:4px">Lifetime total</div>';
+    cardA+='<div style="display:flex;justify-content:space-between;font-size:12px;padding:2px 0"><span style="color:var(--text3)">To age 80</span><span style="font-weight:'+(lt80A>=lt80B?'700':'400')+';color:'+(lt80A>lt80B?'#2a7a5a':'var(--text)')+'">'+fmtT(lt80A)+(lt80A>lt80B?' ✓':'')+'</span></div>';
+    cardA+='<div style="display:flex;justify-content:space-between;font-size:12px;padding:2px 0"><span style="color:var(--text3)">To age 85</span><span style="font-weight:'+(lt85A>=lt85B?'700':'400')+';color:'+(lt85A>lt85B?'#2a7a5a':'var(--text)')+'">'+fmtT(lt85A)+(lt85A>lt85B?' ✓':'')+'</span></div>';
+    cardA+='<div style="display:flex;justify-content:space-between;font-size:12px;padding:2px 0"><span style="color:var(--text3)">To age 90</span><span style="font-weight:'+(lt90A>=lt90B?'700':'400')+';color:'+(lt90A>lt90B?'#2a7a5a':'var(--text)')+'">'+fmtT(lt90A)+(lt90A>lt90B?' ✓':'')+'</span></div>';
+    cardA+='</div></div>';
+
+    // Card B HTML
+    var cardB = '';
+    cardB+='<div style="border:1.5px solid #2a7a5a;border-radius:var(--r);overflow:hidden">';
+    cardB+='<div style="background:#eaf4ee;padding:9px 12px;display:flex;align-items:center;justify-content:space-between">';
+    cardB+='<div><span style="font-size:9px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#1a4a2e">Scenario B</span><div style="font-size:22px;font-weight:700;color:#2a7a5a;line-height:1.1">Age '+aB+'</div></div>';
+    cardB+='<div style="text-align:right"><p style="font-size:9px;color:#3a6a4a;text-transform:uppercase;letter-spacing:.07em">monthly</p><p style="font-size:18px;font-weight:700;color:#2a7a5a">'+fmtM(mB)+'</p></div>';
+    cardB+='</div>';
+    cardB+='<div style="padding:10px 12px;display:flex;flex-direction:column;gap:7px">';
+    cardB+='<div style="display:flex;justify-content:space-between;font-size:12px;padding:4px 0;border-bottom:1px solid var(--border)"><span style="color:var(--text3)">Annual</span><span style="font-weight:600">'+fmtM(annB)+'/yr</span></div>';
+    cardB+='<div style="display:flex;justify-content:space-between;font-size:12px;padding:4px 0;border-bottom:1px solid var(--border)"><span style="color:var(--text3)">Service credit</span><span style="font-weight:600">'+svcB+'</span></div>';
+    cardB+='<div style="display:flex;justify-content:space-between;font-size:12px;padding:4px 0;border-bottom:1px solid var(--border)"><span style="color:var(--text3)">% of salary</span><span style="font-weight:600">'+pctB+'</span></div>';
+    cardB+='<div style="font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.07em;margin-top:4px">Lifetime total</div>';
+    cardB+='<div style="display:flex;justify-content:space-between;font-size:12px;padding:2px 0"><span style="color:var(--text3)">To age 80</span><span style="font-weight:'+(lt80B>=lt80A?'700':'400')+';color:'+(lt80B>lt80A?'#2a7a5a':'var(--text)')+'">'+fmtT(lt80B)+(lt80B>lt80A?' ✓':'')+'</span></div>';
+    cardB+='<div style="display:flex;justify-content:space-between;font-size:12px;padding:2px 0"><span style="color:var(--text3)">To age 85</span><span style="font-weight:'+(lt85B>=lt85A?'700':'400')+';color:'+(lt85B>lt85A?'#2a7a5a':'var(--text)')+'">'+fmtT(lt85B)+(lt85B>lt85A?' ✓':'')+'</span></div>';
+    cardB+='<div style="display:flex;justify-content:space-between;font-size:12px;padding:2px 0"><span style="color:var(--text3)">To age 90</span><span style="font-weight:'+(lt90B>=lt90A?'700':'400')+';color:'+(lt90B>lt90A?'#2a7a5a':'var(--text)')+'">'+fmtT(lt90B)+(lt90B>lt90A?' ✓':'')+'</span></div>';
+    cardB+='</div></div>';
+
+    // On mobile render B first (top), A second (bottom). Desktop: A left, B right.
+    h += isMob ? cardB + cardA : cardA + cardB;
+
+    h+='</div>'; // end grid
+
+    // Head-to-head summary
+    h+='<div style="margin:0 14px 13px;padding:11px 14px;background:var(--surface2);border-radius:var(--rs);border:1px solid var(--border)">';
+    h+='<p style="font-size:9px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--text3);margin-bottom:8px">Head-to-head</p>';
+    var diffMo=mB-mA;
+    h+='<div style="display:flex;justify-content:space-between;font-size:12px;padding:4px 0;border-bottom:1px solid var(--border)">';
+    h+='<span style="color:var(--text3)">Monthly difference (B vs A)</span>';
+    h+='<span style="font-weight:700;color:var(--text)">'+(diffMo>=0?'+':'')+fmtM(diffMo)+'/mo</span>';
+    h+='</div>';
+    if(aA!==aB){
+      var eR2=aA<aB?rA:rB, lR2=aA<aB?rB:rA;
+      var lateLabel=aA<aB?'B':'A'; var earlyLabel=aA<aB?'A':'B';
+      var fg2=eR2.monthly*(lR2.age-eR2.age)*12;
+      h+='<div style="display:flex;justify-content:space-between;align-items:flex-start;font-size:12px;padding:5px 0;border-bottom:1px solid var(--border)">';
+      h+='<div style="flex:1;padding-right:12px"><span style="color:var(--text3)">Pension Scenario '+lateLabel+' passes on by waiting</span>';
+      h+='<p style="font-size:10px;color:var(--text3);font-style:italic;margin-top:2px;line-height:1.4">What Scenario '+lateLabel+' passes on while still working, that Scenario '+earlyLabel+' is already collecting.</p></div>';
+      h+='<span style="font-weight:600;white-space:nowrap">'+fmtT(fg2)+'</span>';
+      h+='</div>';
+      h+='<div style="display:flex;justify-content:space-between;align-items:flex-start;font-size:12px;padding:5px 0;border-bottom:1px solid var(--border)">';
+      h+='<div style="flex:1;padding-right:12px"><span style="color:var(--text3)">Break-even age</span>';
+      h+='<p style="font-size:10px;color:var(--text3);font-style:italic;margin-top:2px;line-height:1.4">When the higher monthly benefit offsets the pension passed on — the later retiree is ahead on total collected after this age.</p></div>';
+      h+='<span style="font-weight:700;color:var(--text);white-space:nowrap">'+(beAge?'Age '+beAge:'No crossover')+'</span>';
+      h+='</div>';
+    }
+    h+='<div style="display:flex;justify-content:space-between;align-items:flex-start;font-size:12px;padding:5px 0">';
+    h+='<div style="flex:1;padding-right:12px"><span style="color:var(--text3)">Total collected by age 90</span>';
+    h+='</div>';
+    h+='<span style="font-weight:700;color:var(--text);white-space:nowrap">'+(winnerA?'A collects more (+'+fmtT(lt90A-lt90B)+')':winnerB?'B collects more (+'+fmtT(lt90B-lt90A)+')':'Equal')+'</span>';
+    h+='</div>';
+    h+='</div>';
+    h+='<p style="font-size:10px;color:var(--text3);padding:0 14px 10px;line-height:1.5">Lifetime totals before COLA. ✓ = higher cumulative total at that life expectancy. Member-Only benefit.</p>';
+
+    return h;
+  }
+
+  window.updateSc=function(){
+    var selA=document.getElementById('scSelA');
+    var selB=document.getElementById('scSelB');
+    if(!selA||!selB) return;
+    var aA=parseInt(selA.value), aB=parseInt(selB.value);
+    window._scAAge=aA; window._scBAge=aB;
+    document.getElementById('scBody').innerHTML=buildHTML(aA,aB);
+    // re-attach listeners after rebuild
+    document.getElementById('scSelA').addEventListener('change',window.updateSc);
+    document.getElementById('scSelB').addEventListener('change',window.updateSc);
+  };
+
+  el.innerHTML='<div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--r);overflow:hidden">'
+    +'<div style="background:#253447;padding:9px 14px;display:flex;align-items:center;justify-content:space-between;cursor:pointer" onclick="toggleSection(this)">'
+    +'<span style="color:#fff;font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase">Retirement Scenario Comparison</span>'
+    +'<span style="color:rgba(255,255,255,.6);font-size:10px">▶ expand</span>'
+    +'</div>'
+    +'<div style="display:none" id="scBody">'+buildHTML(curA,curB)+'</div>'
+    +'</div>';
+
+  // attach listeners
+  var selA=document.getElementById('scSelA'), selB=document.getElementById('scSelB');
+  if(selA) selA.addEventListener('change',window.updateSc);
+  if(selB) selB.addEventListener('change',window.updateSc);
+
+}
+
+
+function renderCOLA(target){
+  var el=document.getElementById('colaSection');
+  if(!el) return;
+  if(!target||!target.monthly){el.innerHTML='';return;}
+
+  var base=Math.round(target.monthly);
+  var retireAge=target.age;
+  var endAge=90;
+  var fmtM=function(n){return new Intl.NumberFormat('en-US',{style:'currency',currency:'USD',maximumFractionDigits:0}).format(n);};
+  var fmtDiff=function(n){return '+'+new Intl.NumberFormat('en-US',{style:'currency',currency:'USD',maximumFractionDigits:0}).format(n);};
+
+  // Build rows: year 0 = retirement, then each Sep 1 COLA
+  var rows='';
+  var colaPerYear=Math.round(base*0.02); // 2% of ORIGINAL benefit — simple, not compound
+  for(var yr=0;yr<=Math.max(0,endAge-retireAge);yr++){
+    var age=retireAge+yr;
+    var adj=colaPerYear*yr;
+    var cola=base+adj;
+    var isFirst=yr===0;
+    var bg=isFirst?'background:var(--surface2)':'';
+    var label='Age '+age+(isFirst?' — retirement':yr===1?' — first Sep 1 COLA':'');
+    rows+='<tr style="border-top:1px solid var(--border);'+bg+'">'
+      +'<td style="padding:6px 12px;font-size:12px;font-weight:'+(isFirst?'700':'400')+';color:var(--text2)">'+label+'</td>'
+      +'<td style="padding:6px 12px;font-family:\'DM Mono\',monospace;font-size:12px;text-align:right;color:var(--text)">'+(isFirst?'—':fmtDiff(adj))+'</td>'
+      +'<td style="padding:6px 12px;font-family:\'DM Mono\',monospace;font-size:12px;font-weight:'+(isFirst?'700':'400')+';text-align:right;color:'+(isFirst?'#2d6da3':'var(--text)')+'">'
+      +fmtM(cola)+'/mo</td>'
+      +'</tr>';
   }
 
   el.innerHTML='<div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--r);overflow:hidden">'
-    +'<div style="background:#253447;padding:9px 14px;display:flex;align-items:center;justify-content:space-between;cursor:pointer" onclick="toggleSection(this)" id="beHeader">'
-    +'<span style="color:#fff;font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase">Break-Even Analysis</span>'
+    +'<div style="background:#253447;padding:9px 14px;display:flex;align-items:center;justify-content:space-between;cursor:pointer" onclick="toggleSection(this)">'
+    +'<span style="color:#fff;font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase">COLA-Adjusted Benefit Projection</span>'
     +'<span style="color:rgba(255,255,255,.6);font-size:10px">▶ expand</span>'
     +'</div>'
-    +'<div id="beBody" style="display:none">'
-    +'<div style="padding:8px 14px;background:#1e3049;display:flex;align-items:center;gap:8px;flex-wrap:wrap">'
-    +'<span style="color:rgba(255,255,255,.7);font-size:10px">Compare retiring at</span>'
-    +'<select id="beAgeA" style="padding:4px 8px;border-radius:5px;border:2px solid rgba(255,255,255,.4);background:#fff;color:#1a2332;font-size:12px;font-weight:600;cursor:pointer">'+mkOpts(dA)+'</select>'
-    +'<span style="color:rgba(255,255,255,.7);font-size:10px">vs</span>'
-    +'<select id="beAgeB" style="padding:4px 8px;border-radius:5px;border:2px solid rgba(255,255,255,.4);background:#fff;color:#1a2332;font-size:12px;font-weight:600;cursor:pointer">'+mkOpts(dB)+'</select>'
+    +'<div style="display:none">'
+    +'<div style="padding:9px 13px;background:#eaf2fb;border-bottom:1px solid #c0d4ec">'
+    +'<p style="font-size:11px;color:#1a3d5c;line-height:1.5">Starting from your <strong>Member-Only benefit of '+fmtM(base)+'/mo</strong> at age '+retireAge+'. CalSTRS applies a <strong>2% simple COLA</strong> each September 1st — adding <strong>'+fmtM(colaPerYear)+'/mo</strong> every year to your original base amount.</p>'
     +'</div>'
-    +'<div id="beResult">'+calcResult(dA,dB)+'</div>'
+    +'<div style="overflow-x:auto;-webkit-overflow-scrolling:touch">'
+    +'<table style="width:100%;border-collapse:collapse;font-size:12px">'
+    +'<thead><tr style="background:var(--surface2)">'
+    +'<th style="padding:6px 12px;text-align:left;font-size:9px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--text3)">Age</th>'
+    +'<th style="padding:6px 12px;text-align:right;font-size:9px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--text3)">COLA Added</th>'
+    +'<th style="padding:6px 12px;text-align:right;font-size:9px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--text3)">Monthly Benefit</th>'
+    +'</tr></thead>'
+    +'<tbody>'+rows+'</tbody>'
+    +'</table>'
+    +'</div>'
+    +'<div style="padding:10px 13px;border-top:1px solid var(--border);background:var(--surface2)">'
+    +'<p style="font-size:10px;color:var(--text3);line-height:1.65">📌 <strong>About inflation:</strong> The 2% COLA is simple — the same '+fmtM(colaPerYear)+'/mo is added each year to your original base, not compounded. If inflation also runs at 2%, your purchasing power stays roughly flat. If inflation runs higher, your real purchasing power will gradually decline despite the COLA.</p>'
+    +'</div>'
     +'</div>'
     +'</div>';
-
-  if(ltHTML){
-    el.innerHTML+='<div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--r);overflow:hidden;margin-top:10px">'
-      +'<div style="background:#253447;padding:9px 14px;display:flex;align-items:center;justify-content:space-between;cursor:pointer" onclick="toggleSection(this)" id="ltHeader">'
-      +'<span style="color:#fff;font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase">Lifetime Benefit (Total Collected) <span style="color:rgba(255,255,255,.55);font-weight:500;text-transform:none;letter-spacing:0;font-size:9px">&middot; Before COLA &middot; Member-Only</span></span>'
-      +'<span style="color:rgba(255,255,255,.6);font-size:10px">▶ expand</span></div>'
-      +'<div id="ltBody" style="display:none">'+ltHTML+'</div></div>';
-  }
-
-  document.getElementById('beAgeA').addEventListener('change',function(){
-    document.getElementById('beResult').innerHTML=calcResult(
-      parseInt(document.getElementById('beAgeA').value),
-      parseInt(document.getElementById('beAgeB').value)
-    );
-  });
-  document.getElementById('beAgeB').addEventListener('change',function(){
-    document.getElementById('beResult').innerHTML=calcResult(
-      parseInt(document.getElementById('beAgeA').value),
-      parseInt(document.getElementById('beAgeB').value)
-    );
-  });
 }
 
 function initMobile(){
@@ -2528,26 +2702,37 @@ function initMobile(){
   const doneBtn=document.getElementById('inputsDoneBtn');
   const body=document.getElementById('inputsPanelBody');
   const chev=document.getElementById('inputsChevron');
-  const isMobile=window.innerWidth<=700;
+  const isMobile=window.innerWidth<=700||window.innerHeight<=500;
   if(isMobile){
     toggleBtn.style.display='flex';
-    // Start collapsed — show results first
     if(!body.classList.contains('open')){
       body.classList.remove('open');
       chev.classList.remove('open');
       doneBtn.style.display='none';
+      // Reset any inline landscape styles
+      body.style.display='';
+      body.style.maxHeight='';
+      body.style.overflowY='';
     }
   } else {
     toggleBtn.style.display='none';
     doneBtn.style.display='none';
+    // Reset inline landscape overrides
+    body.style.display='';
+    body.style.maxHeight='';
+    body.style.overflowY='';
     body.classList.add('open');
     chev.classList.add('open');
   }
 }
 var _calstrsLastWidth = window.innerWidth;
+var _calstrsLastHeight = window.innerHeight;
 window.addEventListener('resize',()=>{
-  if(window.innerWidth === _calstrsLastWidth) return; // ignore height-only changes (mobile keyboard)
+  const wChanged = window.innerWidth !== _calstrsLastWidth;
+  const hChanged = Math.abs(window.innerHeight - _calstrsLastHeight) > 100; // ignore tiny keyboard shifts
+  if(!wChanged && !hChanged) return;
   _calstrsLastWidth = window.innerWidth;
+  _calstrsLastHeight = window.innerHeight;
   if(myChart){myChart.destroy();myChart=null;}
   initMobile();
   update();

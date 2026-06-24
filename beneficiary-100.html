@@ -61,6 +61,14 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--t
 @media(min-width:701px){
   .left-panel-body{max-height:none!important;overflow:visible!important;display:block!important}
 }
+/* Landscape phone — keep left panel accessible and scrollable */
+@media(max-height:500px) and (orientation:landscape){
+  .left-panel-body{max-height:calc(100vh - 60px)!important;overflow-y:auto!important;-webkit-overflow-scrolling:touch;display:block!important}
+  .left-panel-body.open{max-height:calc(100vh - 60px)!important;overflow-y:auto!important}
+  .left-toggle{display:flex!important}
+  .app{grid-template-columns:1fr!important}
+  .right-col{display:block!important}
+}
 .panel{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);overflow:hidden}
 .panel-hdr{background:var(--surface2);padding:11px 15px;border-bottom:1px solid var(--border);font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--text2)}
 .panel-body{padding:13px 15px;display:flex;flex-direction:column;gap:11px}
@@ -148,10 +156,7 @@ input[type=range]#visSliderM::-moz-range-thumb{
     <a class="back-link" id="backLink" href="index.html" style="display:inline-flex;align-items:center;gap:7px;padding:9px 16px;background:rgba(255,255,255,.12);color:#fff;border:1.5px solid rgba(255,255,255,.3);border-radius:var(--rs);font-family:'Inter',system-ui,sans-serif;font-size:12px;font-weight:600;letter-spacing:.02em;cursor:pointer;text-decoration:none;white-space:nowrap;transition:background .15s" onmouseover="this.style.background='rgba(255,255,255,.22)'" onmouseout="this.style.background='rgba(255,255,255,.12)'">
       ← Back to Calculator
     </a>
-    <a id="pdfLinkBtn" href="index.html?autoPdf=1" style="display:inline-flex;align-items:center;gap:7px;padding:9px 16px;background:var(--blue);color:#fff;border:none;border-radius:var(--rs);font-family:'Inter',system-ui,sans-serif;font-size:12px;font-weight:600;letter-spacing:.03em;cursor:pointer;text-decoration:none;white-space:nowrap">
-      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14,2 14,8 20,8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10,9 9,9 8,9"/></svg>
-      Download PDF Report
-    </a>
+  
   </div>
 </div>
 
@@ -205,20 +210,13 @@ input[type=range]#visSliderM::-moz-range-thumb{
     </div>
     <div class="panel-body">
       <p style="font-size:10.5px;color:var(--text3);margin-bottom:2px">Pre-filled from your calculator. Update below if the age is wrong, or if you want to model a different beneficiary.</p>
-      <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px">
-        <button id="modeAgeBtn" onclick="setBenMode('age')" style="flex:1;padding:6px;font-size:10.5px;font-weight:600;border:1px solid var(--border);border-radius:var(--rs);background:var(--navy);color:#fff;cursor:pointer">Enter Age</button>
-        <span style="font-size:10px;color:var(--text3);font-style:italic">or</span>
-        <button id="modeDobBtn" onclick="setBenMode('dob')" style="flex:1;padding:6px;font-size:10.5px;font-weight:600;border:1px solid var(--border);border-radius:var(--rs);background:var(--surface2);color:var(--text2);cursor:pointer">Date of Birth</button>
-      </div>
-      <div class="field" id="benAgeField">
-        <label>Beneficiary Age at Your Retirement</label>
-        <input type="number" id="benAge" value="60" min="1" max="100">
-      </div>
-      <div class="field" id="benDobField" style="display:none">
+      <div class="field">
         <label>Beneficiary Date of Birth</label>
         <input type="date" id="benDob" min="1920-01-01" max="2025-12-31">
         <p class="field-hint" id="benDobCalc">Age at your retirement will be calculated automatically.</p>
       </div>
+      <!-- hidden age field kept for JS compatibility -->
+      <input type="hidden" id="benAge" value="60">
       <p class="field-hint">A <strong>younger beneficiary</strong> = larger reduction (CalSTRS pays out longer). A <strong>same-age or older</strong> beneficiary = smaller reduction.</p>
       <div id="ageGapWarning" style="display:none;margin-top:6px;padding:8px 10px;background:#fde8e8;border:1px solid #e8a0a0;border-radius:var(--rs);font-size:10.5px;color:#7a1f1f;line-height:1.5"></div>
       <p style="font-size:10px;color:var(--text3);margin-top:6px;line-height:1.5">⚖️ <strong>Non-spouse beneficiaries:</strong> federal law limits the age gap — up to 19 years younger for 75%, up to 10 years younger for 100%. Verify with CalSTRS if the gap is large.</p>
@@ -243,6 +241,10 @@ input[type=range]#visSliderM::-moz-range-thumb{
         <p>Factors based on CalSTRS actuarial tables effective Sept 1, 2024. <a href="https://www.calstrs.com/files/6a92c8677/MemberHandbook2025.pdf" target="_blank" rel="noopener" style="color:var(--blue)">Service Retirement Option Factor Tables ↗</a></p>
         <p style="margin-top:4px"><a href="http://www.calstrs.com/electing-an-option" target="_blank" rel="noopener" style="color:var(--blue)">CalSTRS rules on preretirement elections ↗</a></p>
         <p style="margin-top:4px"><a href="http://www.calstrs.com/postretirement-option-change-faq" target="_blank" rel="noopener" style="color:var(--blue)">What if my beneficiary dies first? ↗</a></p>
+        <p style="margin-top:8px;padding-top:8px;border-top:1px solid var(--border);color:var(--text2);font-weight:600">Key CalSTRS resources — verify before any irrevocable election:</p>
+        <p style="margin-top:4px"><a href="https://www.calstrs.com/files/6a92c8677/MemberHandbook2025.pdf" target="_blank" rel="noopener" style="color:var(--blue)">📖 Member Handbook (COM-1519) ↗</a></p>
+        <p style="margin-top:4px"><a href="https://www.calstrs.com/understanding-defined-benefit-formula" target="_blank" rel="noopener" style="color:var(--blue)">📐 Understanding the Formula (COM-1667) ↗</a></p>
+        <p style="margin-top:4px"><a href="https://forms.calstrs.com/CalSTRSOnlineFormRequestWebUI/Root/Pages/Order.aspx" target="_blank" rel="noopener" style="color:var(--blue)">📋 All CalSTRS Forms &amp; Publications ↗</a></p>
       </div>
     </div>
   </div>
@@ -284,7 +286,7 @@ input[type=range]#visSliderM::-moz-range-thumb{
       <!-- Beneficiary age moves with slider -->
       <div style="display:flex;align-items:center;justify-content:space-between;padding:7px 10px;background:var(--surface2);border-radius:var(--rs)">
         <span style="font-size:11px;color:var(--text2)">Beneficiary age at this retirement</span>
-        <span style="font-family:'DM Mono',monospace;font-size:13px;font-weight:700;color:var(--green)" id="visBenAgeDisplay">—</span>
+        <span style="font-family:'DM Mono',monospace;font-size:20px;font-weight:700;color:var(--green)" id="visBenAgeDisplay">—</span>
       </div>
       <p style="font-size:10px;color:var(--text3);font-style:italic;text-align:center;margin-top:7px">Slide to explore — beneficiary age updates automatically to maintain the same age gap</p>
     </div>
@@ -524,7 +526,6 @@ input[type=range]#visSliderM::-moz-range-thumb{
 <script>
 var params = new URLSearchParams(window.location.search);
 var hasRealData = params.has('benefit') && params.has('memberAge'); // came from main calculator
-var memberBenefit = parseFloat(params.get('benefit')) || 5000;
 var memberAge = parseInt(params.get('memberAge')) || 62;
 var benAgeParam = parseInt(params.get('benAge')) || (memberAge - 2);
 var benModeParam = params.get('benMode') || 'age';
@@ -532,7 +533,6 @@ var memberDob = params.get('dob') || '';
 var benDobParam = params.get('benDob') || '';
 
 // Clamp URL-passed values
-memberBenefit = Math.max(0, Math.min(50000, memberBenefit)) || 5000;
 memberAge = Math.max(50, Math.min(75, memberAge)) || 62;
 benAgeParam = Math.max(1, Math.min(100, benAgeParam)) || (memberAge - 2);
 
@@ -556,7 +556,7 @@ function updateBackLinks(){
   var benAgeNow = parseInt(document.getElementById('benAge').value) || benAgeParam;
   var benDobNow = document.getElementById('benDob').value || benDobParam;
   var dobPart = benDobNow ? '&fromBenDob=' + encodeURIComponent(benDobNow) : '';
-  var url = 'index.html?targetAge=' + memberAge + '&fromBenAge=' + benAgeNow + '&fromBenMode=' + benMode + dobPart;
+  var url = 'index.html?targetAge=' + memberAge + '&fromBenAge=' + benAgeNow + '&fromBenMode=dob' + dobPart;
   ['backLink','backLink2','backLink3'].forEach(function(id){
     var el = document.getElementById(id);
     if(el) el.href = url;
@@ -580,17 +580,27 @@ function fmtT(n){ return n>=1000000 ? '$'+(n/1000000).toFixed(1)+'M' : '$'+Math.
 
 // ── REAL SCHEDULE from main calculator via localStorage ──
 var ageScaleTable={55:0.62,56:0.66,57:0.70,58:0.74,59:0.79,60:0.85,61:0.92,62:1.00,63:1.08,64:1.14,65:1.19,66:1.23,67:1.27,68:1.30,69:1.33,70:1.35,71:1.37,72:1.39,73:1.40,74:1.41,75:1.42};
+// Benefit at target age is ALWAYS from the URL param — it's the live computed value.
+// The real schedule from localStorage is used for OTHER ages (slider), not the initial target.
+// This eliminates the ~$100 discrepancy caused by rounding across two different storage paths.
+var urlBenefit = parseFloat(params.get('benefit')) || 5000;
+urlBenefit = Math.max(0, Math.min(50000, urlBenefit)) || 5000;
+
 var realSchedule = null;
 try {
   var savedRaw = localStorage.getItem('calstrs_real_schedule');
   if(savedRaw){ var saved=JSON.parse(savedRaw); if(saved&&saved.schedule) realSchedule=saved.schedule; }
 } catch(e){}
 
-// If real schedule exists, use it as authoritative source for the initial benefit
-// This eliminates the ~$100 discrepancy caused by URL-param rounding vs schedule value
-if(realSchedule && realSchedule[memberAge] != null){
-  memberBenefit = realSchedule[memberAge];
+// Seed the real schedule with the URL benefit at the target age so slider is consistent
+if(realSchedule){
+  realSchedule[memberAge] = urlBenefit;
+} else {
+  realSchedule = {};
+  realSchedule[memberAge] = urlBenefit;
 }
+// memberBenefit tracks current slider position; starts at target age
+var memberBenefit = urlBenefit;
 
 function benefitAtAge(age){
   if(realSchedule && realSchedule[age] != null) return realSchedule[age];
@@ -849,42 +859,71 @@ function toggleLeft(){
   var label = document.getElementById('leftToggleLabel');
   var done = document.getElementById('leftDoneBtn');
   var isOpen = body.classList.contains('open');
-  body.classList.toggle('open', !isOpen);
-  chev.classList.toggle('open', !isOpen);
-  if(!isOpen){
-    label.textContent = '📋 Your info & settings';
-    if(done) done.style.display = 'block';
+  var isLandscape = window.innerHeight <= 500 && window.orientation !== undefined;
+
+  if(isLandscape){
+    // Landscape: bypass max-height animation, toggle display directly
+    if(isOpen){
+      body.style.display = 'none';
+      body.classList.remove('open');
+      chev.classList.remove('open');
+      if(done) done.style.display = 'none';
+      window.scrollTo({top:0, behavior:'smooth'});
+    } else {
+      body.style.display = 'block';
+      body.style.maxHeight = 'calc(100vh - 60px)';
+      body.style.overflowY = 'auto';
+      body.classList.add('open');
+      chev.classList.add('open');
+      if(done) done.style.display = 'block';
+    }
   } else {
-    label.textContent = '📋 Your info & settings';
-    if(done) done.style.display = 'none';
-    window.scrollTo({top: 0, behavior: 'smooth'});
+    // Portrait: normal max-height animation
+    body.style.display = '';
+    body.style.maxHeight = '';
+    body.style.overflowY = '';
+    body.classList.toggle('open', !isOpen);
+    chev.classList.toggle('open', !isOpen);
+    if(!isOpen){
+      if(done) done.style.display = 'block';
+    } else {
+      if(done) done.style.display = 'none';
+      window.scrollTo({top:0, behavior:'smooth'});
+    }
   }
 }
 
 function initMobileBen(){
-  var isMobile = window.innerWidth <= 700;
+  var isMobile = window.innerWidth <= 700 || window.innerHeight <= 500;
   var body = document.getElementById('leftPanelBody');
   var done = document.getElementById('leftDoneBtn');
   if(isMobile){
-    // Only force-collapse on true first init, never on a resize caused by
-    // the on-screen keyboard opening/closing while the panel is in use
     if(!window._benMobileInited){
       body.classList.remove('open');
+      body.style.display = '';
+      body.style.maxHeight = '';
+      body.style.overflowY = '';
       if(done) done.style.display = 'none';
     }
   } else {
+    // Desktop: reset any inline landscape overrides, show panel always
+    body.style.display = '';
+    body.style.maxHeight = '';
+    body.style.overflowY = '';
     body.classList.add('open');
     if(done) done.style.display = 'none';
   }
   window._benMobileInited = true;
 }
 
-// Only react to actual width changes (breakpoint crossing), not height-only
-// changes from the mobile keyboard opening, which also fires 'resize'
 var _lastInnerWidth = window.innerWidth;
+var _lastInnerHeight = window.innerHeight;
 window.addEventListener('resize', function(){
-  if(window.innerWidth !== _lastInnerWidth){
+  var wChanged = window.innerWidth !== _lastInnerWidth;
+  var hChanged = Math.abs(window.innerHeight - _lastInnerHeight) > 100;
+  if(wChanged || hChanged){
     _lastInnerWidth = window.innerWidth;
+    _lastInnerHeight = window.innerHeight;
     initMobileBen();
   }
 });
@@ -892,26 +931,13 @@ initMobileBen();
 
 // ─────────────────────────────────────────────────────────────────────────
 
-// ── DOB / AGE TOGGLE ──
-var benMode=(benModeParam==='dob')?'dob':'age';
+// Always DOB mode — age toggle removed
+var benMode = 'dob';
 
 function setBenMode(mode){
-  benMode=mode;
-  var ageBtn=document.getElementById('modeAgeBtn');
-  var dobBtn=document.getElementById('modeDobBtn');
-  var ageField=document.getElementById('benAgeField');
-  var dobField=document.getElementById('benDobField');
-  if(mode==='age'){
-    ageBtn.style.background='var(--navy)'; ageBtn.style.color='#fff';
-    dobBtn.style.background='var(--surface2)'; dobBtn.style.color='var(--text2)';
-    ageField.style.display='block'; dobField.style.display='none';
-    update();
-  } else {
-    dobBtn.style.background='var(--navy)'; dobBtn.style.color='#fff';
-    ageBtn.style.background='var(--surface2)'; ageBtn.style.color='var(--text2)';
-    ageField.style.display='none'; dobField.style.display='block';
-    syncDobToAge();
-  }
+  // No-op kept for compatibility — always DOB mode
+  benMode = 'dob';
+  syncDobToAge();
 }
 
 function syncDobToAge(){
@@ -942,13 +968,13 @@ document.getElementById('benDob').addEventListener('change',syncDobToAge);
 document.getElementById('benAge').addEventListener('input',update);
 document.getElementById('benAge').addEventListener('change',update);
 document.getElementById('beYearsSlider').addEventListener('input',update);
-document.getElementById('benAge').value=benAgeParam;
 // Pre-fill beneficiary DOB if passed from main calculator
 if(benDobParam){
-  var benDobEl = document.getElementById('benDob');
-  if(benDobEl) benDobEl.value = benDobParam;
+  var benDobEl2 = document.getElementById('benDob');
+  if(benDobEl2) benDobEl2.value = benDobParam;
 }
-if(benMode==='dob'){setBenMode('dob');}
+// Always DOB mode
+syncDobToAge();
 buildVis();
 update();
 </script>
