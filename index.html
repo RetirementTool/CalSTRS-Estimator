@@ -955,7 +955,7 @@
     <p style="font-size:11px;color:var(--text2);font-weight:600;line-height:1.6;margin-bottom:8px">📚 <strong>Key CalSTRS Resources</strong> — always verify your figures directly with CalSTRS before making any retirement decisions:</p>
     <div style="display:flex;flex-wrap:wrap;gap:10px;margin-bottom:10px">
       <a href="https://www.calstrs.com/files/44f960e51/MemberHandbook2026.pdf" target="_blank" rel="noopener" style="display:inline-flex;align-items:center;gap:5px;padding:7px 12px;background:#fff;border:1px solid #b8d4ea;border-radius:var(--rs);color:#1a3d5c;font-size:11px;font-weight:600;text-decoration:none">📖 Member Handbook (COM-1519) ↗</a>
-      <a href="https://www.calstrs.com/understanding-the-formula" target="_blank" rel="noopener" style="display:inline-flex;align-items:center;gap:5px;padding:7px 12px;background:#fff;border:1px solid #b8d4ea;border-radius:var(--rs);color:#1a3d5c;font-size:11px;font-weight:600;text-decoration:none">📐 Understanding the Formula (COM-1667) ↗</a>
+      <a href="https://www.calstrs.com/files/1105a6846/UnderstandingTheFormula2025.pdf" target="_blank" rel="noopener" style="display:inline-flex;align-items:center;gap:5px;padding:7px 12px;background:#fff;border:1px solid #b8d4ea;border-radius:var(--rs);color:#1a3d5c;font-size:11px;font-weight:600;text-decoration:none">📐 Understanding the Formula (COM-1667) ↗</a>
       <a href="https://forms.calstrs.com/CalSTRSOnlineFormRequestWebUI/Root/Pages/Order.aspx" target="_blank" rel="noopener" style="display:inline-flex;align-items:center;gap:5px;padding:7px 12px;background:#fff;border:1px solid #b8d4ea;border-radius:var(--rs);color:#1a3d5c;font-size:11px;font-weight:600;text-decoration:none">📋 All CalSTRS Forms &amp; Publications ↗</a>
       <a href="http://www.calstrs.com/calculators" target="_blank" rel="noopener" style="display:inline-flex;align-items:center;gap:5px;padding:7px 12px;background:#fff;border:1px solid #b8d4ea;border-radius:var(--rs);color:#1a3d5c;font-size:11px;font-weight:600;text-decoration:none">🔢 Official CalSTRS Calculators ↗</a>
     </div>
@@ -1603,7 +1603,7 @@ function update(){
     salSickEl.innerHTML=ssHtml;
   }
   // Next step note
-  html+=`<p style="margin-top:0;padding:10px 12px;background:var(--surface2);border-radius:var(--rs);font-size:12.5px;color:var(--text);font-weight:700;line-height:1.5;border-left:3px solid #2d6da3">📋 Next step: Review the schedule below and consider your full financial picture before choosing a retirement age. Use these insights to prepare for any conversation with a financial advisor. Always verify directly with CalSTRS: <a href="https://www.calstrs.com/files/44f960e51/MemberHandbook2026.pdf" target="_blank" rel="noopener" style="color:#2d6da3;font-weight:700">Member Handbook ↗</a> · <a href="https://www.calstrs.com/understanding-the-formula" target="_blank" rel="noopener" style="color:#2d6da3;font-weight:700">Understanding the Formula ↗</a> · <a href="https://forms.calstrs.com/CalSTRSOnlineFormRequestWebUI/Root/Pages/Order.aspx" target="_blank" rel="noopener" style="color:#2d6da3;font-weight:700">All CalSTRS Forms ↗</a></p>`;
+  html+=`<p style="margin-top:0;padding:10px 12px;background:var(--surface2);border-radius:var(--rs);font-size:12.5px;color:var(--text);font-weight:700;line-height:1.5;border-left:3px solid #2d6da3">📋 Next step: Review the schedule below and consider your full financial picture before choosing a retirement age. Use these insights to prepare for any conversation with a financial advisor. Always verify directly with CalSTRS: <a href="https://www.calstrs.com/files/44f960e51/MemberHandbook2026.pdf" target="_blank" rel="noopener" style="color:#2d6da3;font-weight:700">Member Handbook ↗</a> · <a href="https://www.calstrs.com/files/1105a6846/UnderstandingTheFormula2025.pdf" target="_blank" rel="noopener" style="color:#2d6da3;font-weight:700">Understanding the Formula ↗</a> · <a href="https://forms.calstrs.com/CalSTRSOnlineFormRequestWebUI/Root/Pages/Order.aspx" target="_blank" rel="noopener" style="color:#2d6da3;font-weight:700">All CalSTRS Forms ↗</a></p>`;
 
   // WEP / GPO callout — always shown as informational
   html+=`<div class="i-row" style="background:#f0f5fb;border-color:#b8d4ea">
@@ -1653,7 +1653,12 @@ function update(){
   const rulesTierEl=document.getElementById('rulesTierLabel');
   if(rulesTierEl) rulesTierEl.textContent='Your tier: '+(tier.tier||tier.label||'').split('(')[0].trim();
   const rulesInnerEl=document.getElementById('rulesInner');
-  if(rulesInnerEl) rulesInnerEl.innerHTML=`<div style="padding:8px 14px 4px;background:#fff8e8;border-bottom:1px solid #f0c060;font-size:10.5px;color:#7a4f10;line-height:1.5">⚠ <strong>LAUSD health benefit tiers only.</strong> These eligibility rules apply to certificated employees of the Los Angeles Unified School District. Health benefits vary by district and are collectively bargained — additional districts will be added over time. Verify your district's specific rules with your HR department.</div>`+rHtml;
+  if(rulesInnerEl){
+    const eligSummary = firstHealth
+      ? `<div style="padding:8px 14px;background:#eaf4ee;border-bottom:1px solid #c0dcc8;font-size:11px;color:#1a4a2e;font-weight:600;line-height:1.5">✓ Based on your inputs, you would be eligible for district-paid health benefits at <strong>age ${firstHealth.age}</strong>${nowAge>=firstHealth.age?' — <strong>already eligible</strong>':' ('+rel(inp.dob,firstHealth.age)+')'}.</div>`
+      : `<div style="padding:8px 14px;background:#fff2f0;border-bottom:1px solid #f0c0b8;font-size:11px;color:#8b2a1a;line-height:1.5">⚠ Based on your inputs, you would <strong>not meet district health eligibility</strong> before age 75. Verify with HR.</div>`;
+    rulesInnerEl.innerHTML=`<div style="padding:8px 14px 4px;background:#fff8e8;border-bottom:1px solid #f0c060;font-size:10.5px;color:#7a4f10;line-height:1.5">⚠ <strong>LAUSD health benefit tiers only.</strong> These eligibility rules apply to certificated employees of the Los Angeles Unified School District. Health benefits vary by district and are collectively bargained — additional districts will be added over time. Verify your district's specific rules with your HR department.</div>`+eligSummary+rHtml;
+  }
 
   /* ── SICK BOX — now rendered in insight body, skip standalone update ── */
 
@@ -2554,6 +2559,7 @@ function renderBreakEven(rows, target, firstPen, firstMaxAF){
 
   var fmtM=function(n){return new Intl.NumberFormat('en-US',{style:'currency',currency:'USD',maximumFractionDigits:0}).format(n);};
   var fmtT=function(v){return v>=1000000?'$'+(v/1000000).toFixed(1)+'M':'$'+(v/1000).toFixed(0)+'k';};
+  var nowAge=ageNowFn(getInputs().dob);
 
   var minAge=ep[0].age, maxAge=ep[ep.length-1].age;
   var defA=target?target.age:minAge;
@@ -2574,6 +2580,12 @@ function renderBreakEven(rows, target, firstPen, firstMaxAF){
         return '<option value="'+r.age+'"'+(r.age===sel?' selected':'')+'>'+r.age+'</option>';
       }).join('');
     }
+
+    // years away labels
+    var yrsA=Math.max(0,Math.round(aA-nowAge));
+    var yrsB=Math.max(0,Math.round(aB-nowAge));
+    var lblA=yrsA===0?'now':yrsA===1?'1 yr away':yrsA+' yrs away';
+    var lblB=yrsB===0?'now':yrsB===1?'1 yr away':yrsB+' yrs away';
 
     var mA=rA.monthly, mB=rB.monthly;
     var annA=mA*12, annB=mB*12;
@@ -2602,13 +2614,13 @@ function renderBreakEven(rows, target, firstPen, firstMaxAF){
     var h='';
     if(isMob){
       h+='<div style="padding:10px 14px;background:var(--surface2);border-bottom:1px solid var(--border);display:flex;flex-direction:column;gap:8px">';
-      h+='<div style="display:flex;align-items:center;justify-content:space-between;gap:8px"><span style="color:var(--text2);font-size:10px;font-weight:600;white-space:nowrap">Scenario A — retire at</span><select id="scSelA" onchange="updateSc()" style="padding:7px 10px;border-radius:5px;border:2px solid #4a8cc4;background:#fff;color:#1a2332;font-size:13px;font-weight:600;cursor:pointer">'+mkOpts(aA)+'</select></div>';
-      h+='<div style="display:flex;align-items:center;justify-content:space-between;gap:8px"><span style="color:var(--text2);font-size:10px;font-weight:600;white-space:nowrap">Scenario B — retire at</span><select id="scSelB" onchange="updateSc()" style="padding:7px 10px;border-radius:5px;border:2px solid #3a9a6a;background:#fff;color:#1a2332;font-size:13px;font-weight:600;cursor:pointer">'+mkOpts(aB)+'</select></div>';
+      h+='<div style="display:flex;align-items:center;justify-content:space-between;gap:8px"><span style="color:var(--text2);font-size:10px;font-weight:600;white-space:nowrap">Scenario A — retire at</span><div style="display:flex;align-items:center;gap:6px"><select id="scSelA" onchange="updateSc()" style="padding:7px 10px;border-radius:5px;border:2px solid #4a8cc4;background:#fff;color:#1a2332;font-size:13px;font-weight:600;cursor:pointer">'+mkOpts(aA)+'</select><span style="font-size:10px;color:var(--text3);white-space:nowrap">'+lblA+'</span></div></div>';
+      h+='<div style="display:flex;align-items:center;justify-content:space-between;gap:8px"><span style="color:var(--text2);font-size:10px;font-weight:600;white-space:nowrap">Scenario B — retire at</span><div style="display:flex;align-items:center;gap:6px"><select id="scSelB" onchange="updateSc()" style="padding:7px 10px;border-radius:5px;border:2px solid #3a9a6a;background:#fff;color:#1a2332;font-size:13px;font-weight:600;cursor:pointer">'+mkOpts(aB)+'</select><span style="font-size:10px;color:var(--text3);white-space:nowrap">'+lblB+'</span></div></div>';
       h+='</div>';
     } else {
       h+='<div style="padding:10px 14px;background:var(--surface2);border-bottom:1px solid var(--border);display:flex;align-items:center;gap:12px;flex-wrap:wrap">';
-      h+='<div style="display:inline-flex;align-items:center;gap:6px"><span style="color:var(--text2);font-size:10px;font-weight:600;white-space:nowrap">Scenario A — retire at</span><select id="scSelA" onchange="updateSc()" style="padding:7px 12px;border-radius:5px;border:2px solid #4a8cc4;background:#fff;color:#1a2332;font-size:14px;font-weight:600;cursor:pointer">'+mkOpts(aA)+'</select></div>';
-      h+='<div style="display:inline-flex;align-items:center;gap:6px"><span style="color:var(--text2);font-size:10px;font-weight:600;white-space:nowrap">Scenario B — retire at</span><select id="scSelB" onchange="updateSc()" style="padding:7px 12px;border-radius:5px;border:2px solid #3a9a6a;background:#fff;color:#1a2332;font-size:14px;font-weight:600;cursor:pointer">'+mkOpts(aB)+'</select></div>';
+      h+='<div style="display:inline-flex;align-items:center;gap:6px"><span style="color:var(--text2);font-size:10px;font-weight:600;white-space:nowrap">Scenario A — retire at</span><select id="scSelA" onchange="updateSc()" style="padding:7px 12px;border-radius:5px;border:2px solid #4a8cc4;background:#fff;color:#1a2332;font-size:14px;font-weight:600;cursor:pointer">'+mkOpts(aA)+'</select><span style="font-size:10px;color:var(--text3);white-space:nowrap">&nbsp;'+lblA+'</span></div>';
+      h+='<div style="display:inline-flex;align-items:center;gap:6px"><span style="color:var(--text2);font-size:10px;font-weight:600;white-space:nowrap">Scenario B — retire at</span><select id="scSelB" onchange="updateSc()" style="padding:7px 12px;border-radius:5px;border:2px solid #3a9a6a;background:#fff;color:#1a2332;font-size:14px;font-weight:600;cursor:pointer">'+mkOpts(aB)+'</select><span style="font-size:10px;color:var(--text3);white-space:nowrap">&nbsp;'+lblB+'</span></div>';
       h+='</div>';
     }
     h+='<div style="padding:6px 14px;background:var(--surface2);border-bottom:1px solid var(--border)">';
@@ -2770,7 +2782,7 @@ function renderCOLA(target){
     +'</table>'
     +'</div>'
     +'<div style="padding:10px 13px;border-top:1px solid var(--border);background:var(--surface2)">'
-    +'<p style="font-size:10px;color:var(--text3);line-height:1.65">📌 <strong>About inflation:</strong> The 2% COLA is simple — the same '+fmtM(colaPerYear)+'/mo is added each year to your original base, not compounded. If inflation also runs at 2%, your purchasing power stays roughly flat. If inflation runs higher, your real purchasing power will gradually decline despite the COLA.</p>'
+    +'<p style="font-size:10px;color:var(--text3);line-height:1.65">📌 <strong>Is this guaranteed?</strong> Yes — the 2% annual COLA is guaranteed by California statute (Education Code §22870), not subject to fund performance or board discretion. It applies every September 1st regardless. <strong>Do these numbers seem high?</strong> They are nominal (not inflation-adjusted). The monthly amounts grow significantly on paper, but real purchasing power depends on inflation. At 2% average inflation the COLA roughly keeps pace — your benefit buys about the same. At 3% inflation your real purchasing power slowly erodes over a long retirement. The dollar figures above will look large in 20-30 years but will buy meaningfully less than today\'s dollars suggest.</p>'
     +'</div>'
     +'</div>'
     +'</div>';
