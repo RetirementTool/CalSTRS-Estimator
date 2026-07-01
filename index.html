@@ -290,6 +290,8 @@
     *{max-width:100%;min-width:0}
     /* But allow table to scroll internally */
     .table-wrap *{max-width:none}
+    /* Inline overflow-x:auto wrappers (DBS table, wait tables, beneficiary) scroll too */
+    [style*="overflow-x:auto"] table{max-width:none;width:auto;min-width:100%}
     img,canvas{max-width:100%}
 
     /* Header: full width, compact height */
@@ -324,6 +326,11 @@
     #scBody .sc-card-grid > div:first-child{order:2}
     #scBody .sc-card-grid > div:last-child{order:1}
     /* Results panels: full width, never overflow */
+    /* Precision mode */
+    .prec-sal-input{width:100%;padding:5px 8px;border:1px solid var(--border);border-radius:var(--rs);font-size:12px;font-family:'DM Mono',monospace;background:#fff;color:var(--text);box-sizing:border-box}
+    .prec-sal-input:focus{outline:none;border-color:#2d6da3;box-shadow:0 0 0 2px rgba(45,109,163,.15)}
+    /* Always show number input spinners for salary fields */
+    .prec-sal-input[type=number]::-webkit-inner-spin-button,.prec-sal-input[type=number]::-webkit-outer-spin-button{opacity:1;height:20px}
     .results-col,.result-hero,.insight-box,.chart-panel,.beneficiary-box,.panel,.rules-box,.sick-box,.ideal-window,.contact-box{width:100%;max-width:100%;box-sizing:border-box;min-width:0}
     .results-col{overflow-x:hidden}
 
@@ -348,6 +355,12 @@
     .i-val{font-size:13px}
     .i-desc{font-size:10.5px}
     .i-label{font-size:9px}
+
+    /* Detailed (precision) section — stack 3-col summary to single column on phones */
+    #precisionSection [style*="grid-template-columns:1fr 1fr 1fr"]{grid-template-columns:1fr!important;gap:8px!important}
+    #precisionSection select{max-width:100%}
+    /* Step 2 view cards: keep two-up but allow text to wrap cleanly */
+    #precisionSection [style*="grid-template-columns:1fr 1fr 1fr"] > div{border-left:none!important;padding-left:0!important}
 
     /* Ideal window */
     .iw-range{flex-direction:column;align-items:stretch;gap:5px}
@@ -747,6 +760,18 @@
           <input type="number" id="targetAge" value="62" min="50" max="75" step="1">
           <p class="field-hint" style="color:#2d6da3;font-weight:500">You can also adjust this anytime using the slider on the results panel — no need to come back here.</p>
         </div>
+        <div class="field">
+          <label>Assignment Basis (Base Days) <span style="font-size:9px;font-weight:600;color:var(--text3);font-style:italic">— LAUSD</span></label>
+          <select id="baseDays">
+            <option value="182" selected>182 — C-basis (standard classroom teacher)</option>
+            <option value="197">197 — B-basis (coordinators, e.g. Magnet)</option>
+            <option value="201">201 — B-basis (6-hr Special Ed)</option>
+            <option value="206">206 — B-basis (8-hr Special Ed)</option>
+            <option value="210">210 — E-basis (many principals)</option>
+            <option value="248">248 — A-basis (district / central office)</option>
+          </select>
+          <p class="field-hint">The days that equal one full year of service for your assignment — used to convert unused sick days into service credit.</p>
+        </div>
 
         <div class="divider"></div>
         <!-- Advanced inputs collapsible -->
@@ -754,7 +779,7 @@
           <button onclick="toggleAdvInputs(this)" id="advInputsToggle" style="width:100%;padding:9px 13px;background:var(--surface2);border:none;cursor:pointer;display:flex;align-items:center;justify-content:space-between;font-family:'Inter',system-ui,sans-serif;text-align:left">
             <div>
               <span style="font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--text2)">Other Inputs</span>
-              <span style="display:block;font-size:9.5px;color:var(--text3);font-weight:400;margin-top:1px">Service, sick leave, base days — defaults work for most users</span>
+              <span style="display:block;font-size:9.5px;color:var(--text3);font-weight:400;margin-top:1px">Service credit &amp; sick leave — defaults work for most users</span>
             </div>
             <span id="advInputsChev" style="font-size:11px;color:var(--text3);transition:transform .25s">▶</span>
           </button>
@@ -771,19 +796,22 @@
               <input type="number" id="districtYears" value="25" min="0" max="55" step="0.01">
               <p class="field-hint">Auto-calculated from hire date; adjust if needed</p>
             </div>
-            <div class="field">
-              <label>Avg. Unused Sick Days Per Year</label>
-              <input type="number" id="sickDaysPerYear" value="2" min="0" max="15" step="1">
-              <p class="field-hint" id="sickDaysHint">10 days/yr typically granted; enter how many you typically keep unused</p>
-            </div>
-            <div class="field">
-              <label>Base Days for Full-Time Service</label>
-              <select id="baseDays">
-                <option value="180">180 days</option>
-                <option value="182" selected>182 days (standard)</option>
-                <option value="185">185 days</option>
-                <option value="190">190 days</option>
-              </select>
+            <div class="field" style="background:var(--surface2);border:1px solid var(--border);border-radius:var(--rs);padding:10px 11px">
+              <label style="font-weight:700;margin-bottom:7px;display:block">Unused Sick Days <span style="font-size:9px;font-weight:600;color:var(--text3);font-style:italic">— choose one method below</span></label>
+              <div style="margin-bottom:9px">
+                <label style="font-size:11px;color:var(--text2);font-weight:600">① Average unused per year</label>
+                <input type="number" id="sickDaysPerYear" value="2" min="0" max="15" step="1" style="margin-top:3px">
+                <p class="field-hint" id="sickDaysHint" style="margin-top:3px">10 days/yr typically granted; enter how many you keep unused each year</p>
+              </div>
+              <div style="text-align:center;font-size:10px;font-weight:700;color:var(--text3);margin:2px 0 8px;position:relative">
+                <span style="background:var(--surface2);padding:0 8px;position:relative;z-index:1">— OR —</span>
+                <div style="position:absolute;top:50%;left:0;right:0;height:1px;background:var(--border);z-index:0"></div>
+              </div>
+              <div>
+                <label style="font-size:11px;color:var(--text2);font-weight:600">② Current total banked so far</label>
+                <input type="number" id="currentSickDays" value="" min="0" max="500" step="1" placeholder="e.g. 120" oninput="update()" style="margin-top:3px">
+                <p class="field-hint" id="currentSickHint" style="margin-top:3px">If you know your banked total, enter it and the tool projects future accrual proportionally to your years worked. Overrides method ① when filled.</p>
+              </div>
             </div>
           </div>
         </div>
@@ -799,13 +827,22 @@
   <!-- RIGHT RESULTS -->
   <div class="results-col" style="min-width:0;width:100%">
 
-    <!-- PDF export button -->
-    <div class="pdf-btn-wrap">
-      <p class="pdf-disclaimer">The Retirement Benefits calculator only provides an estimate of your future retirement benefits.</p>
-      <button class="pdf-btn" id="pdfBtn" onclick="generatePDF()">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14,2 14,8 20,8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10,9 9,9 8,9"/></svg>
-        Download PDF Report
-      </button>
+    <!-- Step 2: View selector -->
+    <div style="background:var(--surface2);border:1px solid var(--border);border-radius:var(--r);padding:11px 14px;margin-bottom:6px">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
+        <span style="background:#2d6da3;color:#fff;font-size:13px;font-weight:700;letter-spacing:.02em;padding:3px 10px;border-radius:4px;text-transform:uppercase">STEP 2</span>
+        <h2 style="font-size:13px;letter-spacing:.04em;color:var(--text)">Choose your view</h2>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+        <div id="viewCardHL" onclick="selectView('hl')" style="padding:11px 13px;border-radius:var(--rs);border:2px solid #2d6da3;background:#eaf2fb;cursor:pointer">
+          <p style="font-size:13.5px;font-weight:700;color:#1a3d5c;margin-bottom:4px">📊 High-Level View</p>
+          <p style="font-size:10px;color:#3d6a8a;line-height:1.4">Explore retirement ages and options — great for planning 5+ years out. <strong>Assumes a June 30 retirement date.</strong></p>
+        </div>
+        <div id="viewCardDT" onclick="selectView('dt')" style="padding:11px 13px;border-radius:var(--rs);border:2px solid var(--border);background:var(--surface);cursor:pointer">
+          <p style="font-size:13.5px;font-weight:700;color:var(--text2);margin-bottom:4px">🎯 Detailed View</p>
+          <p style="font-size:10px;color:var(--text3);line-height:1.4">Precise analysis by exact retirement date — best if within 5 years of retiring. <strong style="color:#0f7670">You'll enter your expected retirement month and year.</strong></p>
+        </div>
+      </div>
     </div>
 
     <!-- Slider + hero grouped tightly -->
@@ -835,9 +872,15 @@
 
     <!-- Hero metrics -->
     <div class="result-hero">
-      <p style="font-size:13px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--teal);margin-bottom:8px;padding-bottom:6px;border-bottom:1px solid var(--border)">Member-Only Benefit</p>
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;padding-bottom:6px;border-bottom:1px solid var(--border)">
+        <p style="font-size:13px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--teal)">Member-Only Benefit</p>
+        <button class="pdf-btn" id="pdfBtn" onclick="generatePDF()" style="padding:7px 22px;font-size:10px;display:flex;align-items:center;gap:5px;min-width:110px;justify-content:center">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14,2 14,8 20,8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10,9 9,9 8,9"/></svg>
+          Download PDF
+        </button>
+      </div>
       <div style="margin-bottom:12px;padding-bottom:10px;border-bottom:1px solid var(--border)">
-        <p style="font-size:9.5px;font-weight:700;letter-spacing:.09em;text-transform:uppercase;color:var(--text3);margin-bottom:3px">Based on your target retirement age</p>
+        <p style="font-size:9.5px;font-weight:700;letter-spacing:.09em;text-transform:uppercase;color:var(--text3);margin-bottom:3px">Based on your target retirement age, as of June 30th of that year</p>
         <p style="font-family:'DM Mono',monospace;font-size:22px;font-weight:600;color:#2d6da3;line-height:1" id="heroTargetAgeDisplay">Age —</p>
       </div>
       <div class="hero-grid">
@@ -858,8 +901,7 @@
         </div>
       </div>
       <div class="hero-note" id="heroNote">—</div>
-      <p style="font-size:9.5px;color:var(--text3);margin-top:6px;line-height:1.4">* CalSTRS provides a 2% simple annual COLA on your original benefit amount (applied each September 1st as a fixed dollar increase, not compounded). Benefit values shown do not include COLA — your actual purchasing power may be higher over time.</p>
-      <p style="font-size:9.5px;color:var(--text3);margin-top:3px;line-height:1.4">† Calculations assume a <strong>June 30 retirement date</strong> for each target age, consistent with the end of the school year. Age factors and benefit amounts may differ if you retire on a different date.</p>
+      <p style="font-size:9.5px;color:var(--text3);margin-top:6px;line-height:1.4">* Values shown as of June 30th of the year you turn each age, before COLA. CalSTRS applies a 2% simple annual COLA each September 1st on your original benefit. For estimates on a different date, use the Detailed View below.</p>
     </div><!-- /hero -->
     </div><!-- /slider+hero group -->
 
@@ -911,7 +953,7 @@
     <!-- Table -->
     <div class="table-wrap">
       <div class="table-header">
-        <h3>Full Retirement Schedule</h3>
+        <h3>Full Retirement Schedule <span style="font-size:11px;font-weight:400;color:var(--text3);letter-spacing:0">— benefit as of June 30th of the year you turn each age</span></h3>
         <div class="table-header-badges">
           <span class="badge bg-blue" id="tableFormulaBadge">2% at 60</span>
           <span class="badge bg-district">District Rules</span>
@@ -933,18 +975,23 @@
         <p><strong>Table symbols:</strong> ★ = your target retirement age &nbsp;·&nbsp; ⭐ = within the optimal retirement window &nbsp;·&nbsp; ⚠ = salary capped at CalSTRS pensionable limit (benefit calculated on capped amount, not your full salary)</p>
         <p><strong>Flags:</strong> <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#3a5a7c" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg> Pension eligible &nbsp;·&nbsp; <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#2a7a5a" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="4" x2="12" y2="20"/><line x1="4" y1="12" x2="20" y2="12"/></svg> Lifetime health benefit met &nbsp;·&nbsp; <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#1a2e42" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><text x="0" y="17" font-size="7" font-family="sans-serif" font-weight="800" fill="#1a2e42" stroke="none">AGE</text><polyline points="11 3 16 3 16 8"/><line x1="9" y1="9" x2="16" y2="3"/></svg> Age factor at max 2.4% &nbsp;·&nbsp; <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#7a4f10" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a10 10 0 100 20A10 10 0 0012 2z"/><text x="4.5" y="16" font-size="8" font-family="sans-serif" font-weight="800" fill="#7a4f10" stroke="none">Rx</text></svg> Medicare eligible (age 65)</p>
         <p>Sick leave: accumulated unused days ÷ base days = additional service credit. Cannot satisfy minimum eligibility requirements.</p>
-        <p>* Benefit values shown do not include CalSTRS COLA. CalSTRS provides a 2% simple annual COLA on your original benefit — your actual purchasing power may be higher over time. How it works: each September 1st, CalSTRS increases your monthly benefit by 2% of your <em>original</em> benefit amount (not the prior year's adjusted amount), so the dollar increase is constant each year. A separate ad hoc Purchasing Power Protection Allowance (PPPA) may also apply if cumulative inflation erodes your benefit below 85% of its original purchasing power.</p>
-        <p>† Age factors are calculated assuming a June 30 retirement date — the most common CalSTRS retirement date. Your exact factor is based on your precise age on your actual retirement date and may differ slightly if you retire on a different date.</p>
+        <p>* Benefit values do not include CalSTRS COLA. A 2% simple annual COLA is applied each September 1st to your <em>original</em> benefit amount (not compounded). A PPPA adjustment may also apply if inflation erodes purchasing power below 85% of original.</p>
+        <p>† All values shown as of June 30th of each year — the most common CalSTRS retirement date. Use the Detailed View for estimates based on a different retirement date.</p>
 
       </div>
     </div>
 
     <!-- Bottom sections: equal 10px gap between all 4 collapsibles -->
+    <div style="margin:12px 0 6px;padding:9px 13px;background:var(--surface2);border-radius:var(--rs);border-left:3px solid #2d6da3"><p style="font-size:12.5px;font-weight:700;color:var(--text2)">📊 Additional analysis — expand any section below to explore</p></div>
     <div style="display:flex;flex-direction:column;gap:10px">
+      <div id="salReplaceSection"></div>
       <div id="breakEvenSection"></div>
       <div id="colaSection"></div>
       <div id="salSickSection" style="display:contents"></div>
     </div>
+
+    <!-- ── PRECISION MODE ── -->
+    <div id="precisionSection" style="margin-top:10px"></div>
 
   </div>
 </div>
@@ -1123,6 +1170,47 @@ function penElig(age,svc,f){
   if(f==='2at62') return age>=55&&svc>=5;
   return (age>=55&&svc>=5)||(age>=50&&svc>=30);
 }
+
+// Returns exact pension eligibility age as {yrs, mos, label} computed from DOB + hireDate
+// CalSTRS eligibility is on the exact day both age AND service thresholds are met
+function exactPenEligAge(dob, hireDate, formula, nowSvc){
+  if(!dob||!hireDate) return null;
+  const bd=new Date(dob), hd=new Date(hireDate);
+  const now=new Date();
+  const nowAge=(now-bd)/(365.25*24*3600*1000);
+
+  const gates = formula==='2at62'
+    ? [{minAge:55, minSvc:5}]
+    : [{minAge:55, minSvc:5},{minAge:50, minSvc:30}];
+
+  let earliest=null;
+
+  gates.forEach(function(g){
+    // Date member reaches minAge
+    const ageDate=new Date(bd.getFullYear()+g.minAge, bd.getMonth(), bd.getDate());
+    // Date member reaches minSvc (from hire date)
+    const svcDate=new Date(hd.getFullYear()+g.minSvc, hd.getMonth(), hd.getDate());
+    // Eligibility = the LATER of the two (both must be met simultaneously)
+    const eligDate=ageDate>svcDate?ageDate:svcDate;
+    // Only use this gate if elig date is valid (not in the past relative to hire)
+    if(!earliest||eligDate<earliest) earliest=eligDate;
+  });
+
+  if(!earliest) return null;
+
+  // Compute exact age at eligibility date
+  let yrs=earliest.getFullYear()-bd.getFullYear();
+  let mos=earliest.getMonth()-bd.getMonth();
+  const dys=earliest.getDate()-bd.getDate();
+  if(dys<0) mos--;
+  if(mos<0){yrs--;mos+=12;}
+
+  const alreadyElig=earliest<=now;
+  const label=mos===0?yrs+' yrs':yrs+' yrs '+mos+' mo';
+  const timeAway=alreadyElig?'eligible now':rel(dob,yrs+(mos/12))+' away';
+
+  return {yrs, mos, label, eligDate:earliest, alreadyElig, timeAway};
+}
 function isMaxAF(age,svc,f){
   if(f==='2at62') return age>=65;
   if(svc>=30) return age>=62; // 30+ yr bonus table reaches 2.4% at 62
@@ -1147,21 +1235,41 @@ function healthMet(tier,age,dYrs){
 }
 
 function getInputs(){
+  var dobV=document.getElementById('dob').value;
+  var hireV=document.getElementById('hireDate').value;
+  var svcV=Math.min(55, Math.max(0, parseFloat(document.getElementById('serviceYears').value)||0));
+  var baseDaysV=parseInt(document.getElementById('baseDays').value)||182;
+  var sickPerYearV=parseFloat(document.getElementById('sickDaysPerYear').value)||0;
+
+  // If user entered current total banked sick days, derive per-year rate from years worked so far
+  var curSickEl=document.getElementById('currentSickDays');
+  var curSickVal=curSickEl&&curSickEl.value!==''?parseFloat(curSickEl.value):null;
+  if(curSickVal!==null&&curSickVal>=0&&svcV>0){
+    // per-year rate = total banked / years worked so far → projects forward proportionally
+    sickPerYearV=curSickVal/svcV;
+  }
+
   return{
-    dob:                document.getElementById('dob').value,
-    hireDate:           document.getElementById('hireDate').value,
-    salary:             parseFloat(document.getElementById('salary').value)||0,
-    salaryGrowth:       parseFloat(document.getElementById('salaryGrowth').value)||0,
-    serviceYears:       parseFloat(document.getElementById('serviceYears').value)||0,
-    districtYears:      parseFloat(document.getElementById('districtYears').value)||0,
+    dob:                dobV,
+    hireDate:           hireV,
+    salary:             Math.min(1000000, Math.max(0, parseFloat(document.getElementById('salary').value)||0)),
+    salaryGrowth:       Math.min(20, Math.max(0, parseFloat(document.getElementById('salaryGrowth').value)||0)),
+    serviceYears:       svcV,
+    districtYears:      Math.min(55, Math.max(0, parseFloat(document.getElementById('districtYears').value)||0)),
     targetAge:          parseInt(document.getElementById('targetAge').value)||62,
-    sickPerYear:        parseFloat(document.getElementById('sickDaysPerYear').value)||0,
-    baseDays:           parseInt(document.getElementById('baseDays').value)||182,
+    sickPerYear:        sickPerYearV,
+    baseDays:           baseDaysV,
     finalCompOverride:  compMode==='override'?(parseFloat(document.getElementById('finalCompOverride').value)||null):null,
-    pre1996:            false, // UI is hidden — no pre-1996 grandfathering in current version
+    pre1996:            false,
   };
 }
 function ageNowFn(dob){return(new Date()-new Date(dob))/(365.25*24*3600*1000)}
+// Format a Date as short "Mon 'YY" e.g. "May '33"
+function shortMY(d){
+  if(!d||isNaN(d.getTime())) return '';
+  const m=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][d.getMonth()];
+  return m+" '"+String(d.getFullYear()).slice(-2);
+}
 function yrsUntil(dob,a){return Math.max(0,a-ageNowFn(dob))}
 function pSal(s,g,y){return s*Math.pow(1+g/100,y)}
 function avg3(s,g,y){return(pSal(s,g,Math.max(0,y-2))+pSal(s,g,Math.max(0,y-1))+pSal(s,g,y))/3}
@@ -1247,11 +1355,40 @@ function buildSchedule(){
 
 const fmt=n=>new Intl.NumberFormat('en-US',{style:'currency',currency:'USD',maximumFractionDigits:0}).format(n);
 const fmtP=n=>n.toFixed(1)+'%';
+// Returns exact years and months until a target age, e.g. "3 yrs 2 mo" or "8 mo" or "now"
 function rel(dob,toAge){
-  const y=yrsUntil(dob,toAge);
-  if(y<=0) return 'eligible now';
-  if(y<1)  return`~${Math.round(y*12)} mo`;
-  return`${y.toFixed(1)} yrs`;
+  if(!dob) return '';
+  const bd=new Date(dob);
+  const now=new Date();
+  // Target date = birthday in the year they turn toAge
+  const targetYear=bd.getFullYear()+Math.floor(toAge);
+  const targetMo=bd.getMonth();
+  const targetDay=bd.getDate();
+  let target=new Date(targetYear,targetMo,targetDay);
+  // If toAge has a fractional part (e.g. 50.5), add the months
+  const fracMos=Math.round((toAge%1)*12);
+  if(fracMos>0) target=new Date(target.getFullYear(),target.getMonth()+fracMos,target.getDate());
+  if(target<=now) return 'eligible now';
+  let yrs=target.getFullYear()-now.getFullYear();
+  let mos=target.getMonth()-now.getMonth();
+  const dys=target.getDate()-now.getDate();
+  if(dys<0) mos--;
+  if(mos<0){yrs--;mos+=12;}
+  if(yrs===0&&mos===0) return 'less than 1 month';
+  if(yrs===0) return mos+'mo';
+  if(mos===0) return yrs+(yrs===1?' yr':' yrs');
+  return yrs+(yrs===1?' yr':' yrs')+' '+mos+'mo';
+}
+
+// Returns the exact eligibility age as a string like "55 yrs 0 mo" based on DOB
+// CalSTRS eligibility is on the member's actual birthday, not June 30
+function exactEligAge(dob,eligAge){
+  if(!dob) return 'Age '+eligAge;
+  // eligAge might be fractional (e.g. early ret with 30 yrs might be 50)
+  const wholeYrs=Math.floor(eligAge);
+  const extraMos=Math.round((eligAge%1)*12);
+  if(extraMos===0) return wholeYrs+' yrs old';
+  return wholeYrs+' yrs '+extraMos+' mo old';
 }
 function setMC(id,cls,val,sub,bText,bCls){
   document.getElementById(id).className='mc'+(cls?' '+cls:'');
@@ -1341,9 +1478,22 @@ function update(){
     updateSliderFill(sl);
   }
 
-  // Update hero target age display
+  // Update hero target age display — show age + the June 30 date it corresponds to
   const htaEl=document.getElementById('heroTargetAgeDisplay');
-  if(htaEl) htaEl.textContent=`Age ${inp.targetAge}`;
+  if(htaEl){
+    let june30Year='';
+    if(inp.dob){
+      // Year the member turns target age, evaluated on June 30
+      const bdY=new Date(inp.dob);
+      let cand=bdY.getFullYear()+inp.targetAge;
+      const aOn=ageOnJune30(inp.dob,cand);
+      if(!aOn||aOn.yrs<inp.targetAge) cand++;
+      june30Year=cand;
+    }
+    htaEl.innerHTML=june30Year
+      ? `Age ${inp.targetAge} <span style="font-size:14px;font-weight:400;color:var(--text3)">·</span> <span style="font-size:15px;color:var(--text2)">June 30, ${june30Year}</span>`
+      : `Age ${inp.targetAge}`;
+  }
 
   // Sick days estimated total hint
   const nowAge=ageNowFn(inp.dob);
@@ -1426,31 +1576,94 @@ function update(){
 
   // 1 – Earliest pension
   if(firstPen){
-    const isNow=nowAge>=firstPen.age;
     const via30=(formula==='2at60'&&firstPen.age<55);
+    const exactElig=exactPenEligAge(inp.dob, inp.hireDate, formula, inp.serviceYears);
+    const eligAgeLabel=exactElig?exactElig.label:('Age '+firstPen.age);
+    const eligTimeLabel=exactElig?(exactElig.alreadyElig?'<strong>Eligible now.</strong>':'<strong>'+exactElig.timeAway+'</strong>'):('<strong>'+rel(inp.dob,firstPen.age)+' away</strong>');
+    // PRECISE benefit at exact eligibility date (exact age factor + service at that date)
+    let preciseMonthly=firstPen.monthly;
+    if(exactElig&&inp.dob){
+      const exactAgeDecimal=exactElig.yrs+(exactElig.mos/12);
+      const yrsFromNow=Math.max(0,exactAgeDecimal-ageNowFn(inp.dob));
+      const exactSvc=Math.min(55, inp.serviceYears+yrsFromNow+((inp.sickPerYear||0)*(inp.serviceYears+yrsFromNow)/(inp.baseDays||182)));
+      const exactAF=getAF(exactAgeDecimal, exactSvc, formula, inp.dob);
+      const exactSal=inp.salary*Math.pow(1+(inp.salaryGrowth||0)/100, yrsFromNow);
+      const exactMo=exactAF?Math.round(exactAF*exactSvc*exactSal/12):0;
+      if(exactMo>0) preciseMonthly=exactMo;
+    }
+    const juneNote=(preciseMonthly!==firstPen.monthly)?` <span style="font-size:10px;color:var(--text3)">(${fmt(firstPen.monthly)}/mo as of June 30th following this date)</span>`:'';
     const clockIcon=`<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#3a5a7c" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>`;
+    const eligDateStr=(exactElig&&exactElig.eligDate&&!exactElig.alreadyElig)?` <span style="color:var(--text3);font-weight:400">${shortMY(exactElig.eligDate)}</span> ·`:'';
     html+=`<div class="i-row">
       <div class="i-icon">${clockIcon}</div>
       <div>
         <p class="i-label">Earliest Pension Eligibility</p>
-        <p class="i-val">Age ${firstPen.age} · ${fmt(firstPen.monthly)}/mo</p>
-        <p class="i-desc">${via30?`30+ yrs service unlocks early retirement before the standard age 55 minimum. `:'Age 55 with 5+ years is the CalSTRS minimum. '}Benefit at this age: <strong>${fmt(firstPen.annual)}/yr</strong> (${fmtP(firstPen.pctSal)} of salary). ${isNow?'<strong>Eligible now.</strong>':'<strong>'+rel(inp.dob,firstPen.age)+' away.</strong>'}</p>
+        <p class="i-val">${eligAgeLabel} ·${eligDateStr} ${fmt(preciseMonthly)}/mo${juneNote}</p>
+        <p class="i-desc">${via30?'30+ yrs service unlocks early retirement before age 55. ':'Age 55 + 5 yrs service is the CalSTRS minimum. '}${eligTimeLabel} Eligibility is based on your exact birthday and hire date.</p>
       </div>
     </div>`;
   }
+
 
   // 2 (moved to after growth window below)
   // 3 – Age factor cap
   if(firstMaxAF){
     const isNow=nowAge>=firstMaxAF.age;
     const capAge=firstMaxAF.age;
+
+    // Compute what month the AF bumps on birthday-based schedule
+    // AF bumps on DOB month each year (since age factor table is monthly from birthday)
+    let monthlyBumpNote='';
+    let waitTip='';
+    if(inp.dob && !isNow){
+      const dobParts=inp.dob.split('-'); // YYYY-MM-DD
+      const bMon=parseInt(dobParts[1])-1; // 0-indexed month, no timezone shift
+      const bDay=parseInt(dobParts[2]);
+      const bd3=new Date(parseInt(dobParts[0]), bMon, bDay);
+      const MNAMES3=['January','February','March','April','May','June','July','August','September','October','November','December'];
+      const bMonName=MNAMES3[bMon];
+      const curAF=getAF(nowAge, inp.serviceYears, inp.formula||'2at60', inp.dob);
+      const nextBdYear=new Date().getFullYear()+(new Date()<new Date(new Date().getFullYear(),bMon,bd3.getDate())?0:1);
+      const nextBdAF=getAF(ageOnJune30(inp.dob,nextBdYear+(bMon>5?1:0))?.yrs||(nowAge+1), inp.serviceYears+1, inp.formula||'2at60', inp.dob);
+      monthlyBumpNote=` Until then, your age factor steps up each <strong>${bMonName}</strong> (your birthday month) — that\'s when you\'ll see the largest single month-over-month jump in your benefit each year.`;
+
+      // Check if very close to a bump — within 3 months of birthday
+      const today3=new Date();
+      const nextBd=new Date(today3.getFullYear(), bMon, bd3.getDate());
+      if(nextBd<today3) nextBd.setFullYear(today3.getFullYear()+1);
+      const msToBd=nextBd-today3;
+      const monthsToBd=msToBd/(1000*60*60*24*30.44);
+      if(monthsToBd<=4 && monthsToBd>0){
+        waitTip=`<p style="font-size:10.5px;color:#1a4a2e;background:#e8f4e8;border:1px solid #a0cca0;border-radius:var(--rs);padding:7px 10px;margin-top:6px;line-height:1.5">💡 <strong>You're within ${Math.ceil(monthsToBd)} month${Math.ceil(monthsToBd)===1?'':'s'} of your next age factor increase.</strong> If your retirement date is flexible, waiting until after <strong>${bMonName}</strong> locks in the next step up — a small but permanent increase to your benefit for life.</p>`;
+      }
+    }
+
+    // Precise benefit at exact date age factor caps (vs June 30)
+    let peakPreciseMonthly=firstMaxAF.monthly;
+    if(inp.dob && !isNow){
+      const yrsToCap=Math.max(0,capAge-nowAge);
+      const capSvc=Math.min(55, inp.serviceYears+yrsToCap+((inp.sickPerYear||0)*(inp.serviceYears+yrsToCap)/(inp.baseDays||182)));
+      const capAF=getAF(capAge, capSvc, formula, inp.dob);
+      const capSal=inp.salary*Math.pow(1+(inp.salaryGrowth||0)/100, yrsToCap);
+      const capMo=capAF?Math.round(capAF*capSvc*capSal/12):0;
+      if(capMo>0) peakPreciseMonthly=capMo;
+    }
+    const peakJuneNote=(peakPreciseMonthly!==firstMaxAF.monthly)?` <span style="font-size:10px;color:var(--text3)">(${fmt(firstMaxAF.monthly)}/mo as of June 30th following this date)</span>`:'';
+    // Date the age factor caps — the member's birthday in the year they reach capAge
+    let peakDateStr='';
+    if(inp.dob && !isNow){
+      const pb=new Date(inp.dob);
+      const capDate=new Date(pb.getFullYear()+capAge, pb.getMonth(), pb.getDate());
+      peakDateStr=` <span style="color:var(--text3);font-weight:400">${shortMY(capDate)}</span> ·`;
+    }
     const ageArrowIcon=`<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#3a5a7c" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><text x="0" y="23" font-size="9" font-family="sans-serif" font-weight="800" fill="#3a5a7c" stroke="none">AGE</text><polyline points="14 3 20 3 20 9"/><line x1="12" y1="12" x2="20" y2="3"/></svg>`;
     html+=`<div class="i-row">
       <div class="i-icon">${ageArrowIcon}</div>
       <div>
         <p class="i-label">Age Factor Peaks at 2.4%</p>
-        <p class="i-val">Age ${capAge} · ${fmt(firstMaxAF.monthly)}/mo</p>
-        <p class="i-desc">The multiplier stops increasing at age ${capAge}. After this, your benefit still grows through service credit, but more slowly. ${isNow?'<strong>Already reached.</strong>':'<strong>'+rel(inp.dob,capAge)+' away.</strong>'}</p>
+        <p class="i-val">Age ${capAge} ·${peakDateStr} ${fmt(peakPreciseMonthly)}/mo${peakJuneNote}</p>
+        <p class="i-desc">The multiplier stops increasing at age ${capAge}. After this, your benefit still grows through additional service credit, but the age factor component is maxed out. ${isNow?'<strong>Already reached.</strong>':'<strong>'+rel(inp.dob,capAge)+' away.</strong>'+monthlyBumpNote}</p>
+        ${waitTip}
       </div>
     </div>`;
   }
@@ -1505,13 +1718,66 @@ function update(){
   // 4 – District health (last insight)
   if(firstHealth){
     const isNow=nowAge>=firstHealth.age;
+    // Compute exact years+months to health eligibility from DOB
+    const healthExact=exactPenEligAge(inp.dob, inp.hireDate, inp.formula||'2at60', inp.serviceYears);
+    // Health eligibility uses district service not CalSTRS service — use rel() for years+months
+    const healthRelStr=isNow?'<strong>Already eligible.</strong>':'<strong>'+rel(inp.dob,firstHealth.age)+' away.</strong>';
+    // Compute exact age+months at health eligibility
+    // Eligibility = when both service AND points thresholds are met
+    const healthAgeLabel=(function(){
+      if(!inp.dob||!inp.hireDate) return 'Age '+firstHealth.age;
+      const bd=new Date(inp.dob);
+      const hd=new Date(inp.hireDate);
+      const YR=365.25*24*3600*1000;
+
+      // Service threshold date (hire + minConsec years)
+      const svcDate=new Date(hd.getFullYear()+tier.minConsec, hd.getMonth(), hd.getDate());
+
+      let eligDate;
+      if(!tier.pointThreshold){
+        // No points gate — just service threshold
+        eligDate=svcDate;
+      } else {
+        // Points = age + districtService, both grow at 1/yr so points grow at 2/yr
+        // Solve: (d - dob)/yr + (d - hire)/yr = pointThreshold
+        // 2d/yr = pointThreshold + (dob + hire)/yr
+        // d = (pointThreshold*yr + dob + hire) / 2
+        const ptMs=(tier.pointThreshold*YR + bd.getTime() + hd.getTime())/2;
+        const ptDate=new Date(ptMs);
+        // Eligibility = later of service date and points date
+        eligDate=ptDate>svcDate?ptDate:svcDate;
+      }
+
+      // Exact age on eligDate
+      let yrs=eligDate.getFullYear()-bd.getFullYear();
+      let mos=eligDate.getMonth()-bd.getMonth();
+      if(eligDate.getDate()-bd.getDate()<0) mos--;
+      if(mos<0){yrs--;mos+=12;}
+      return mos===0?(yrs+' yrs old'):(yrs+' yrs '+mos+' mo old');
+    })();
     const plusIcon=`<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#3a5a7c" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="4" x2="12" y2="20"/><line x1="4" y1="12" x2="20" y2="12"/></svg>`;
+    // Compute exact elig date from the healthAgeLabel formula for time-away string
+    const healthEligDateMs = tier.pointThreshold
+      ? (tier.pointThreshold*365.25*24*3600*1000 + new Date(inp.dob).getTime() + new Date(inp.hireDate).getTime())/2
+      : new Date(new Date(inp.hireDate).getFullYear()+tier.minConsec, new Date(inp.hireDate).getMonth(), new Date(inp.hireDate).getDate()).getTime();
+    const healthEligDate = new Date(Math.max(
+      healthEligDateMs,
+      new Date(new Date(inp.hireDate).getFullYear()+tier.minConsec, new Date(inp.hireDate).getMonth(), new Date(inp.hireDate).getDate()).getTime()
+    ));
+    const healthAlready = healthEligDate <= new Date();
+    const healthTimeAway = healthAlready ? '<strong>Already eligible.</strong>' : '<strong>' + rel(inp.dob, (() => {
+      const bd=new Date(inp.dob), e=healthEligDate;
+      let yy=e.getFullYear()-bd.getFullYear(), mm=e.getMonth()-bd.getMonth();
+      if(e.getDate()-bd.getDate()<0) mm--; if(mm<0){yy--;mm+=12;}
+      return yy+(mm/12);
+    })()) + ' away.</strong>';
+    const healthDateStr=(!healthAlready)?` <span style="color:var(--text3);font-weight:400">${shortMY(healthEligDate)}</span> ·`:'';
     html+=`<div class="i-row">
       <div class="i-icon">${plusIcon}</div>
       <div>
         <p class="i-label">District Lifetime Health Benefit</p>
-        <p class="i-val">Age ${firstHealth.age} · ${firstHealth.points.toFixed(0)} pts</p>
-        <p class="i-desc">Your tier requires ${tier.pointThreshold?'age + service ≥ '+tier.pointThreshold+' pts, ':''}<strong>${tier.minConsec} consecutive district years</strong>. Secures district-paid health coverage for life. ${isNow?'<strong>Already eligible.</strong>':'<strong>'+rel(inp.dob,firstHealth.age)+' away.</strong>'} <em style="color:var(--text3)">(LAUSD rules — verify with your district)</em></p>
+        <p class="i-val">${healthAgeLabel} ·${healthDateStr}${tier.pointThreshold?' need '+tier.pointThreshold+' pts':''}</p>
+        <p class="i-desc">Your tier requires ${tier.pointThreshold?'age + service ≥ <strong>'+tier.pointThreshold+' pts</strong>, ':''}<strong>${tier.minConsec} consecutive district years</strong>. Secures district-paid health coverage for life. ${healthTimeAway} <em style="color:var(--text3)">(LAUSD rules — verify with your district)</em></p>
       </div>
     </div>`;
   } else {
@@ -1532,8 +1798,10 @@ function update(){
   const targets100=rows.find(r=>r.pe&&r.pctSal>=100);
   const milestones=[{pct:'60%',row:targets60},{pct:'80%',row:targets80},{pct:'100%',row:targets100}];
   const salSickEl=document.getElementById('salSickSection');
-  if(salSickEl){
-    let ssHtml='';
+  const salReplaceEl=document.getElementById('salReplaceSection');
+  // ── Salary Replacement → renders into its own section (first) ──────────────
+  if(salReplaceEl){
+    let srHtml='';
     if(milestones.some(m=>m.row)){
       const mRows2=milestones.map(m=>{
         if(!m.row) return `<tr><td style="padding:7px 12px;color:var(--text3)">${m.pct} — not reached by 75</td></tr>`;
@@ -1547,7 +1815,7 @@ function update(){
           <td style="padding:7px 12px;color:var(--text2)">${yLbl2}</td>
         </tr>`;
       }).join('');
-      ssHtml+=`<div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--r);overflow:hidden">
+      srHtml=`<div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--r);overflow:hidden">
         <div style="background:#253447;padding:9px 14px;display:flex;align-items:center;justify-content:space-between;cursor:pointer" onclick="toggleSection(this)">
           <span style="color:#fff;font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase">Salary Replacement Milestones</span>
           <span style="color:rgba(255,255,255,.6);font-size:10px">▶ expand</span>
@@ -1559,13 +1827,17 @@ function update(){
               <th style="padding:5px 12px;text-align:left;font-size:9px;letter-spacing:.08em;text-transform:uppercase;color:var(--text3);font-weight:700">Age</th>
               <th style="padding:5px 12px;text-align:left;font-size:9px;letter-spacing:.08em;text-transform:uppercase;color:var(--text3);font-weight:700">Monthly</th>
               <th style="padding:5px 12px;text-align:left;font-size:9px;letter-spacing:.08em;text-transform:uppercase;color:var(--text3);font-weight:700">Annual</th>
-              <th style="padding:5px 12px;text-align:left;font-size:9px;letter-spacing:.08em;text-transform:uppercase;color:var(--text3);font-weight:700">Years Away</th>
-            </tr></thead>
-            <tbody>${mRows2}</tbody>
+              <th style="padding:5px 12px;text-align:left;font-size:9px;letter-spacing:.08em;text-transform:uppercase;color:var(--text3);font-weight:700">When</th>
+            </tr></thead><tbody>${mRows2}</tbody>
           </table>
+          <p style="font-size:9.5px;color:var(--text3);padding:8px 12px;line-height:1.5;font-style:italic">Shows when your pension replaces 60%, 80%, and 100% of your final salary. Values as of June 30 each year, before COLA.</p>
         </div>
       </div>`;
     }
+    salReplaceEl.innerHTML=srHtml;
+  }
+  if(salSickEl){
+    let ssHtml='';
     if(target){
       const days2=Math.round(inp.sickPerYear*(inp.serviceYears+Math.max(0,inp.targetAge-nowAge)));
       const cred2=target.sickCredit;
@@ -1601,18 +1873,200 @@ function update(){
       </div>
     </div>`;
     salSickEl.innerHTML=ssHtml;
+
+    // ── Social Security — appended as collapsible after health rules ──────────
+    var ssCollapsible=`<div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--r);overflow:hidden">
+      <div style="background:#253447;padding:9px 14px;display:flex;align-items:center;justify-content:space-between;cursor:pointer" onclick="toggleSection(this)">
+        <span style="color:#fff;font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase">Social Security &amp; Your CalSTRS Pension</span>
+        <span style="color:rgba(255,255,255,.6);font-size:10px">▶ expand</span>
+      </div>
+      <div style="display:none">
+        <div style="padding:10px 14px;display:flex;flex-direction:column;gap:8px">
+          <div style="background:#e8f4e8;border:1px solid #a0cca0;border-radius:var(--rs);padding:8px 11px">
+            <p style="font-size:11px;font-weight:700;color:#1a4a1a;margin-bottom:3px">✓ New Law: WEP &amp; GPO Repealed (Jan 5, 2025)</p>
+            <p style="font-size:10.5px;color:#2a5a2a;line-height:1.5">The Social Security Fairness Act permanently eliminated both the Windfall Elimination Provision (WEP) and Government Pension Offset (GPO), effective January 2024. Your CalSTRS pension no longer reduces any Social Security benefits you or your spouse may be entitled to.</p>
+          </div>
+          <p style="font-size:11px;font-weight:700;color:#1a3d5c;margin-bottom:0">Who this may affect:</p>
+          <div style="display:flex;flex-direction:column;gap:6px">
+            <div style="padding:7px 10px;background:var(--surface2);border:1px solid #c0d4ec;border-radius:var(--rs)">
+              <p style="font-size:11px;font-weight:700;color:#1a3d5c">You worked in Social Security-covered employment (private sector, second job, etc.)</p>
+              <p style="font-size:10.5px;color:var(--text2);line-height:1.5;margin-top:2px">If you earned at least 40 Social Security credits, you may now collect your full Social Security retirement benefit — no reduction for your CalSTRS pension.</p>
+            </div>
+            <div style="padding:7px 10px;background:var(--surface2);border:1px solid #c0d4ec;border-radius:var(--rs)">
+              <p style="font-size:11px;font-weight:700;color:#1a3d5c">Your spouse has Social Security</p>
+              <p style="font-size:10.5px;color:var(--text2);line-height:1.5;margin-top:2px">Even if you never paid into Social Security, you may be eligible for up to <strong>50% of your spouse's Social Security benefit</strong> — previously eliminated by the GPO. Your CalSTRS pension no longer offsets this.</p>
+            </div>
+            <div style="padding:7px 10px;background:var(--surface2);border:1px solid #c0d4ec;border-radius:var(--rs)">
+              <p style="font-size:11px;font-weight:700;color:#1a3d5c">Your spouse is deceased and had Social Security</p>
+              <p style="font-size:10.5px;color:var(--text2);line-height:1.5;margin-top:2px">You may now be eligible for up to <strong>100% of your spouse's survivor benefit</strong>. This was previously wiped out entirely by the GPO for many CalSTRS members.</p>
+            </div>
+          </div>
+          <div style="padding:7px 10px;background:#fff8e8;border:1px solid #f0c060;border-radius:var(--rs)">
+            <p style="font-size:10px;color:#7a4f10;line-height:1.5">⚠ <strong>Important:</strong> This only applies if you or your spouse paid into Social Security. CalSTRS teaching work does not count — you need 40+ quarters elsewhere. Spousal benefits require you to be at least 62 and married (or divorced after 10+ years). <a href="https://www.ssa.gov/myaccount" target="_blank" rel="noopener" style="color:#2d6da3;font-weight:600">Check your record at ssa.gov ↗</a> — consult a financial advisor for personalized planning.</p>
+          </div>
+        </div>
+      </div>
+    </div>`;
+    salSickEl.innerHTML+=ssCollapsible;
+
+    // ── Defined Benefit Supplement (DBS) explainer ───────────────────────────
+    var dbsCollapsible=`<div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--r);overflow:hidden">
+      <div style="background:#253447;padding:9px 14px;display:flex;align-items:center;justify-content:space-between;cursor:pointer" onclick="toggleSection(this)">
+        <span style="color:#fff;font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase">Defined Benefit Supplement (DBS) — Your Second Account</span>
+        <span style="color:rgba(255,255,255,.6);font-size:10px">▶ expand</span>
+      </div>
+      <div style="display:none">
+        <div style="padding:11px 14px;display:flex;flex-direction:column;gap:9px">
+          <p style="font-size:11.5px;color:var(--text2);line-height:1.6">Beyond your monthly pension, most CalSTRS members also have a <strong>Defined Benefit Supplement (DBS)</strong> account — a separate cash-balance savings account that pays out as a lump sum or annuity when you retire.</p>
+          <div style="background:#eaf4ee;border:1px solid #c0dcc8;border-radius:var(--rs);padding:9px 11px">
+            <p style="font-size:10.5px;font-weight:700;color:#1a4a2e;margin-bottom:4px">This tool does NOT estimate your DBS balance — and here's why it can't:</p>
+            <p style="font-size:10.5px;color:#2a5a2a;line-height:1.55">DBS is funded by things unique to your work history, not your base salary. Two teachers with identical pay and service can have very different DBS balances.</p>
+          </div>
+          <p style="font-size:11px;font-weight:700;color:#1a3d5c">What funds your DBS account:</p>
+          <div style="display:flex;flex-direction:column;gap:6px">
+            <div style="padding:7px 10px;background:var(--surface2);border:1px solid var(--border);border-radius:var(--rs)">
+              <p style="font-size:11px;font-weight:700;color:var(--text)">Extra-pay work beyond a full contract</p>
+              <p style="font-size:10.5px;color:var(--text2);line-height:1.5;margin-top:2px">Summer school, intersession, and any earnings for service in excess of one year of service credit. Coaching, yearbook, band director, club advisor stipends often qualify.</p>
+            </div>
+            <div style="padding:7px 10px;background:var(--surface2);border:1px solid var(--border);border-radius:var(--rs)">
+              <p style="font-size:11px;font-weight:700;color:var(--text)">Special limited-term payments (2% at 60 members)</p>
+              <p style="font-size:10.5px;color:var(--text2);line-height:1.5;margin-top:2px">One-time or limited-duration payments and certain retirement incentives are credited to DBS rather than your pension formula.</p>
+            </div>
+            <div style="padding:7px 10px;background:var(--surface2);border:1px solid var(--border);border-radius:var(--rs)">
+              <p style="font-size:11px;font-weight:700;color:var(--text)">The 2001–2010 legacy contributions</p>
+              <p style="font-size:10.5px;color:var(--text2);line-height:1.5;margin-top:2px">From Jan 2001 through Dec 2010, 2% of everyone's creditable pay (25% of the 8% contribution) was routed to DBS. If you taught during those years, you have a balance from that period regardless of extra work.</p>
+            </div>
+          </div>
+          <div style="padding:8px 11px;background:#f0f5fb;border:1px solid #c0d4ec;border-radius:var(--rs)">
+            <p style="font-size:10.5px;color:#1a3d5c;line-height:1.55">💡 <strong>How it grows:</strong> Your DBS balance earns interest at a rate set each July by the Teachers' Retirement Board, based on the average 30-year Treasury rate. For 2025–26 the rate is <strong>4.48%</strong>. The board may also declare an additional earnings credit in strong years.</p>
+          </div>
+
+          <p style="font-size:11px;font-weight:700;color:#1a3d5c;margin-top:2px">What happens at retirement — yes, it's paid out to you:</p>
+          <p style="font-size:10.5px;color:var(--text2);line-height:1.55">When you retire you choose how to receive your DBS funds. If your balance is <strong>under $3,500</strong>, you must take it as a single lump sum. If it's <strong>$3,500 or more</strong>, you pick one of three routes:</p>
+          <div style="display:flex;flex-direction:column;gap:6px">
+            <div style="padding:7px 10px;background:var(--surface2);border:1px solid var(--border);border-radius:var(--rs)">
+              <p style="font-size:11px;font-weight:700;color:var(--text)">① Lump sum</p>
+              <p style="font-size:10.5px;color:var(--text2);line-height:1.5;margin-top:2px">The full balance paid to you at once. You can take it as cash (20% federal tax withheld) or roll it over tax-deferred into CalSTRS Pension2® or another qualified plan like an IRA or 403(b).</p>
+            </div>
+            <div style="padding:7px 10px;background:var(--surface2);border:1px solid var(--border);border-radius:var(--rs)">
+              <p style="font-size:11px;font-weight:700;color:var(--text)">② Monthly annuity</p>
+              <p style="font-size:10.5px;color:var(--text2);line-height:1.5;margin-top:2px">Converts the balance into a lifetime monthly payment. Options include Member-Only, a Period-Certain annuity (3–10 years), or a 100%/75%/50% beneficiary annuity that continues to your survivor (only if you elected a Modified Benefit option on your main pension).</p>
+            </div>
+            <div style="padding:7px 10px;background:var(--surface2);border:1px solid var(--border);border-radius:var(--rs)">
+              <p style="font-size:11px;font-weight:700;color:var(--text)">③ Combination</p>
+              <p style="font-size:10.5px;color:var(--text2);line-height:1.5;margin-top:2px">Take part as a lump sum and annuitize the rest — as long as at least $3,500 remains to fund the annuity portion.</p>
+            </div>
+          </div>
+          <p style="font-size:9.5px;color:var(--text3);line-height:1.5;font-style:italic">You make this election on your Service Retirement Application, at the same time you choose your main pension option. It's separate from — but coordinated with — your monthly pension.</p>
+
+          <p style="font-size:11px;font-weight:700;color:#1a3d5c;margin-top:2px">What a DBS balance is worth as a monthly annuity:</p>
+          <p style="font-size:10.5px;color:var(--text2);line-height:1.55">If you convert your DBS balance to a lifetime monthly annuity (Member-Only), here's roughly what different balances produce at retirement. Higher retirement ages pay slightly more per dollar.</p>
+          <div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;font-size:11px">
+            <thead><tr style="background:var(--surface2)">
+              <th style="padding:6px 10px;text-align:left;font-size:9px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--text3)">DBS Balance</th>
+              <th style="padding:6px 10px;text-align:right;font-size:9px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--text3)">Monthly @ 55</th>
+              <th style="padding:6px 10px;text-align:right;font-size:9px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:#2d6da3">Monthly @ 60</th>
+              <th style="padding:6px 10px;text-align:right;font-size:9px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--text3)">Monthly @ 65</th>
+            </tr></thead><tbody>
+              <tr style="border-top:1px solid var(--border)"><td style="padding:6px 10px;font-family:'DM Mono',monospace;font-weight:600">$10,000</td><td style="padding:6px 10px;text-align:right;font-family:'DM Mono',monospace;color:var(--text2)">$73</td><td style="padding:6px 10px;text-align:right;font-family:'DM Mono',monospace;font-weight:700;color:#2d6da3">$77</td><td style="padding:6px 10px;text-align:right;font-family:'DM Mono',monospace;color:var(--text2)">$82</td></tr>
+              <tr style="border-top:1px solid var(--border)"><td style="padding:6px 10px;font-family:'DM Mono',monospace;font-weight:600">$25,000</td><td style="padding:6px 10px;text-align:right;font-family:'DM Mono',monospace;color:var(--text2)">$183</td><td style="padding:6px 10px;text-align:right;font-family:'DM Mono',monospace;font-weight:700;color:#2d6da3">$192</td><td style="padding:6px 10px;text-align:right;font-family:'DM Mono',monospace;color:var(--text2)">$205</td></tr>
+              <tr style="border-top:1px solid var(--border)"><td style="padding:6px 10px;font-family:'DM Mono',monospace;font-weight:600">$50,000</td><td style="padding:6px 10px;text-align:right;font-family:'DM Mono',monospace;color:var(--text2)">$365</td><td style="padding:6px 10px;text-align:right;font-family:'DM Mono',monospace;font-weight:700;color:#2d6da3">$384</td><td style="padding:6px 10px;text-align:right;font-family:'DM Mono',monospace;color:var(--text2)">$410</td></tr>
+              <tr style="border-top:1px solid var(--border)"><td style="padding:6px 10px;font-family:'DM Mono',monospace;font-weight:600">$75,000</td><td style="padding:6px 10px;text-align:right;font-family:'DM Mono',monospace;color:var(--text2)">$548</td><td style="padding:6px 10px;text-align:right;font-family:'DM Mono',monospace;font-weight:700;color:#2d6da3">$576</td><td style="padding:6px 10px;text-align:right;font-family:'DM Mono',monospace;color:var(--text2)">$615</td></tr>
+              <tr style="border-top:1px solid var(--border)"><td style="padding:6px 10px;font-family:'DM Mono',monospace;font-weight:600">$100,000</td><td style="padding:6px 10px;text-align:right;font-family:'DM Mono',monospace;color:var(--text2)">$730</td><td style="padding:6px 10px;text-align:right;font-family:'DM Mono',monospace;font-weight:700;color:#2d6da3">$768</td><td style="padding:6px 10px;text-align:right;font-family:'DM Mono',monospace;color:var(--text2)">$820</td></tr>
+              <tr style="border-top:1px solid var(--border)"><td style="padding:6px 10px;font-family:'DM Mono',monospace;font-weight:600">$125,000</td><td style="padding:6px 10px;text-align:right;font-family:'DM Mono',monospace;color:var(--text2)">$913</td><td style="padding:6px 10px;text-align:right;font-family:'DM Mono',monospace;font-weight:700;color:#2d6da3">$960</td><td style="padding:6px 10px;text-align:right;font-family:'DM Mono',monospace;color:var(--text2)">$1,025</td></tr>
+              <tr style="border-top:1px solid var(--border)"><td style="padding:6px 10px;font-family:'DM Mono',monospace;font-weight:600">$150,000</td><td style="padding:6px 10px;text-align:right;font-family:'DM Mono',monospace;color:var(--text2)">$1,095</td><td style="padding:6px 10px;text-align:right;font-family:'DM Mono',monospace;font-weight:700;color:#2d6da3">$1,152</td><td style="padding:6px 10px;text-align:right;font-family:'DM Mono',monospace;color:var(--text2)">$1,230</td></tr>
+            </tbody>
+          </table></div>
+          <p style="font-size:9.5px;color:var(--text3);line-height:1.5;font-style:italic">Official CalSTRS DBS Member-Only annuity estimates (as of Sept 2024). This is on top of your main monthly pension. A Period-Certain annuity (3–10 yrs) pays more per month but for a limited time. Beneficiary annuities pay slightly less to provide survivor coverage.</p>
+
+          <div style="padding:8px 11px;background:#fff8e8;border:1px solid #f0c060;border-radius:var(--rs)">
+            <p style="font-size:10.5px;color:#7a4f10;line-height:1.55">📄 <strong>Find your actual balance:</strong> Your DBS balance appears on your annual Retirement Progress Report at <a href="https://myCalSTRS.com" target="_blank" rel="noopener" style="color:#2d6da3;font-weight:700">myCalSTRS.com ↗</a>. You can request an annuity estimate once the balance reaches $3,500.</p>
+          </div>
+        </div>
+      </div>
+    </div>`;
+    salSickEl.innerHTML+=dbsCollapsible;
+
+    // ── Retirement Timing & Planning Insights (from LAUSD retiree guide) ────────
+    var timingCollapsible=`<div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--r);overflow:hidden">
+      <div style="background:#253447;padding:9px 14px;display:flex;align-items:center;justify-content:space-between;cursor:pointer" onclick="toggleSection(this)">
+        <span style="color:#fff;font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase">Retirement Timing &amp; Planning Insights</span>
+        <span style="color:rgba(255,255,255,.6);font-size:10px">▶ expand</span>
+      </div>
+      <div style="display:none">
+        <div style="padding:11px 14px;display:flex;flex-direction:column;gap:10px">
+          <p style="font-size:11.5px;color:var(--text2);line-height:1.6">Key timing decisions that affect how much you receive and whether you keep your lifetime health benefit. This is planning insight — for the actual forms and process, use the official CalSTRS and LAUSD resources.</p>
+
+          <div style="background:#fff2f0;border:1px solid #f0c0b8;border-radius:var(--rs);padding:9px 11px">
+            <p style="font-size:11px;font-weight:700;color:#8b2a1a;margin-bottom:3px">⚠ The consecutive-days rule — protect your health benefit</p>
+            <p style="font-size:10.5px;color:#8b2a1a;line-height:1.55">Your LAUSD resignation date and your CalSTRS retirement date must be <strong>two consecutive calendar days</strong> (weekends and holidays count). Example: resign June 12, retire June 13. A gap can cost you your lifetime health eligibility. Your "last day of work" on the CalSTRS application doesn't need to be an actual work day — it can be any calendar day.</p>
+          </div>
+
+          <p style="font-size:11px;font-weight:700;color:#1a3d5c">Which day of the month? The key rules</p>
+          <div style="background:#f0f5fb;border:1px solid #c0d4ec;border-radius:var(--rs);padding:9px 11px">
+            <p style="font-size:10.5px;color:#1a3d5c;line-height:1.6"><strong>Your age factor is set by your age on the LAST DAY of your retirement month</strong> — not the exact date you pick. So retiring June 1, June 15, or June 30 all use your age as of June 30 for the age factor. Picking the 1st vs. the 30th of the same month doesn't change your age factor.</p>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:6px">
+            <div style="padding:7px 10px;background:var(--surface2);border:1px solid var(--border);border-radius:var(--rs)">
+              <p style="font-size:11px;font-weight:700;color:var(--text)">Retire earlier in the month to start pay sooner</p>
+              <p style="font-size:10.5px;color:var(--text2);line-height:1.5;margin-top:2px">Your first benefit is calculated from your retirement date through the end of that month. Since the age factor is fixed to the month's last day anyway, retiring earlier in the month (e.g. June 2 vs June 30) can mean a bit more first-month benefit — with no downside to your age factor. Your retirement date must be at least one day after your last day of paid work.</p>
+            </div>
+            <div style="padding:7px 10px;background:var(--surface2);border:1px solid var(--border);border-radius:var(--rs)">
+              <p style="font-size:11px;font-weight:700;color:var(--text)">Crossing into a new month can bump your age factor</p>
+              <p style="font-size:10.5px;color:var(--text2);line-height:1.5;margin-top:2px">If your birthday falls early in a month, retiring in that month (vs. the month before) can capture a higher age factor. Example: a June 15 vs. July 1 retirement lands in different months — if your birthday is late June, the July retirement uses your now-older age. Check both around your birthday.</p>
+            </div>
+            <div style="padding:7px 10px;background:var(--surface2);border:1px solid var(--border);border-radius:var(--rs)">
+              <p style="font-size:11px;font-weight:700;color:var(--text)">Last day of instruction vs. June 30</p>
+              <p style="font-size:10.5px;color:var(--text2);line-height:1.5;margin-top:2px">Working through the last day of instruction ensures all your contracted work days are reported for a full year of service credit. Many retire June 30 (end of the school year) so their last day of work and full year of credit both land cleanly — then CalSTRS benefits begin July 1.</p>
+            </div>
+          </div>
+
+          <p style="font-size:11px;font-weight:700;color:#1a3d5c">When in the year should you retire?</p>
+          <div style="display:flex;flex-direction:column;gap:6px">
+            <div style="padding:7px 10px;background:var(--surface2);border:1px solid var(--border);border-radius:var(--rs)">
+              <p style="font-size:11px;font-weight:700;color:var(--text)">Wait for your birthday-month age factor bump</p>
+              <p style="font-size:10.5px;color:var(--text2);line-height:1.5;margin-top:2px">Your age factor steps up every year on your birthday month, not on June 30. Retiring even a month or two later — after your birthday — can permanently raise your benefit. If you're close to a bump, the small wait pays for life.</p>
+            </div>
+            <div style="padding:7px 10px;background:var(--surface2);border:1px solid var(--border);border-radius:var(--rs)">
+              <p style="font-size:11px;font-weight:700;color:var(--text)">Before vs. after the max age factor</p>
+              <p style="font-size:10.5px;color:var(--text2);line-height:1.5;margin-top:2px">Until you hit the maximum age factor (2.4%), each additional year raises your pension substantially. After the max, each extra year adds a flatter ~2.4% — still growth, but the biggest gains come <em>before</em> you reach the cap.</p>
+            </div>
+            <div style="padding:7px 10px;background:var(--surface2);border:1px solid var(--border);border-radius:var(--rs)">
+              <p style="font-size:11px;font-weight:700;color:var(--text)">Summer earnings can still add credit</p>
+              <p style="font-size:10.5px;color:var(--text2);line-height:1.5;margin-top:2px">Retiring after summer school or intersession can add service credit and feed your DBS account. There's no single "right" month — end of school year, mid-year, or after summer can each make sense depending on your goals.</p>
+            </div>
+            <div style="padding:7px 10px;background:var(--surface2);border:1px solid var(--border);border-radius:var(--rs)">
+              <p style="font-size:11px;font-weight:700;color:var(--text)">The decision is reversible — until it isn't</p>
+              <p style="font-size:10.5px;color:var(--text2);line-height:1.5;margin-top:2px">Your CalSTRS retirement application can be changed if you reconsider. But your LAUSD resignation (Form 8152) generally <strong>cannot be cancelled</strong> without HR approval, which isn't guaranteed. Be certain before you file the resignation.</p>
+            </div>
+          </div>
+
+          <div style="background:#fff8e8;border:1px solid #f0c060;border-radius:var(--rs);padding:9px 11px">
+            <p style="font-size:11px;font-weight:700;color:#7a4f10;margin-bottom:3px">Medicare warning if you're 65+ (or turning 65)</p>
+            <p style="font-size:10.5px;color:#7a4f10;line-height:1.55">Enroll in <strong>Medicare Part A and Part B only</strong>. <strong>Never</strong> sign up for Part C or Part D on your own — those are provided by LAUSD's Medicare Advantage plan (your free lifetime benefit). Enrolling in an outside C or D plan <strong>cancels your LAUSD coverage</strong>. Your Medicare effective date is the first of the month after you resign (e.g. resign 6/12 → effective 7/1).</p>
+          </div>
+
+          <div style="background:#f0f5fb;border:1px solid #c0d4ec;border-radius:var(--rs);padding:9px 11px">
+            <p style="font-size:11px;font-weight:700;color:#1a3d5c;margin-bottom:3px">A few things to handle before your last day</p>
+            <p style="font-size:10.5px;color:var(--text2);line-height:1.55">Your LAUSD email and Google Drive access end on your resignation date — <strong>save pay stubs, W-2s, and any Drive files first</strong>, and move any subscriptions tied to your LAUSD account to a personal email. Expect a health-benefits termination letter and COBRA forms in the mail; if you qualify for lifetime benefits and filed on time, the switch to retiree coverage is seamless and you can ignore COBRA. You'll likely receive additional pay after you resign — request those pay stubs from LAUSD Payroll.</p>
+          </div>
+
+          <div style="background:#eaf4ee;border:1px solid #c0dcc8;border-radius:var(--rs);padding:9px 11px">
+            <p style="font-size:11px;font-weight:700;color:#1a4a2e;margin-bottom:3px">Working after retirement</p>
+            <p style="font-size:10.5px;color:#2a5a2a;line-height:1.55">No restrictions if you work in the private sector or outside California. If you return to a <strong>CalSTRS-covered position</strong> — including substitute teaching — there's a 180-day separation-from-service waiting period and an annual earnings limit before your pension is affected. Know the cap before taking that work.</p>
+          </div>
+
+          <p style="font-size:9.5px;color:var(--text3);line-height:1.5;font-style:italic">Insights adapted from a community LAUSD retiree guide. Always verify specifics with CalSTRS (800-228-5453) and LAUSD Benefits (benefits@lausd.net) — and schedule your two free CalSTRS planning sessions well ahead of retiring.</p>
+        </div>
+      </div>
+    </div>`;
+    salSickEl.innerHTML+=timingCollapsible;
   }
   // Next step note
   html+=`<p style="margin-top:0;padding:10px 12px;background:var(--surface2);border-radius:var(--rs);font-size:12.5px;color:var(--text);font-weight:700;line-height:1.5;border-left:3px solid #2d6da3">📋 Next step: Review the schedule below and consider your full financial picture before choosing a retirement age. Use these insights to prepare for any conversation with a financial advisor. Always verify directly with CalSTRS: <a href="https://www.calstrs.com/files/44f960e51/MemberHandbook2026.pdf" target="_blank" rel="noopener" style="color:#2d6da3;font-weight:700">Member Handbook ↗</a> · <a href="https://www.calstrs.com/files/1105a6846/UnderstandingTheFormula2025.pdf" target="_blank" rel="noopener" style="color:#2d6da3;font-weight:700">Understanding the Formula ↗</a> · <a href="https://forms.calstrs.com/CalSTRSOnlineFormRequestWebUI/Root/Pages/Order.aspx" target="_blank" rel="noopener" style="color:#2d6da3;font-weight:700">All CalSTRS Forms ↗</a></p>`;
-
-  // WEP / GPO callout — always shown as informational
-  html+=`<div class="i-row" style="background:#f0f5fb;border-color:#b8d4ea">
-    <div class="i-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#2d6da3" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg></div>
-    <div>
-      <p class="i-label" style="color:#1a3d5c">Social Security — WEP &amp; GPO</p>
-      <p class="i-val" style="color:#1a3d5c;font-size:13px">Most CalSTRS teachers do not pay into Social Security</p>
-      <p class="i-desc" style="margin-top:4px">If you have Social Security credits from prior employment or a second job, two federal rules may significantly reduce what you receive: <strong>WEP</strong> (Windfall Elimination Provision) can reduce your own Social Security benefit by up to ~$600/mo; <strong>GPO</strong> (Government Pension Offset) can reduce or eliminate spousal or survivor Social Security benefits by two-thirds of your CalSTRS pension. These are commonly overlooked in retirement planning. <a href="https://www.ssa.gov/benefits/retirement/planner/gpo-calc.html" target="_blank" rel="noopener" style="color:#2d6da3">Check your WEP/GPO impact at SSA.gov ↗</a></p>
-    </div>
+  html+=`<div style="padding:9px 12px;background:#e8f7f6;border:1.5px solid #0f7670;border-radius:var(--rs);display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap">
+    <p style="font-size:11px;color:#0a3d3a;line-height:1.55;flex:1;min-width:200px">💡 <strong style="color:#0a3d3a">This is a high-level planning tool.</strong> Calculations assume a <strong style="color:#0a3d3a">June 30 retirement date</strong> for each target age. <span style="text-decoration:underline;font-weight:600">For a more precise estimate based on your actual retirement date, use the detailed analysis below</span> — <em>most useful if you are within 5 years of retirement.</em></p>
+    <button onclick="selectView('dt')" style="padding:8px 14px;background:#0f7670;color:#fff;border:none;border-radius:var(--rs);font-size:11px;font-weight:700;cursor:pointer;white-space:nowrap;flex-shrink:0">→ Detailed analysis</button>
   </div>`;
 
   document.getElementById('insightBody').innerHTML=html;
@@ -1636,12 +2090,36 @@ function update(){
       if(firstHealth&&nowAge>=firstHealth.age){
         statusHtml=`<div class="lr-status">✓ Lifetime health benefit already met</div>`;
       } else if(firstHealth){
+        // Compute exact eligibility date — same formula as insight card
+        const _YR=365.25*24*3600*1000;
+        const _bd=inp.dob?new Date(inp.dob):null;
+        const _hd=inp.hireDate?new Date(inp.hireDate):null;
+        let _exactEligAge=firstHealth.age; // fallback to whole age
+        let _exactEligMos=0;
+        let _exactEligLabel='Age '+firstHealth.age;
+        let _exactEligTimeAway=rel(inp.dob,firstHealth.age);
+        if(_bd&&_hd){
+          const _svcDate=new Date(_hd.getFullYear()+tier.minConsec,_hd.getMonth(),_hd.getDate());
+          let _eligDate=_svcDate;
+          if(tier.pointThreshold){
+            const _ptMs=(tier.pointThreshold*_YR+_bd.getTime()+_hd.getTime())/2;
+            const _ptDate=new Date(_ptMs);
+            if(_ptDate>_svcDate) _eligDate=_ptDate;
+          }
+          let _ey=_eligDate.getFullYear()-_bd.getFullYear();
+          let _em=_eligDate.getMonth()-_bd.getMonth();
+          if(_eligDate.getDate()-_bd.getDate()<0) _em--;
+          if(_em<0){_ey--;_em+=12;}
+          _exactEligAge=_ey; _exactEligMos=_em;
+          _exactEligLabel=_em===0?(_ey+' yrs'):(_ey+' yrs '+_em+' mo');
+          _exactEligTimeAway=rel(inp.dob,_ey+(_em/12));
+        }
         const pPct=tier.pointThreshold?Math.min(100,(curPts/tier.pointThreshold)*100):null;
         const cPct=Math.min(100,(curD/tier.minConsec)*100);
         statusHtml=`<div class="lr-status">`;
         if(tier.pointThreshold){statusHtml+=`Points: ${curPts.toFixed(1)} of ${tier.pointThreshold}<div class="prog-wrap"><div class="prog-fill pf-blue" style="width:${pPct.toFixed(0)}%"></div></div>`;}
         statusHtml+=`Consecutive service: ${curD.toFixed(1)} of ${tier.minConsec} yrs<div class="prog-wrap"><div class="prog-fill pf-green" style="width:${cPct.toFixed(0)}%"></div></div>`;
-        statusHtml+=`Eligible at age ${firstHealth.age} (${rel(inp.dob,firstHealth.age)})</div>`;
+        statusHtml+=`Eligible at age ${_exactEligLabel} (${_exactEligTimeAway})</div>`;
       } else {
         statusHtml=`<div class="lr-status">⚠ Cannot reach threshold by age 75 with current inputs</div>`;
       }
@@ -1654,8 +2132,31 @@ function update(){
   if(rulesTierEl) rulesTierEl.textContent='Your tier: '+(tier.tier||tier.label||'').split('(')[0].trim();
   const rulesInnerEl=document.getElementById('rulesInner');
   if(rulesInnerEl){
+    // Compute exact elig date for summary banner
+    const _YR2=365.25*24*3600*1000;
+    const _bd2=inp.dob?new Date(inp.dob):null;
+    const _hd2=inp.hireDate?new Date(inp.hireDate):null;
+    let _eligLabel2=firstHealth?('Age '+firstHealth.age):'';
+    let _eligTime2=firstHealth?rel(inp.dob,firstHealth.age):'';
+    let _alreadyElig2=firstHealth&&nowAge>=firstHealth.age;
+    if(firstHealth&&_bd2&&_hd2){
+      const _svcDate2=new Date(_hd2.getFullYear()+tier.minConsec,_hd2.getMonth(),_hd2.getDate());
+      let _eligDate2=_svcDate2;
+      if(tier.pointThreshold){
+        const _ptMs2=(tier.pointThreshold*_YR2+_bd2.getTime()+_hd2.getTime())/2;
+        const _ptDate2=new Date(_ptMs2);
+        if(_ptDate2>_svcDate2) _eligDate2=_ptDate2;
+      }
+      let _ey2=_eligDate2.getFullYear()-_bd2.getFullYear();
+      let _em2=_eligDate2.getMonth()-_bd2.getMonth();
+      if(_eligDate2.getDate()-_bd2.getDate()<0) _em2--;
+      if(_em2<0){_ey2--;_em2+=12;}
+      _eligLabel2=_em2===0?(_ey2+' yrs'):(_ey2+' yrs '+_em2+' mo');
+      _eligTime2=rel(inp.dob,_ey2+(_em2/12));
+      _alreadyElig2=_eligDate2<=new Date();
+    }
     const eligSummary = firstHealth
-      ? `<div style="padding:8px 14px;background:#eaf4ee;border-bottom:1px solid #c0dcc8;font-size:11px;color:#1a4a2e;font-weight:600;line-height:1.5">✓ Based on your inputs, you would be eligible for district-paid health benefits at <strong>age ${firstHealth.age}</strong>${nowAge>=firstHealth.age?' — <strong>already eligible</strong>':' ('+rel(inp.dob,firstHealth.age)+')'}.</div>`
+      ? `<div style="padding:8px 14px;background:#eaf4ee;border-bottom:1px solid #c0dcc8;font-size:11px;color:#1a4a2e;font-weight:600;line-height:1.5">✓ Based on your inputs, you would be eligible for district-paid health benefits at <strong>${_eligLabel2}</strong>${_alreadyElig2?' — <strong>already eligible</strong>':' ('+_eligTime2+')'}.</div>`
       : `<div style="padding:8px 14px;background:#fff2f0;border-bottom:1px solid #f0c0b8;font-size:11px;color:#8b2a1a;line-height:1.5">⚠ Based on your inputs, you would <strong>not meet district health eligibility</strong> before age 75. Verify with HR.</div>`;
     rulesInnerEl.innerHTML=`<div style="padding:8px 14px 4px;background:#fff8e8;border-bottom:1px solid #f0c060;font-size:10.5px;color:#7a4f10;line-height:1.5">⚠ <strong>LAUSD health benefit tiers only.</strong> These eligibility rules apply to certificated employees of the Los Angeles Unified School District. Health benefits vary by district and are collectively bargained — additional districts will be added over time. Verify your district's specific rules with your HR department.</div>`+eligSummary+rHtml;
   }
@@ -1667,6 +2168,14 @@ function update(){
   renderBreakEven(rows, target, firstPen, firstMaxAF);
   renderCOLA(target);
   renderBenQuick(target);
+  // Reset precision retirement date when target age or DOB changes
+  if(window._precLastTarget!==inp.targetAge||window._precLastDob!==inp.dob){
+    window._precRetYr=null;
+    window._precRetMon=null;
+    window._precLastTarget=inp.targetAge;
+    window._precLastDob=inp.dob;
+  }
+  renderPrecision(inp, rows);
 
   // Update beneficiary page link with current target age data
   var benLink=document.getElementById('benLink');
@@ -1940,7 +2449,16 @@ function resetToDefaults(){
   const nbCb2=document.getElementById('noBeneficiaryCheck');
   if(nbCb2){ nbCb2.checked=false; }
   if(benDobEl){ benDobEl.disabled=false; benDobEl.style.opacity=''; }
+  // Clear any precision mode date/salary overrides too
+  window._precRetMon=null;
+  window._precRetYr=null;
+  window._precSals=null;
+  window._precSalOpen=false;
+  window._precSalMode='auto';
+  window._precManualSals=null;
+  window._waitMode='5yr';
   update();
+  if(typeof selectView==='function') selectView('hl');
 }
 
 function toggleAdvInputs(btn){
@@ -2509,6 +3027,224 @@ async function generatePDF(){
 }
 // ──────────────────────────────────────────────────────────────────
 
+async function generateDetailedPDF(){
+  const D=window._precPdfData;
+  if(!D){ alert('Please open the Detailed View first.'); return; }
+  const inp=D.inp;
+  const {jsPDF}=window.jspdf;
+  const doc=new jsPDF({orientation:'portrait',unit:'pt',format:'letter'});
+  const PW=612, PH=792, ML=40, MR=40, MT=40, CW=PW-ML-MR;
+  const COL={navy:[26,35,50],teal:[15,118,112],green:[42,122,90],gold:[184,134,11],slate:[61,78,99],light:[240,247,246],border:[192,220,216],white:[255,255,255],text:[26,35,50],text2:[61,78,99],text3:[122,138,154],purple:[122,74,154]};
+  const setFill=c=>doc.setFillColor(...c), setStroke=c=>doc.setDrawColor(...c), setTxt=c=>doc.setTextColor(...c);
+  const money=n=>'$'+Math.round(n).toLocaleString();
+  let cy=MT;
+
+  // Header
+  setFill(COL.navy); doc.rect(0,0,PW,56,'F');
+  setFill(COL.teal); doc.rect(0,53,PW,3,'F');
+  doc.setFont('helvetica','normal'); doc.setFontSize(7.5); setTxt([160,200,220]);
+  doc.text('CALIFORNIA STATE TEACHERS RETIREMENT SYSTEM  |  DETAILED RETIREMENT ANALYSIS',ML,16);
+  setTxt(COL.white); doc.setFont('helvetica','bold'); doc.setFontSize(17);
+  doc.text('Detailed Retirement Analysis',ML,38);
+  doc.setFont('helvetica','normal'); doc.setFontSize(9); setTxt([200,220,235]);
+  doc.text('Retirement date: '+D.retLabel+'  ·  Age '+D.exactYrs+'y '+D.exactMos+'m',ML,50);
+  doc.setFontSize(7.5); setTxt([200,225,240]);
+  doc.text('Generated: '+new Date().toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'}),PW-MR,20,{align:'right'});
+  setTxt([160,190,210]);
+  doc.text('Not affiliated with CalSTRS or any school district',PW-MR,32,{align:'right'});
+  doc.text('For estimation purposes only — not financial advice',PW-MR,42,{align:'right'});
+  cy=70;
+
+  const fmtPloc=p=>(p*100).toFixed(1)+'%';
+
+  // ── ASSUMPTIONS BOX (mirrors main PDF) ──
+  setFill(COL.light); doc.roundedRect(ML,cy,CW,130,6,6,'F');
+  setTxt(COL.navy); doc.setFont('helvetica','bold'); doc.setFontSize(8);
+  doc.text('YOUR ASSUMPTIONS',ML+10,cy+14);
+  const tierLbl=D.tier?(D.tier.label||'').split('–')[0].trim():'—';
+  const asmCols=[[
+    ['Date of Birth', inp.dob||'—'],
+    ['District Hire Date', inp.hireDate||'—'],
+    ['CalSTRS Formula', (inp.formula==='2at62')?'2% at 62':'2% at 60'],
+    ['Current Salary', money(inp.salary||0)],
+  ],[
+    ['Salary Growth Rate', (inp.salaryGrowth||0)+'% / yr'],
+    ['Current Service Credit', (inp.serviceYears||0)+' years'],
+    ['Retirement Date', D.retLabel],
+    ['Unused Sick Days / Yr', (inp.sickPerYear||0).toFixed(1)+' days'],
+  ],[
+    ['Base Days (Full-Time)', (inp.baseDays||182)+' days'],
+    ['Age at Retirement', D.exactYrs+'y '+D.exactMos+'m'],
+    ['Health Tier', tierLbl.length>18?tierLbl.slice(0,18)+'…':tierLbl],
+    ['Estimate Date', new Date().toLocaleDateString()],
+  ]];
+  const asmColW=CW/3, asmStart=cy+24;
+  asmCols.forEach((col,ci)=>{
+    col.forEach((row,ri)=>{
+      const x=ML+10+ci*asmColW, y=asmStart+ri*20;
+      setTxt(COL.text3); doc.setFontSize(7); doc.setFont('helvetica','bold');
+      doc.text(String(row[0]).toUpperCase(),x,y);
+      setTxt(COL.text); doc.setFontSize(9); doc.setFont('helvetica','normal');
+      doc.text(String(row[1]),x,y+10);
+    });
+  });
+  cy+=140;
+
+  // ── KEY METRICS GRID (mirrors main PDF) ──
+  setTxt(COL.navy); doc.setFont('helvetica','bold'); doc.setFontSize(8);
+  doc.text('KEY METRICS AT '+D.retLabel.toUpperCase()+'  ·  AGE '+D.exactYrs+'Y '+D.exactMos+'M',ML,cy+12);
+  cy+=18;
+  const metrics=(D.isEligible&&D.monthlyBen>0)?[
+    {label:'Monthly Benefit',val:money(D.monthlyBen),sub:'pension payment',col:COL.teal},
+    {label:'Annual Benefit',val:money(D.annualBen),sub:'per year',col:COL.navy},
+    {label:'% of Salary',val:fmtPloc(D.pctSal),sub:'salary replaced',col:COL.green},
+    {label:'Age Factor',val:D.af?(D.af*100).toFixed(3)+'%':'—',sub:(inp.formula==='2at62')?'2% at 62':'2% at 60',col:COL.slate},
+    {label:'Total Service Credit',val:D.svcAtRet.toFixed(2)+' yrs',sub:'+'+(D.sickCredit||0).toFixed(2)+' sick leave',col:COL.slate},
+    {label:'Final Compensation',val:money(D.finalComp),sub:D.use1yr?'single highest yr':'3-yr average',col:COL.slate},
+  ]:[{label:'Status',val:'Not eligible',sub:'at this retirement date',col:[139,74,58]}];
+  const mW=(CW-10)/3, mH=56;
+  metrics.forEach((m,i)=>{
+    const col=i%3, row=Math.floor(i/3);
+    const x=ML+col*(mW+5), y=cy+row*(mH+6);
+    setFill(COL.light); doc.roundedRect(x,y,mW,mH,5,5,'F');
+    doc.setFillColor(...m.col); doc.rect(x,y,3,mH,'F');
+    setTxt(m.col); doc.setFont('helvetica','bold'); doc.setFontSize(7);
+    doc.text(String(m.label).toUpperCase(),x+11,y+16);
+    setTxt(COL.text); doc.setFont('helvetica','bold'); doc.setFontSize(15);
+    doc.text(String(m.val),x+11,y+35);
+    setTxt(COL.text3); doc.setFont('helvetica','normal'); doc.setFontSize(7);
+    doc.text(String(m.sub),x+11,y+48);
+  });
+  cy+=(metrics.length>1?2:1)*(mH+6)+10;
+  doc.setFont('helvetica','italic'); doc.setFontSize(7.5); setTxt(COL.text3);
+  doc.text('All figures are Member-Only estimates before COLA. Values reflect your exact retirement date, not a June 30 assumption.',ML,cy);
+  cy+=18;
+
+  // Helper to draw a wait table
+  function MS(i){return['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][i];}
+  function getAFlocal(a,s){return getAF(a,s,inp.formula||'2at60',inp.dob);}
+  function computeRow(rDate){
+    const bd=inp.dob?new Date(inp.dob):null;
+    let rEY=0,rEM=0;
+    if(bd){rEY=rDate.getFullYear()-bd.getFullYear();rEM=rDate.getMonth()-bd.getMonth();if(rDate.getDate()-bd.getDate()<0)rEM--;if(rEM<0){rEY--;rEM+=12;}}
+    const rYrsToRet=Math.max(0,(rDate-D.nowExact)/(365.25*24*3600*1000));
+    const rYrsWorked=inp.serviceYears+rYrsToRet;
+    const rSick=(inp.sickPerYear||0)*rYrsWorked/(inp.baseDays||182);
+    const rSvc=Math.min(55,rYrsWorked+rSick);
+    const rSal=Math.round((inp.salary||85000)*Math.pow(1+D.g,rYrsToRet));
+    const rAF=getAFlocal(rEY+(rEM/12),rSvc);
+    const rElig=penElig(rEY+(rEM/12),rSvc,inp.formula||'2at60');
+    const rFC=D.use1yr?rSal:(rSal+rSal/Math.pow(1+D.g,1)+rSal/Math.pow(1+D.g,2))/3;
+    const rBen=rAF&&rElig?Math.round(rAF*rSvc*rFC/12):0;
+    return {label:MS(rDate.getMonth())+' '+(rDate.getMonth()===5?30:1)+', '+rDate.getFullYear(), age:rEY+'y '+rEM+'m', af:rAF?(rAF*100).toFixed(3)+'%':'—', svc:rSvc.toFixed(2), ben:rElig?money(rBen):'not eligible', benNum:rBen, elig:rElig};
+  }
+
+  function drawWaitTable(title, rows){
+    doc.setFont('helvetica','bold'); doc.setFontSize(10); setTxt(COL.navy);
+    doc.text(title,ML,cy); cy+=6;
+    setStroke(COL.border); doc.line(ML,cy,ML+CW,cy); cy+=4;
+    // The chosen row (idx 0) is the baseline for the change column
+    const baseBen=(rows[0]&&rows[0].elig)?rows[0].benNum:0;
+    // column x-positions (CW≈532): date, age, AF, service, monthly, vs chosen, annual
+    const cX=[ML+4, ML+108, ML+156, ML+214, ML+262, ML+340, ML+430];
+    // header
+    doc.setFont('helvetica','bold'); doc.setFontSize(7); setTxt(COL.text3);
+    doc.text('RETIRE DATE',cX[0],cy+8);
+    doc.text('AGE',cX[1],cy+8);
+    doc.text('AGE FACTOR',cX[2],cy+8);
+    doc.text('SERVICE',cX[3],cy+8);
+    doc.text('MONTHLY',cX[4],cy+8);
+    doc.text('VS CHOSEN',cX[5],cy+8);
+    doc.text('ANNUAL',cX[6],cy+8);
+    cy+=13;
+    doc.setFontSize(8.5);
+    rows.forEach((r,idx)=>{
+      if(idx===0){ setFill([234,242,251]); doc.rect(ML,cy-2,CW,14,'F'); }
+      setTxt(idx===0?COL.teal:COL.text2);
+      doc.setFont('helvetica',idx===0?'bold':'normal');
+      doc.text(r.label+(idx===0?'  (chosen)':''),cX[0],cy+8);
+      doc.text(r.age,cX[1],cy+8);
+      doc.text(r.af,cX[2],cy+8);
+      doc.text(r.svc,cX[3],cy+8);
+      doc.text(r.ben,cX[4],cy+8);
+      // vs chosen (change in monthly vs the chosen baseline)
+      if(idx===0){
+        setTxt(COL.text3); doc.text('—',cX[5],cy+8);
+      } else if(r.elig){
+        const diff=r.benNum-baseBen;
+        const diffStr=(diff>=0?'+':'−')+'$'+Math.abs(diff).toLocaleString();
+        setTxt(diff>=0?COL.green:[139,74,58]);
+        doc.text(diffStr,cX[5],cy+8);
+      } else {
+        setTxt(COL.text3); doc.text('—',cX[5],cy+8);
+      }
+      // annual
+      setTxt(idx===0?COL.teal:COL.text2);
+      doc.setFont('helvetica',idx===0?'bold':'normal');
+      doc.text(r.elig?('$'+(r.benNum*12).toLocaleString()):'—',cX[6],cy+8);
+      cy+=14;
+      setStroke(COL.border); doc.line(ML,cy,ML+CW,cy);
+    });
+    cy+=14;
+  }
+
+  // 5-Year view
+  const rows5=[];
+  for(let wi=0;wi<=5;wi++){
+    const wMon=D.startMon, wYr=D.startYr+wi, wDay=wMon===6?30:1;
+    rows5.push(computeRow(new Date(wYr,wMon-1,wDay)));
+  }
+  if(cy>560){ doc.addPage(); cy=MT; }
+  drawWaitTable('What If I Wait? — 5-Year View',rows5);
+
+  // 12-Month view
+  const rows12=[];
+  for(let mi=0;mi<=11;mi++){
+    const mBase=new Date(D.retYear,D.retMon-1+mi,1);
+    const mIsJun=mBase.getMonth()===5, mDay=mIsJun?30:1;
+    rows12.push(computeRow(new Date(mBase.getFullYear(),mBase.getMonth(),mDay)));
+  }
+  if(cy>620){ doc.addPage(); cy=MT; }
+  drawWaitTable('What If I Wait? — 12-Month View',rows12);
+
+  // Beneficiary section
+  const benDobEl=document.getElementById('benDobMain');
+  if(benDobEl&&benDobEl.value&&D.isEligible&&D.monthlyBen>0&&typeof window._getFactor==='function'){
+    if(cy>640){ doc.addPage(); cy=MT; }
+    const benDob=new Date(benDobEl.value);
+    const retDate=new Date(D.retYear,D.retMon-1,D.retMon===6?30:1);
+    const benAge=Math.max(1,Math.round((retDate-benDob)/(365.25*24*3600*1000)));
+    const f100=window._getFactor(D.exactYrs,benAge,100),f75=window._getFactor(D.exactYrs,benAge,75),f50=window._getFactor(D.exactYrs,benAge,50);
+    const m100=Math.round(D.monthlyBen*f100),m75=Math.round(D.monthlyBen*f75),m50=Math.round(D.monthlyBen*f50);
+    doc.setFont('helvetica','bold'); doc.setFontSize(10); setTxt(COL.navy);
+    doc.text('Beneficiary Options — survivor age '+benAge,ML,cy); cy+=6;
+    setStroke(COL.border); doc.line(ML,cy,ML+CW,cy); cy+=4;
+    doc.setFont('helvetica','bold'); doc.setFontSize(7.5); setTxt(COL.text3);
+    doc.text('OPTION',ML+4,cy+8); doc.text('YOUR MONTHLY',ML+200,cy+8); doc.text('SURVIVOR GETS',ML+360,cy+8);
+    cy+=13;
+    const benRows=[['Member-Only (no survivor)',money(D.monthlyBen),'—'],['100% Option',money(m100),money(m100)],['75% Option',money(m75),money(Math.round(m75*0.75))],['50% Option',money(m50),money(Math.round(m50*0.50))]];
+    doc.setFont('helvetica','normal'); doc.setFontSize(8.5); setTxt(COL.text2);
+    benRows.forEach(r=>{
+      doc.text(r[0],ML+4,cy+8); doc.text(r[1],ML+200,cy+8); setTxt(COL.purple); doc.text(r[2],ML+360,cy+8); setTxt(COL.text2);
+      cy+=14; setStroke(COL.border); doc.line(ML,cy,ML+CW,cy);
+    });
+    cy+=10;
+    doc.setFont('helvetica','italic'); doc.setFontSize(7.5); setTxt(COL.text3);
+    doc.text('Electing a survivor option reduces your monthly benefit. Survivor receives listed amount for life after you pass.',ML,cy+6);
+    cy+=18;
+  }
+
+  // Footer disclaimer
+  if(cy>720){ doc.addPage(); cy=MT; }
+  doc.setFont('helvetica','italic'); doc.setFontSize(7.5); setTxt(COL.text3);
+  const disc='All values are estimates before COLA (Member-Only unless a beneficiary option is shown). Verify with CalSTRS. Health and Social Security benefits not reflected here.';
+  doc.text(doc.splitTextToSize(disc,CW),ML,cy+6);
+
+  const fname='CalSTRS_Detailed_'+D.retLabel.replace(' ','_')+'_'+new Date().toISOString().slice(0,10)+'.pdf';
+  doc.save(fname);
+}
+// ──────────────────────────────────────────────────────────────────
+
 function toggleInputs(){
   const body=document.getElementById('inputsPanelBody');
   const chev=document.getElementById('inputsChevron');
@@ -2788,6 +3524,396 @@ function renderCOLA(target){
     +'</div>';
 }
 
+function renderPrecision(inp, rows){
+  var el=document.getElementById('precisionSection');
+  if(!el) return;
+  var fmtM=function(n){return new Intl.NumberFormat('en-US',{style:'currency',currency:'USD',maximumFractionDigits:0}).format(n);};
+  var today=new Date();
+  var nowYear=today.getFullYear();
+  var g=(inp.salaryGrowth||0)/100;
+
+  // ── Default retirement date: birthday MONTH of the year they reach target age ──
+  var bdParts=inp.dob?inp.dob.split('-'):null;
+  var bdMonDefault=bdParts?parseInt(bdParts[1]):6; // birthday month, 1-indexed
+  var defYear=nowYear;
+  if(inp.dob){
+    var bd2=new Date(inp.dob);
+    var cand=bd2.getFullYear()+(inp.targetAge||62);
+    var a=ageOnJune30(inp.dob,cand);
+    if(!a||a.yrs<(inp.targetAge||62)) cand++;
+    defYear=Math.max(nowYear,cand);
+  }
+
+  // Reset stored date when target changes
+  if(window._precLastTarget!==inp.targetAge||window._precLastDob!==inp.dob){
+    window._precRetYr=null; window._precRetMon=null;
+    window._precLastTarget=inp.targetAge; window._precLastDob=inp.dob;
+  }
+
+  var userMon=window._precRetMon||null;
+  var userYr=window._precRetYr||null;
+  var retMon=userMon||bdMonDefault; // default to birthday month
+  var retYear=userYr||defYear;
+  var waitMode=window._waitMode||'5yr';
+
+  // ── Exact fractional years to retirement ─────────────────────────────────────
+  var bdDayDefault=bdParts?parseInt(bdParts[2]):30;
+  var retDay=userMon?(retMon===6?30:1):bdDayDefault; // birthday day if using default, else 1st (or 30 for June)
+  var retDateExact=new Date(retYear,retMon-1,retDay);
+  var nowExact=new Date();
+  var yrsToRet=Math.max(0,(retDateExact-nowExact)/(365.25*24*3600*1000));
+  // Guard salary — fall back to a sane value if input is empty
+  var baseSalary=(inp.salary&&inp.salary>0)?inp.salary:85000;
+  var salAtRet=baseSalary*Math.pow(1+g,yrsToRet);
+  var yearsWorked=inp.serviceYears+yrsToRet;
+  var sickCredit=(inp.sickPerYear||0)*yearsWorked/(inp.baseDays||182);
+  var svcAtRet=Math.min(55,yearsWorked+sickCredit);
+
+  // ── 5-year salary rows ───────────────────────────────────────────────────────
+  var salRows=[];
+  for(var i=4;i>=0;i--){
+    var yr=retYear-i;
+    var sal=salAtRet/Math.pow(1+g,i);
+    var projected=Math.round(sal);
+    var stored=window._precSals&&window._precSals[yr];
+    // Use stored only if it's a valid finite number, else fall back to projected
+    var useVal=(stored!==undefined&&stored!==null&&isFinite(stored)&&stored>0)?stored:projected;
+    if(!isFinite(useVal)||useVal<=0) useVal=Math.round((inp.salary&&inp.salary>0?inp.salary:85000));
+    salRows.push({yr:yr,sal:useVal});
+  }
+
+  // ── Exact age at retirement date ─────────────────────────────────────────────
+  var bd=inp.dob?new Date(inp.dob):null;
+  var exactYrs=0,exactMos=0;
+  if(bd){
+    exactYrs=retDateExact.getFullYear()-bd.getFullYear();
+    exactMos=retDateExact.getMonth()-bd.getMonth();
+    var dys2=retDateExact.getDate()-bd.getDate();
+    if(dys2<0&&bd.getDate()<=retDateExact.getDate()) exactMos--;
+    if(exactMos<0){exactYrs--;exactMos+=12;}
+  }
+
+  // ── Benefit calc — mirror buildSchedule() exactly so June ties to main chart ──
+  // Main schedule: af=getAF(age, earnedSvc), earnedSvc excludes sick credit
+  // finalComp via avg3/pSal, totalSvc includes sick credit
+  var earnedSvcAtRet=inp.serviceYears+yrsToRet; // excludes sick
+  var afAge=exactYrs+(exactMos/12); // fractional age at retirement date
+  var af=getAF(afAge, earnedSvcAtRet, inp.formula||'2at60', inp.dob);
+  var use1yr=(inp.formula!=='2at62')&&earnedSvcAtRet>=25;
+  // Final compensation — same avg3/pSal logic as main schedule, using yrsToRet
+  var finalComp;
+  if(inp.finalCompOverride){
+    finalComp=inp.finalCompOverride;
+  } else if(use1yr){
+    finalComp=pSal(inp.salary||85000, inp.salaryGrowth||0, yrsToRet);
+  } else {
+    finalComp=avg3(inp.salary||85000, inp.salaryGrowth||0, yrsToRet);
+  }
+  // Apply salary cap (same as main)
+  var retYr2=Math.round(nowYear+yrsToRet);
+  if(typeof getSalaryCap==='function'){
+    var salCap2=getSalaryCap(inp.formula||'2at60', retYr2, inp.pre1996);
+    if(finalComp>salCap2) finalComp=salCap2;
+  }
+  // ── Salary mode: 'auto' (project) or 'manual' (user enters own top salaries) ──
+  var salMode=window._precSalMode||'auto';
+  // Manual salaries stored in window._precManualSals = {s1, s2, s3}
+  // s1 = highest/retire year, s2 = 1 yr prior, s3 = 2 yrs prior
+  var manualVals=window._precManualSals||{};
+  var hasManual=salMode==='manual' && (isFinite(manualVals.s1)&&manualVals.s1>0);
+  if(hasManual){
+    if(use1yr){
+      finalComp=manualVals.s1;
+    } else {
+      // 3-year average — use the three entered values (fall back to s1 if others blank)
+      var m1=(isFinite(manualVals.s1)&&manualVals.s1>0)?manualVals.s1:0;
+      var m2=(isFinite(manualVals.s2)&&manualVals.s2>0)?manualVals.s2:m1;
+      var m3=(isFinite(manualVals.s3)&&manualVals.s3>0)?manualVals.s3:m1;
+      finalComp=(m1+m2+m3)/3;
+    }
+  }
+  var hasOverride=hasManual; // keep downstream references working
+
+  // ── Pension eligibility check (same rules as main) ────────────────────────
+  var isEligible=penElig(afAge, earnedSvcAtRet, inp.formula||'2at60');
+  var monthlyBen=af&&isEligible?Math.round(af*svcAtRet*finalComp/12):0;
+
+  // ── If June is selected (no overrides), tie exactly to main schedule row ──────
+  // The main Full Retirement Schedule computes each age's benefit at that age's
+  // June 30. Match it by pulling the exact row when the detailed date lands on
+  // June 30 of the year the member reaches a whole age in the schedule.
+  if(retMon===6 && !hasOverride && bd && Array.isArray(rows)){
+    // The whole age reached on this June 30
+    var ageOnThisJune=ageOnJune30(inp.dob, retYear);
+    if(ageOnThisJune){
+      var matchRow=rows.find(function(r){return r.age===ageOnThisJune.yrs;});
+      if(matchRow && matchRow.monthly!=null){
+        monthlyBen=Math.round(matchRow.monthly);
+        af=matchRow.af;
+        svcAtRet=matchRow.totalSvc;
+        finalComp=matchRow.finalComp;
+        isEligible=matchRow.pe;
+      }
+    }
+  }
+
+  // ── Month/Year dropdowns — prepopulated with June + target year ──────────────
+  // If user hasn't picked, show June + defYear as the selected defaults
+  var dispMon=userMon||bdMonDefault;
+  var dispYr=userYr||defYear;
+  var MFull=['January','February','March','April','May','June','July','August','September','October','November','December'];
+  var MS=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  var monOpts='';
+  MFull.forEach(function(m,i){ monOpts+='<option value="'+(i+1)+'"'+(dispMon===i+1?' selected':'')+'>'+m+'</option>'; });
+  var yrOpts='';
+  for(var y=nowYear-5;y<=nowYear+25;y++){ yrOpts+='<option value="'+y+'"'+(dispYr===y?' selected':'')+'>'+y+'</option>'; }
+
+  var dateNote=bd?'<span style="font-size:13px;font-weight:700;color:#1a3d5c">'+exactYrs+' yrs '+exactMos+' mo old at this date</span>':'';
+
+  // ── Build HTML ───────────────────────────────────────────────────────────────
+  var precOpen=window._precOpen===true; // default collapsed
+  var h='<div style="background:var(--surface);border:1.5px solid #0f7670;border-radius:var(--r);overflow:hidden;box-shadow:0 2px 8px rgba(15,118,112,.1)">';
+  h+='<div onclick="window._precOpen=!('+precOpen+');update();if(window._precOpen!==false){setTimeout(function(){document.getElementById(\'precisionSection\').scrollIntoView({behavior:\'smooth\',block:\'nearest\'});},150);}" style="background:linear-gradient(135deg,#0f7670,#1a9a93);padding:10px 14px;cursor:pointer;display:flex;align-items:center;justify-content:space-between">';
+  h+='<div><span style="color:#fff;font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase">🎯 Detailed Retirement Analysis</span>';
+  h+='<p style="color:rgba(255,255,255,.8);font-size:10px;margin-top:2px">'+(precOpen?'Enter your expected retirement date below for a more precise analysis':'Tap to expand — precise benefit estimate by exact retirement date')+'</p></div>';
+  h+='<span style="color:#fff;font-size:12px">'+(precOpen?'▲':'▼')+'</span>';
+  h+='</div>';
+  h+='<div style="display:'+(precOpen?'block':'none')+'">';
+
+  // Date picker row
+  h+='<div style="padding:10px 14px;background:#f5f8fc;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;flex-wrap:wrap">';
+  h+='<span style="font-size:11px;font-weight:600;color:var(--text2)">Planned retirement date:</span>';
+  h+='<select id="precMon" onchange="window._precRetMon=this.value?parseInt(this.value):null;update()" style="padding:5px 9px;border-radius:5px;border:1px solid var(--border);font-size:12px;font-weight:600;background:#fff;cursor:pointer">'+monOpts+'</select>';
+  h+='<select id="precYr" onchange="window._precRetYr=this.value?parseInt(this.value):null;update()" style="padding:5px 9px;border-radius:5px;border:1px solid var(--border);font-size:12px;font-weight:600;background:#fff;cursor:pointer">'+yrOpts+'</select>';
+  h+=dateNote;
+  h+='</div>';
+
+  // Salary section (collapsible) — auto-project OR enter your own top salaries
+  var salOpen=window._precSalOpen||false;
+  h+='<div style="border-bottom:1px solid var(--border)">';
+  h+='<div onclick="window._precSalOpen=!window._precSalOpen;update()" style="padding:9px 14px;background:var(--surface2);display:flex;align-items:center;justify-content:space-between;cursor:pointer">';
+  h+='<span style="font-size:10px;font-weight:700;color:var(--text2)">Final compensation — '+(use1yr?'highest 12 months (25+ yrs service)':'highest 3-year average')+(hasManual?' <span style="color:#0f7670">· using your salaries</span>':'')+'</span>';
+  h+='<span style="font-size:10px;color:#0f7670;font-weight:600">'+(salOpen?'▲ Hide':'▼ Adjust salaries')+'</span>';
+  h+='</div>';
+  if(salOpen){
+    h+='<div style="padding:11px 14px">';
+    // Mode toggle
+    h+='<div style="display:flex;gap:8px;margin-bottom:11px">';
+    h+='<label style="flex:1;display:flex;align-items:center;gap:6px;cursor:pointer;padding:7px 10px;border:1.5px solid '+(salMode==='auto'?'#2d6da3':'var(--border)')+';border-radius:var(--rs);background:'+(salMode==='auto'?'#eaf2fb':'var(--surface)')+'">';
+    h+='<input type="radio" name="salMode" value="auto"'+(salMode==='auto'?' checked':'')+' onchange="window._precSalMode=\'auto\';update()" style="accent-color:#2d6da3;width:14px;height:14px"><span style="font-size:11px;font-weight:600;color:'+(salMode==='auto'?'#1a3d5c':'var(--text2)')+'">Auto-project from my salary</span></label>';
+    h+='<label style="flex:1;display:flex;align-items:center;gap:6px;cursor:pointer;padding:7px 10px;border:1.5px solid '+(salMode==='manual'?'#0f7670':'var(--border)')+';border-radius:var(--rs);background:'+(salMode==='manual'?'#e8f7f6':'var(--surface)')+'">';
+    h+='<input type="radio" name="salMode" value="manual"'+(salMode==='manual'?' checked':'')+' onchange="window._precSalMode=\'manual\';update()" style="accent-color:#0f7670;width:14px;height:14px"><span style="font-size:11px;font-weight:600;color:'+(salMode==='manual'?'#0a5a55':'var(--text2)')+'">Enter my own salaries</span></label>';
+    h+='</div>';
+
+    if(salMode==='auto'){
+      // Show the projected years (read-only display)
+      h+='<table style="width:100%;border-collapse:collapse;font-size:12px"><thead><tr style="background:var(--surface2)">';
+      h+='<th style="padding:5px 10px;text-align:left;font-size:9px;font-weight:700;text-transform:uppercase;color:var(--text3)">Year</th>';
+      h+='<th style="padding:5px 10px;text-align:right;font-size:9px;font-weight:700;text-transform:uppercase;color:var(--text3)">Projected Salary</th>';
+      h+='<th style="padding:5px 10px;text-align:center;font-size:9px;font-weight:700;text-transform:uppercase;color:var(--text3)">Used</th>';
+      h+='</tr></thead><tbody>';
+      salRows.forEach(function(row,idx){
+        var isUsed=use1yr?(idx===4):(idx>=2);
+        var lbl=row.yr+(idx===4?' (retire yr)':idx===3?' (1 yr prior)':idx===2?' (2 yrs prior)':'');
+        h+='<tr style="border-top:1px solid var(--border);'+(isUsed?'background:#f0f5fb;':'')+'">';
+        h+='<td style="padding:5px 10px;font-size:11px;color:var(--text2);font-weight:'+(isUsed?'600':'400')+'">'+lbl+'</td>';
+        h+='<td style="padding:5px 10px;text-align:right;font-family:\'DM Mono\',monospace;font-size:12px;color:'+(isUsed?'var(--text)':'var(--text3)')+'">'+fmtM(row.sal)+'</td>';
+        h+='<td style="padding:5px 10px;text-align:center;font-size:11px">'+(isUsed?'<span style="color:#2d6da3;font-weight:700">✓</span>':'<span style="color:var(--text3)">—</span>')+'</td>';
+        h+='</tr>';
+      });
+      h+='</tbody></table>';
+      h+='<p style="font-size:9.5px;color:var(--text3);margin-top:6px;font-style:italic">Projected from your current salary of '+fmtM(inp.salary||85000)+' growing '+((inp.salaryGrowth||0))+'%/yr. Switch to "Enter my own" to use your actual figures.</p>';
+    } else {
+      // Manual entry — top salaries
+      var mv=window._precManualSals||{};
+      if(use1yr){
+        h+='<p style="font-size:11px;color:var(--text2);margin-bottom:8px;line-height:1.5">With 25+ years of service, CalSTRS uses your <strong>single highest 12 months</strong> of compensation. Enter it below:</p>';
+        h+='<div style="display:flex;align-items:center;gap:10px;margin-bottom:4px"><label style="font-size:11px;font-weight:600;color:var(--text2);min-width:130px">Highest 12-month salary</label>';
+        h+='<div style="position:relative;flex:1"><span style="position:absolute;left:8px;top:50%;transform:translateY(-50%);color:var(--text3);font-size:12px">$</span><input type="text" inputmode="numeric" value="'+(isFinite(mv.s1)&&mv.s1>0?Math.round(mv.s1).toLocaleString():'')+'" placeholder="e.g. 110,000" onchange="if(!window._precManualSals)window._precManualSals={};window._precManualSals.s1=Math.min(1000000,Math.max(0,parseFloat(this.value.replace(/[^0-9.]/g,\'\'))||0));update()" style="width:100%;padding:6px 8px 6px 20px;border:1px solid var(--border);border-radius:var(--rs);font-size:12px;font-family:\'DM Mono\',monospace;box-sizing:border-box"></div></div>';
+      } else {
+        h+='<p style="font-size:11px;color:var(--text2);margin-bottom:8px;line-height:1.5">CalSTRS averages your <strong>highest 3 consecutive years</strong> of compensation. Enter your three highest annual salaries:</p>';
+        var labels=['Highest year','2nd highest','3rd highest'];
+        var keys=['s1','s2','s3'];
+        var phs=['e.g. 110,000','e.g. 106,000','e.g. 102,000'];
+        for(var mi=0;mi<3;mi++){
+          var kv=mv[keys[mi]];
+          h+='<div style="display:flex;align-items:center;gap:10px;margin-bottom:7px"><label style="font-size:11px;font-weight:600;color:var(--text2);min-width:90px">'+labels[mi]+'</label>';
+          h+='<div style="position:relative;flex:1"><span style="position:absolute;left:8px;top:50%;transform:translateY(-50%);color:var(--text3);font-size:12px">$</span><input type="text" inputmode="numeric" value="'+(isFinite(kv)&&kv>0?Math.round(kv).toLocaleString():'')+'" placeholder="'+phs[mi]+'" onchange="if(!window._precManualSals)window._precManualSals={};window._precManualSals.'+keys[mi]+'=Math.min(1000000,Math.max(0,parseFloat(this.value.replace(/[^0-9.]/g,\'\'))||0));update()" style="width:100%;padding:6px 8px 6px 20px;border:1px solid var(--border);border-radius:var(--rs);font-size:12px;font-family:\'DM Mono\',monospace;box-sizing:border-box"></div></div>';
+        }
+        // Show the computed average
+        if(hasManual){
+          h+='<div style="margin-top:8px;padding:7px 10px;background:#e8f7f6;border:1px solid #b8e0dc;border-radius:var(--rs);display:flex;justify-content:space-between;align-items:center">';
+          h+='<span style="font-size:10.5px;font-weight:600;color:#0a5a55">3-year average final compensation</span>';
+          h+='<span style="font-size:14px;font-weight:700;color:#0f7670;font-family:\'DM Mono\',monospace">'+fmtM(finalComp)+'</span></div>';
+        }
+      }
+      h+='<p style="font-size:9.5px;color:var(--text3);margin-top:8px;font-style:italic">These figures come from your CalSTRS annual statement or myCalSTRS. Leave "2nd/3rd highest" blank to reuse your highest year.</p>';
+    }
+    h+='</div>';
+  }
+  h+='</div>';
+
+  // Result card
+  if(!isEligible){
+    h+='<div style="padding:10px 14px;background:#fff2f0;border-bottom:1px solid #f0c0b8;border-top:1px solid var(--border)">';
+    h+='<p style="font-size:11px;font-weight:700;color:#8b2a1a">⚠ Not yet pension-eligible at this date</p>';
+    h+='<p style="font-size:10.5px;color:#8b2a1a;line-height:1.5;margin-top:3px">CalSTRS requires age 55 + 5 years of service, or age 50 + 30 years of service. At this retirement date you are '+exactYrs+'y '+exactMos+'m old with '+svcAtRet.toFixed(2)+' yrs service. Select a later retirement date.</p>';
+    h+='</div>';
+  }
+
+  // Hero-style summary (matches top box) + PDF button
+  var afPct=af?(af*100).toFixed(3)+'%':'—';
+  h+='<div style="padding:13px 15px;background:#f0f7f6;border-bottom:1px solid #c0dcd8">';
+  h+='<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:11px;padding-bottom:9px;border-bottom:1px solid #c0dcd8">';
+  h+='<div><p style="font-size:9.5px;font-weight:700;letter-spacing:.09em;text-transform:uppercase;color:var(--text3);margin-bottom:2px">Your benefit if you retire</p>';
+  h+='<p style="font-family:\'DM Mono\',monospace;font-size:19px;font-weight:600;color:#0f7670;line-height:1">'+MS[retMon-1]+' '+retYear+' · Age '+exactYrs+'y '+exactMos+'m</p></div>';
+  h+='<button onclick="generateDetailedPDF()" style="padding:7px 22px;min-width:110px;justify-content:center;background:#0f7670;color:#fff;border:none;border-radius:var(--rs);font-size:10px;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:5px;white-space:nowrap;flex-shrink:0"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14,2 14,8 20,8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>Download PDF</button>';
+  h+='</div>';
+  h+='<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px">';
+  h+='<div><p style="font-size:9px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--text3);margin-bottom:2px">Monthly Benefit</p><p style="font-size:20px;font-weight:700;color:#0f7670;font-family:\'DM Mono\',monospace;line-height:1">'+fmtM(monthlyBen)+'</p><p style="font-size:9px;color:var(--text3);margin-top:2px">'+fmtM(monthlyBen*12)+'/yr</p></div>';
+  h+='<div><p style="font-size:9px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--text3);margin-bottom:2px">Age Factor</p><p style="font-size:20px;font-weight:700;color:#1a3d5c;font-family:\'DM Mono\',monospace;line-height:1">'+afPct+'</p><p style="font-size:9px;color:var(--text3);margin-top:2px">'+MS[retMon-1]+' '+retYear+'</p></div>';
+  h+='<div><p style="font-size:9px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--text3);margin-bottom:2px">Service Credit</p><p style="font-size:20px;font-weight:700;color:#1a3d5c;font-family:\'DM Mono\',monospace;line-height:1">'+svcAtRet.toFixed(2)+'</p><p style="font-size:9px;color:var(--text3);margin-top:2px">yrs · final comp '+fmtM(finalComp)+'</p></div>';
+  h+='</div>';
+  h+='<p style="font-size:9.5px;color:#3d6a8a;margin-top:9px;line-height:1.5">Member-Only benefit, before COLA. Final compensation × service credit × age factor ÷ 12.</p>';
+  h+='</div>';
+
+  // ── Beneficiary options (if beneficiary DOB entered) ─────────────────────────
+  var benDobEl=document.getElementById('benDobMain');
+  if(benDobEl&&benDobEl.value&&isEligible&&monthlyBen>0&&typeof window._getFactor==='function'){
+    var benDob=new Date(benDobEl.value);
+    var benAgeAtRet=Math.max(1,Math.round((retDateExact-benDob)/(365.25*24*3600*1000)));
+    var memAgeWhole=exactYrs;
+    var f100=window._getFactor(memAgeWhole,benAgeAtRet,100);
+    var f75=window._getFactor(memAgeWhole,benAgeAtRet,75);
+    var f50=window._getFactor(memAgeWhole,benAgeAtRet,50);
+    var mod100=Math.round(monthlyBen*f100);
+    var mod75=Math.round(monthlyBen*f75);
+    var mod50=Math.round(monthlyBen*f50);
+    h+='<div style="border-bottom:1px solid var(--border)">';
+    h+='<div style="padding:9px 14px;background:var(--surface2);border-bottom:1px solid var(--border)"><p style="font-size:10px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--text3)">Beneficiary Options — survivor age '+benAgeAtRet+' at your retirement</p></div>';
+    h+='<div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;font-size:11px"><thead><tr style="background:var(--surface2)">';
+    h+='<th style="padding:6px 12px;text-align:left;font-size:9px;font-weight:700;text-transform:uppercase;color:var(--text3)">Option</th>';
+    h+='<th style="padding:6px 12px;text-align:right;font-size:9px;font-weight:700;text-transform:uppercase;color:var(--text3)">Your monthly</th>';
+    h+='<th style="padding:6px 12px;text-align:right;font-size:9px;font-weight:700;text-transform:uppercase;color:var(--text3)">Survivor gets</th>';
+    h+='</tr></thead><tbody>';
+    h+='<tr style="border-top:1px solid var(--border)"><td style="padding:6px 12px;font-weight:600;color:var(--text2)">Member-Only (no survivor)</td><td style="padding:6px 12px;text-align:right;font-family:\'DM Mono\',monospace;font-weight:700;color:#0f7670">'+fmtM(monthlyBen)+'</td><td style="padding:6px 12px;text-align:right;color:var(--text3)">—</td></tr>';
+    h+='<tr style="border-top:1px solid var(--border)"><td style="padding:6px 12px;font-weight:600;color:var(--text2)">100% Option</td><td style="padding:6px 12px;text-align:right;font-family:\'DM Mono\',monospace;color:#2d6da3">'+fmtM(mod100)+'</td><td style="padding:6px 12px;text-align:right;font-family:\'DM Mono\',monospace;color:#7a4a9a">'+fmtM(mod100)+'</td></tr>';
+    h+='<tr style="border-top:1px solid var(--border)"><td style="padding:6px 12px;font-weight:600;color:var(--text2)">75% Option</td><td style="padding:6px 12px;text-align:right;font-family:\'DM Mono\',monospace;color:#2d6da3">'+fmtM(mod75)+'</td><td style="padding:6px 12px;text-align:right;font-family:\'DM Mono\',monospace;color:#7a4a9a">'+fmtM(Math.round(mod75*0.75))+'</td></tr>';
+    h+='<tr style="border-top:1px solid var(--border)"><td style="padding:6px 12px;font-weight:600;color:var(--text2)">50% Option</td><td style="padding:6px 12px;text-align:right;font-family:\'DM Mono\',monospace;color:#2d6da3">'+fmtM(mod50)+'</td><td style="padding:6px 12px;text-align:right;font-family:\'DM Mono\',monospace;color:#7a4a9a">'+fmtM(Math.round(mod50*0.50))+'</td></tr>';
+    h+='</tbody></table></div>';
+    h+='<p style="font-size:9.5px;color:var(--text3);padding:7px 14px;line-height:1.5;font-style:italic">Electing a survivor option reduces your monthly benefit. The survivor receives the listed amount for life after you pass. <a href="#" onclick="selectView(\'dt\');return false" style="color:#0f7670;font-weight:600">Full beneficiary analysis →</a></p>';
+    h+='</div>';
+  }
+
+  // ── What if I wait? ──────────────────────────────────────────────────────────
+  h+='<div><div style="padding:9px 14px;background:var(--surface2);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px">';
+  h+='<div><p style="font-size:10px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--text3)">What if I wait?</p>';
+  h+='<p style="font-size:10px;color:var(--text3);margin-top:1px">See how benefit, age factor and service credit change.</p></div>';
+  h+='<div style="display:flex;gap:14px;align-items:center">';
+  h+='<label style="display:flex;align-items:center;gap:5px;cursor:pointer;font-size:11px;font-weight:600;color:'+(waitMode==='5yr'?'#2d6da3':'var(--text3)')+'"><input type="radio" name="waitMode" value="5yr"'+(waitMode==='5yr'?' checked':'')+' onchange="window._waitMode=this.value;update()" style="accent-color:#2d6da3;width:14px;height:14px"> 5-Year</label>';
+  h+='<label style="display:flex;align-items:center;gap:5px;cursor:pointer;font-size:11px;font-weight:600;color:'+(waitMode==='1yr'?'#2a7a5a':'var(--text3)')+'"><input type="radio" name="waitMode" value="1yr"'+(waitMode==='1yr'?' checked':'')+' onchange="window._waitMode=this.value;update()" style="accent-color:#2a7a5a;width:14px;height:14px"> 12-Month</label>';
+  h+='</div></div>';
+
+  h+='<div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;font-size:11px"><thead><tr style="background:var(--surface2)">';
+  h+='<th style="padding:6px 10px;text-align:left;font-size:9px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--text3)">Retire date</th>';
+  h+='<th style="padding:6px 10px;text-align:center;font-size:9px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--text3)">Age</th>';
+  h+='<th style="padding:6px 10px;text-align:right;font-size:9px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--text3)">AF</th>';
+  h+='<th style="padding:6px 10px;text-align:right;font-size:9px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--text3)">Service</th>';
+  h+='<th style="padding:6px 10px;text-align:right;font-size:9px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--text3)">Monthly</th>';
+  h+='<th style="padding:6px 10px;text-align:right;font-size:9px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--text3)">vs chosen</th>';
+  h+='</tr></thead><tbody>';
+
+  var bdMon2=bd?bd.getMonth()+1:6;
+  var startMon=userMon||(bdMon2===12?1:bdMon2+1);
+  var startYr=userYr||defYear;
+  var prevAF=null;
+
+  function addWaitRow(label,rDate,isChosen){
+    var rEY=0,rEM=0;
+    if(bd){
+      rEY=rDate.getFullYear()-bd.getFullYear();
+      rEM=rDate.getMonth()-bd.getMonth();
+      var rd2=rDate.getDate()-bd.getDate();
+      if(rd2<0&&bd.getDate()<=rDate.getDate()) rEM--;
+      if(rEM<0){rEY--;rEM+=12;}
+    }
+    var rYrsToRet=Math.max(0,(rDate-nowExact)/(365.25*24*3600*1000));
+    var rYrsWorked=inp.serviceYears+rYrsToRet;
+    var rSick=(inp.sickPerYear||0)*rYrsWorked/(inp.baseDays||182);
+    var rSvc=Math.min(55,rYrsWorked+rSick);
+    var rSal=Math.round(inp.salary*Math.pow(1+g,rYrsToRet));
+    var rAF=getAF(rEY+(rEM/12),rSvc,inp.formula||'2at60',inp.dob);
+    var rEligible=penElig(rEY+(rEM/12),rSvc,inp.formula||'2at60');
+    var rFC=use1yr?rSal:(rSal+rSal/Math.pow(1+g,1)+rSal/Math.pow(1+g,2))/3;
+    var rBen=rAF&&rEligible?Math.round(rAF*rSvc*rFC/12):0;
+    var diff=rBen-monthlyBen;
+    var afJump=prevAF!==null&&rAF!==prevAF;
+    prevAF=rAF;
+    h+='<tr style="border-top:1px solid var(--border);'+(isChosen?'background:#eaf2fb;':'')+'">';
+    h+='<td style="padding:6px 10px;font-weight:'+(isChosen?'700':'400')+';color:'+(isChosen?'#0f7670':'var(--text2)')+'">'+label+(isChosen?' ←':'')+'</td>';
+    h+='<td style="padding:6px 10px;text-align:center;color:var(--text3)">'+rEY+'y '+rEM+'m</td>';
+    h+='<td style="padding:6px 10px;text-align:right;font-family:\'DM Mono\',monospace;color:'+(afJump?'#2a7a5a':'var(--text2)')+';font-weight:'+(afJump?'700':'400')+'">'+((rAF?((rAF*100).toFixed(3)+'%'):'—'))+(afJump?' ↑':'')+'</td>';
+    h+='<td style="padding:6px 10px;text-align:right;color:var(--text2)">'+rSvc.toFixed(2)+'</td>';
+    h+='<td style="padding:6px 10px;text-align:right;font-weight:'+(isChosen?'700':'600')+';font-family:\'DM Mono\',monospace;color:'+(isChosen?'#0f7670':rEligible?'var(--text)':'#aaa')+'">'+( rEligible?fmtM(rBen):'not eligible')+'</td>';
+    h+='<td style="padding:6px 10px;text-align:right;font-weight:600;color:'+(isChosen?'var(--text3)':diff>0?'#2a7a5a':'var(--text3)')+'">'+( isChosen?'—':(diff>0?'+':'')+fmtM(diff))+'</td>';
+    h+='</tr>';
+  }
+
+  if(waitMode==='5yr'){
+    for(var wi=0;wi<=5;wi++){
+      var wMon=startMon, wYr=startYr+wi;
+      var wDay=wMon===6?30:1;
+      var wDate=new Date(wYr,wMon-1,wDay);
+      addWaitRow(MS[wMon-1]+' '+wDay+', '+wYr, wDate, wi===0);
+    }
+  } else {
+    // 12-Month view: step by whole months, always the 1st, for clean comparison
+    // Row 0 = the 1st of the retirement month (not the exact chosen day)
+    for(var mi=0;mi<=11;mi++){
+      var mBase=new Date(retYear,retMon-1+mi,1);
+      var mDate=new Date(mBase.getFullYear(),mBase.getMonth(),1);
+      addWaitRow(MS[mDate.getMonth()]+' '+mDate.getFullYear(), mDate, mi===0);
+    }
+  }
+
+  h+='</tbody></table></div>';
+  h+='<p style="font-size:9.5px;color:var(--text3);padding:7px 14px 10px;line-height:1.5;font-style:italic">';
+  h+=waitMode==='1yr'?'12-Month view: service grows 1/12 per month. ↑ = age factor increase. ← = your chosen date. Before COLA, Member-Only.':'5-Year view: ↑ = age factor increase. ← = your chosen date. Before COLA, Member-Only.';
+  h+='</p></div></div></div>';
+
+  // Stash all computed values for the detailed PDF generator
+  window._precPdfData={
+    retMon:retMon, retYear:retYear, retLabel:MS[retMon-1]+' '+retYear,
+    exactYrs:exactYrs, exactMos:exactMos,
+    monthlyBen:monthlyBen, af:af, svcAtRet:svcAtRet, finalComp:finalComp,
+    isEligible:isEligible, waitMode:waitMode,
+    salRows:salRows.slice(), inp:inp, g:g, use1yr:use1yr,
+    startMon:startMon, startYr:startYr, defYear:defYear, bdMonDefault:bdMonDefault,
+    nowExact:nowExact,
+    annualBen:monthlyBen*12,
+    pctSal:finalComp>0?(monthlyBen*12/finalComp):0,
+    sickCredit:sickCredit, earnedSvc:earnedSvcAtRet,
+    tier:(typeof getTier==='function'&&inp.hireDate)?getTier(inp.hireDate):null
+  };
+  el.innerHTML=h;
+}
+
+
+function selectView(mode){
+  var hl=document.getElementById('viewCardHL');
+  var dt=document.getElementById('viewCardDT');
+  var ps=document.getElementById('precisionSection');
+  if(hl){ hl.style.border=mode==='hl'?'2px solid #2d6da3':'2px solid #d0d0d0'; hl.style.background=mode==='hl'?'#eaf2fb':'var(--surface)'; }
+  if(dt){ dt.style.border=mode==='dt'?'2px solid #0f7670':'2px solid #d0d0d0'; dt.style.background=mode==='dt'?'#e8f7f6':'var(--surface)'; }
+  if(!ps) return;
+  // Precision section always renders now; Detailed View expands it
+  window._precOpen=(mode==='dt');
+  update();
+  if(mode==='dt'){
+    setTimeout(function(){ ps.scrollIntoView({behavior:'smooth',block:'nearest'}); },300);
+  }
+}
+
 function initMobile(){
   const toggleBtn=document.getElementById('inputsToggleBtn');
   const doneBtn=document.getElementById('inputsDoneBtn');
@@ -2954,6 +4080,8 @@ function renderBenQuick(target){
     var t = (bClamped-bLow)/(bHigh-bLow);
     return Math.round((lo[optIdx]+t*(hi[optIdx]-lo[optIdx]))*10000)/10000;
   }
+  // Expose globally so renderPrecision + detailed PDF can use it
+  window._getFactor=getFactor;
 
   // CTA button — bright blue #2d6da3 matching beneficiary page
   const ctaBtn = `<a id="benLink2" href="beneficiary-100.html" target="_blank" style="display:flex;align-items:center;justify-content:center;gap:8px;padding:13px 18px;background:#2d6da3;color:#fff;text-decoration:none;border-radius:var(--rs);font-size:14px;font-weight:700;letter-spacing:.01em;transition:all .15s;box-shadow:0 3px 12px rgba(45,109,163,.35)" onmouseover="this.style.background='#235a87';this.style.transform='translateY(-1px)'" onmouseout="this.style.background='#2d6da3';this.style.transform=''">

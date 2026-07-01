@@ -243,7 +243,7 @@ input[type=range]#visSliderM::-moz-range-thumb{
         <p style="margin-top:4px"><a href="http://www.calstrs.com/postretirement-option-change-faq" target="_blank" rel="noopener" style="color:var(--blue)">What if my beneficiary dies first? ↗</a></p>
         <p style="margin-top:8px;padding-top:8px;border-top:1px solid var(--border);color:var(--text2);font-weight:600">Key CalSTRS resources — verify before any irrevocable election:</p>
         <p style="margin-top:4px"><a href="https://www.calstrs.com/files/44f960e51/MemberHandbook2026.pdf" target="_blank" rel="noopener" style="color:var(--blue)">📖 Member Handbook (COM-1519) ↗</a></p>
-        <p style="margin-top:4px"><a href="https://www.calstrs.com/understanding-the-formula" target="_blank" rel="noopener" style="color:var(--blue)">📐 Understanding the Formula (COM-1667) ↗</a></p>
+        <p style="margin-top:4px"><a href="https://www.calstrs.com/files/1105a6846/UnderstandingTheFormula2025.pdf" target="_blank" rel="noopener" style="color:var(--blue)">📐 Understanding the Formula (COM-1667) ↗</a></p>
         <p style="margin-top:4px"><a href="https://forms.calstrs.com/CalSTRSOnlineFormRequestWebUI/Root/Pages/Order.aspx" target="_blank" rel="noopener" style="color:var(--blue)">📋 All CalSTRS Forms &amp; Publications ↗</a></p>
       </div>
     </div>
@@ -480,6 +480,86 @@ input[type=range]#visSliderM::-moz-range-thumb{
           <div class="be-card"><p class="be-label">At Age</p><p class="be-val green" id="beAtAge">—</p><p style="font-size:9px;color:var(--text3);margin-top:3px">Beneficiary's age at that point</p></div>
         </div>
         <p style="font-size:11px;color:var(--text3);line-height:1.5;font-style:italic">Financial break-even only — peace of mind and your beneficiary's health are equally important factors.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- COLA Projection — member + beneficiary -->
+  <div class="panel" style="overflow:hidden">
+    <div class="coll-hdr" onclick="toggleColl(this)">
+      <span class="coll-hdr-title">COLA — How Benefits Grow Over Time</span>
+      <span class="coll-hdr-toggle">▶ expand</span>
+    </div>
+    <div style="display:none" id="colaBody">
+      <div class="coll-body" id="colaInner">
+        <p style="font-size:11px;color:var(--text2);line-height:1.6;margin-bottom:10px">CalSTRS applies a <strong>2% simple annual COLA</strong> each September 1st — the same fixed dollar amount added to the <em>original</em> benefit every year, not compounded. COLA works differently for the member vs the beneficiary survivor.</p>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px">
+          <div style="padding:9px 11px;background:#eaf2fb;border:1px solid #c0d4ec;border-radius:var(--rs)">
+            <p style="font-size:10px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:#1a3d5c;margin-bottom:4px">Member's benefit</p>
+            <p style="font-size:10.5px;color:var(--text2);line-height:1.5">Grows by 2% of the <em>original modified benefit</em> every September 1st for life.</p>
+          </div>
+          <div style="padding:9px 11px;background:#f5f0fb;border:1px solid #d0c0e8;border-radius:var(--rs)">
+            <p style="font-size:10px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:#3a1a5c;margin-bottom:4px">Beneficiary's survivor benefit</p>
+            <p style="font-size:10.5px;color:var(--text2);line-height:1.5">Fixed while member is alive. After member dies, COLA starts — but from the <em>original election amount</em>, not the COLA-inflated amount at death.</p>
+          </div>
+        </div>
+        <div style="overflow-x:auto">
+          <table style="width:100%;border-collapse:collapse;font-size:11px" id="colaBenTable">
+            <thead>
+              <tr style="background:var(--surface2)">
+                <th style="padding:6px 10px;text-align:left;font-size:9px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--text3)">Year</th>
+                <th style="padding:6px 10px;text-align:right;font-size:9px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--text3)">Member-Only benefit</th>
+                <th style="padding:6px 10px;text-align:right;font-size:9px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:#2d6da3">Modified benefit (w/ option)</th>
+                <th style="padding:6px 10px;text-align:right;font-size:9px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:#8b4aaa">COLA gap vs Member-Only</th>
+                <th style="padding:6px 10px;text-align:right;font-size:9px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:#7a4a9a">Survivor benefit (if member dies this year)</th>
+              </tr>
+            </thead>
+            <tbody id="colaBenBody">
+              <tr><td colspan="5" style="padding:12px;text-align:center;color:var(--text3);font-size:11px">Loading…</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div style="margin-top:8px;padding:8px 10px;background:#fff8e8;border:1px solid #f0c060;border-radius:var(--rs)">
+          <p style="font-size:10px;color:#7a4f10;line-height:1.5">⚠ <strong>Key difference:</strong> If the member lives 20 years into retirement, the member's benefit will be higher than the original due to COLA. But if they die at year 20, the beneficiary receives the <em>original election amount</em> — not the 20-years-COLA-inflated amount — and then that lower base grows from there. This makes the 100% option less protective in real purchasing power terms than it appears.</p>
+        </div>
+        <p style="font-size:9.5px;color:var(--text3);margin-top:6px;font-style:italic">All values nominal (before inflation). Member-Only COLA shown for comparison. PPPA may provide additional protection if inflation erodes benefit below 85% of original purchasing power.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Multiple Beneficiaries -->
+  <div class="panel" style="overflow:hidden">
+    <div class="coll-hdr" onclick="toggleColl(this)">
+      <span class="coll-hdr-title">Multiple Beneficiaries — Rules &amp; Considerations</span>
+      <span class="coll-hdr-toggle">▶ expand</span>
+    </div>
+    <div style="display:none">
+      <div class="coll-body">
+        <div style="padding:8px 11px;background:#e8f4e8;border:1px solid #a0cca0;border-radius:var(--rs);margin-bottom:10px">
+          <p style="font-size:11px;font-weight:700;color:#1a4a1a;margin-bottom:3px">50% Option only — multiple beneficiaries are not available under the 75% or 100% options</p>
+          <p style="font-size:10.5px;color:#2a5a2a;line-height:1.5">CalSTRS allows you to name more than one beneficiary, but only under the <strong>50% Option</strong>. The 75% and 100% options are limited to a single beneficiary.</p>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:7px;margin-bottom:10px">
+          <div style="padding:8px 11px;background:var(--surface2);border:1px solid var(--border);border-radius:var(--rs)">
+            <p style="font-size:11px;font-weight:700;color:var(--text)">Option factor uses the oldest beneficiary's age</p>
+            <p style="font-size:10.5px;color:var(--text2);line-height:1.5;margin-top:2px">CalSTRS calculates the option factor based on the <strong>oldest</strong> named beneficiary's age — not an average. An older beneficiary means a smaller factor (larger reduction to your benefit) since CalSTRS assumes a longer potential payout period.</p>
+          </div>
+          <div style="padding:8px 11px;background:var(--surface2);border:1px solid var(--border);border-radius:var(--rs)">
+            <p style="font-size:11px;font-weight:700;color:var(--text)">Survivor benefit is split equally</p>
+            <p style="font-size:10.5px;color:var(--text2);line-height:1.5;margin-top:2px">The 50% survivor benefit is divided equally among all named beneficiaries. If you name two beneficiaries, each receives 25% of your original modified benefit — not 50% each.</p>
+          </div>
+          <div style="padding:8px 11px;background:var(--surface2);border:1px solid var(--border);border-radius:var(--rs)">
+            <p style="font-size:11px;font-weight:700;color:var(--text)">If a beneficiary predeceases you</p>
+            <p style="font-size:10.5px;color:var(--text2);line-height:1.5;margin-top:2px">Their share passes to the <strong>remaining beneficiaries equally</strong> — it does not revert to you or increase your monthly benefit. Unlike the single-beneficiary case, you do not regain the Member-Only benefit amount.</p>
+          </div>
+          <div style="padding:8px 11px;background:var(--surface2);border:1px solid var(--border);border-radius:var(--rs)">
+            <p style="font-size:11px;font-weight:700;color:var(--text)">Age gap restrictions still apply</p>
+            <p style="font-size:10.5px;color:var(--text2);line-height:1.5;margin-top:2px">Federal law limits the age gap for non-spouse beneficiaries. Under the 50% option, beneficiaries can be up to <strong>19 years younger</strong> than you. All named beneficiaries must individually meet the age gap requirement.</p>
+          </div>
+        </div>
+        <div style="padding:8px 11px;background:#fff8e8;border:1px solid #f0c060;border-radius:var(--rs)">
+          <p style="font-size:10px;color:#7a4f10;line-height:1.5">⚠ Multiple beneficiary elections are complex and irrevocable after 30 days. The calculations in this tool model a single beneficiary only. Always verify your specific situation directly with CalSTRS before making any election.</p>
+        </div>
       </div>
     </div>
   </div>
@@ -870,6 +950,70 @@ function toggleColl(header){
   var isOpen=body.style.display!=='none' && body.style.display!=='';
   body.style.display=isOpen?'none':'block';
   if(toggle) toggle.textContent=isOpen?'▶ expand':'▼ collapse';
+  // Build COLA table when cola section opens
+  if(!isOpen && body.id==='colaBody') buildColaBenTable();
+}
+
+function buildColaBenTable(){
+  var tbody=document.getElementById('colaBenBody');
+  if(!tbody) return;
+  var fmtM=function(n){return new Intl.NumberFormat('en-US',{style:'currency',currency:'USD',maximumFractionDigits:0}).format(n);};
+
+  var f = getFactor(memberAge, benAge, currentOpt);
+  var modifiedBen = Math.round(urlBenefit * f);   // member's benefit WITH option elected
+  var memberOnlyBen = urlBenefit;                  // member's benefit WITHOUT option
+
+  // COLA per year: 2% of ORIGINAL benefit (simple, not compound)
+  var colaPerYrMemberOnly = Math.round(memberOnlyBen * 0.02);
+  var colaPerYrModified   = Math.round(modifiedBen * 0.02);
+
+  // Survivor benefit base = option % × original modified benefit (fixed at election)
+  var survivorBase = currentOpt===100 ? modifiedBen
+                   : currentOpt===75  ? Math.round(modifiedBen * 0.75)
+                   :                    Math.round(modifiedBen * 0.50);
+
+  var rows='';
+  for(var yr=0;yr<=25;yr+=5){
+    var moNow  = memberOnlyBen + colaPerYrMemberOnly * yr;  // member-only with COLA
+    var modNow = modifiedBen   + colaPerYrModified   * yr;  // modified with COLA
+    var gap    = moNow - modNow;                             // cumulative gap grown over time
+    var isBold = yr===0;
+    var rowBg  = isBold ? 'background:var(--surface2);' : '';
+
+    rows += '<tr style="border-top:1px solid var(--border);'+rowBg+'">'
+      // Year label
+      + '<td style="padding:6px 10px;font-size:11px;font-weight:'+(isBold?'700':'400')+';color:var(--text2)">'+(yr===0?'At retirement':'Year '+yr)+'</td>'
+      // Member-Only benefit (grey — foregone)
+      + '<td style="padding:6px 10px;text-align:right;font-family:\'DM Mono\',monospace;font-size:11px;color:var(--text3);font-weight:'+(isBold?'700':'400')+'">'+fmtM(moNow)+'/mo</td>'
+      // Modified benefit (blue — actual)
+      + '<td style="padding:6px 10px;text-align:right;font-family:\'DM Mono\',monospace;font-size:11px;color:#2d6da3;font-weight:'+(isBold?'700':'600')+'">'+fmtM(modNow)+'/mo</td>'
+      // Cumulative COLA gap (red — cost of option growing over time)
+      + '<td style="padding:6px 10px;text-align:right;font-size:11px;font-weight:'+(isBold?'700':'600')+';color:'+(yr===0?'var(--text3)':'#8b2a1a')+'">'+( yr===0?'—':'-'+fmtM(gap)+'/mo')+'</td>'
+      // Survivor benefit (purple — fixed from election)
+      + '<td style="padding:6px 10px;text-align:right;font-family:\'DM Mono\',monospace;font-size:11px;color:#7a4a9a">'+fmtM(survivorBase)+'/mo'+(yr>0?' <span style="font-size:9px;color:var(--text3)">(fixed)</span>':'')+'</td>'
+      + '</tr>';
+  }
+  tbody.innerHTML=rows;
+
+  // Add key insight note below table
+  var gapY20 = (memberOnlyBen + colaPerYrMemberOnly*20) - (modifiedBen + colaPerYrModified*20);
+  var inner=document.getElementById('colaInner');
+  if(inner){
+    var optLabel=currentOpt+'% Option';
+    var existing=inner.querySelector('.cola-opt-note');
+    var noteText='Showing '+optLabel+'. At retirement the modified benefit is '+fmtM(memberOnlyBen-modifiedBen)+'/mo less than Member-Only. '
+      +'Because COLA is 2% of the original benefit, the dollar increase is also smaller each year — by year 20 the gap has grown to '+fmtM(gapY20)+'/mo. '
+      +'The survivor benefit column is fixed at the original election amount — COLA for the beneficiary only begins after the member dies, starting from that original base.';
+    if(!existing){
+      var note=document.createElement('p');
+      note.className='cola-opt-note';
+      note.style.cssText='font-size:10px;color:var(--text2);margin-bottom:8px;line-height:1.55;background:var(--surface2);padding:8px 10px;border-radius:var(--rs);border:1px solid var(--border)';
+      note.textContent=noteText;
+      inner.insertBefore(note, inner.firstChild);
+    } else {
+      existing.textContent=noteText;
+    }
+  }
 }
 
 // Prevent clicks/touches inside an open collapsible body from ever bubbling up
