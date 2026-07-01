@@ -2340,6 +2340,10 @@ function update(){
     tbody.appendChild(tr);
     prevR=r;
   });
+
+  // Restore any collapsible sections the user had opened (prevents them
+  // snapping shut when update() re-renders on scroll/interaction)
+  restoreOpenSections();
 }
 
 const CALSTRS_STORAGE_KEY = 'calstrs_calc_inputs';
@@ -2495,6 +2499,27 @@ function toggleSection(header){
   var isOpen = body.style.display !== 'none';
   body.style.display = isOpen ? 'none' : '';
   if(chev) chev.textContent = isOpen ? '▶ expand' : '▼ collapse';
+  // Persist open/closed state by section label so re-renders don't reset it
+  if(!window._openSections) window._openSections={};
+  var labelEl=header.querySelector('span:first-child');
+  var key=labelEl?labelEl.textContent.trim():'';
+  if(key) window._openSections[key]=!isOpen; // true when now open
+}
+
+// After any re-render of collapsibles, restore their previous open/closed state
+function restoreOpenSections(){
+  if(!window._openSections) return;
+  document.querySelectorAll('[onclick*="toggleSection(this)"]').forEach(function(header){
+    var labelEl=header.querySelector('span:first-child');
+    var key=labelEl?labelEl.textContent.trim():'';
+    if(!key||!(key in window._openSections)) return;
+    var body=header.nextElementSibling;
+    if(!body) return;
+    var chev=header.querySelector('span:last-child');
+    var shouldOpen=window._openSections[key];
+    body.style.display=shouldOpen?'':'none';
+    if(chev) chev.textContent=shouldOpen?'▼ collapse':'▶ expand';
+  });
 }
 
 function toggleRules(btn){
