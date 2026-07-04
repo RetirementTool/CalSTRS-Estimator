@@ -1718,7 +1718,9 @@ function update(){
     const MSHORT=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
     const detailed=window._detailedMode===true;
     const retMon=detailed?(window._detailedMonth||6):6;
+    const nowD=new Date();
     let dateLabel='';
+    let pastDate=false;
     if(inp.dob){
       const bdY=new Date(inp.dob);
       let cand=bdY.getFullYear()+inp.targetAge;
@@ -1726,10 +1728,13 @@ function update(){
         const am=ageOnMonthEnd(inp.dob,cand,retMon);
         if(am && am.yrs<inp.targetAge) cand++;
         const lastDay=new Date(cand,retMon,0);
+        if(lastDay<nowD) pastDate=true;
         dateLabel=MSHORT[retMon-1]+' '+lastDay.getDate()+', '+cand;
       } else {
         const aOn=ageOnJune30(inp.dob,cand);
         if(!aOn||aOn.yrs<inp.targetAge) cand++;
+        const j30=new Date(cand,5,30);
+        if(j30<nowD) pastDate=true;
         dateLabel='June 30, '+cand;
       }
     }
@@ -1741,8 +1746,11 @@ function update(){
       if(am2 && am2.yrs<inp.targetAge){ cand2++; am2=ageOnMonthEnd(inp.dob,cand2,retMon); }
       if(am2) ageLabel=am2.yrs+' yrs '+am2.mos+' mo';
     }
+    // If this retirement date is already in the past (member is older than the
+    // target age), flag it so the reader isn't shown a stale past date as an option.
+    const pastFlag=pastDate?' <span style="font-size:11px;font-weight:600;color:#8b4a3a">(already passed)</span>':'';
     htaEl.innerHTML=dateLabel
-      ? `${ageLabel} <span style="font-size:14px;font-weight:400;color:var(--text3)">·</span> <span style="font-size:15px;color:var(--text2)">${dateLabel}</span>`
+      ? `${ageLabel} <span style="font-size:14px;font-weight:400;color:var(--text3)">·</span> <span style="font-size:15px;color:var(--text2)">${dateLabel}</span>${pastFlag}`
       : `Age ${inp.targetAge}`;
   }
 
@@ -1835,7 +1843,16 @@ function update(){
     const compNote=inp.finalCompOverride?`Override: ${fmt(inp.finalCompOverride)} (user-supplied)`:
       (target.capped?`${fmt(target.finalComp)} (capped — ${formula==='2at62'?'PEPRA':'IRS'} limit)`:
       (target.use1yr?'single highest year (25+ yrs)':'3-yr projected average'));
-    document.getElementById('heroNote').textContent=`Age ${target.age}: replaces ${fmtP(target.pctSal)} of projected salary (${fmt(target.projSal)}/yr). ${hNote}${mNote}`;
+    // If the target age is already behind the member, this June 30 is in the past
+    // and isn't an actionable retirement date — say so plainly.
+    let pastNote='';
+    if(inp.dob){
+      const nowAge2=ageNowFn(inp.dob);
+      if(target.age < Math.floor(nowAge2)){
+        pastNote=`⚠ You are already past age ${target.age} — this date has passed and isn't a retirement option. Slide up to your current age or later. `;
+      }
+    }
+    document.getElementById('heroNote').textContent=`${pastNote}Age ${target.age}: replaces ${fmtP(target.pctSal)} of projected salary (${fmt(target.projSal)}/yr). ${hNote}${mNote}`;
   } else {
     ['metricMonthly','metricAnnual','metricAF','metricAFNote','metricSvc','metricSvcNote'].forEach(id=>document.getElementById(id).textContent='—');
     document.getElementById('heroNote').textContent='Target age does not meet minimum CalSTRS retirement requirements.';
@@ -1848,17 +1865,40 @@ function update(){
   if(firstPen){
     const via30=(formula==='2at60'&&firstPen.age<55);
     const exactElig=exactPenEligAge(inp.dob, inp.hireDate, formula, inp.serviceYears);
-    const eligAgeLabel=exactElig?exactElig.label:('Age '+firstPen.age);
+    // Age label: use age on the last day of the eligibility month so it matches
+    // the benefit calc (which now uses month-end) and the hero/schedule.
+    let eligAgeLabel=exactElig?exactElig.label:('Age '+firstPen.age);
+    if(exactElig&&exactElig.eligDate&&inp.dob){
+      const bdL=new Date(inp.dob);
+      const ldL=new Date(exactElig.eligDate.getFullYear(), exactElig.eligDate.getMonth()+1, 0);
+      let lyr=ldL.getFullYear()-bdL.getFullYear();
+      let lmo=ldL.getMonth()-bdL.getMonth();
+      if(ldL.getDate()<bdL.getDate()) lmo--;
+      if(lmo<0){lyr--;lmo+=12;}
+      eligAgeLabel=lyr+' yrs '+lmo+' mo';
+    }
     const eligTimeLabel=exactElig?(exactElig.alreadyElig?'<strong>Eligible now.</strong>':'<strong>'+exactElig.timeAway+'</strong>'):('<strong>'+rel(inp.dob,firstPen.age)+' away</strong>');
-    // PRECISE benefit at exact eligibility date (exact age factor + service at that date)
+    // PRECISE benefit at exact eligibility date — mirror the schedule/hero math
+    // exactly (getAFexact + school-year serviceAtDate + age on last day of month)
     let preciseMonthly=firstPen.monthly;
-    if(exactElig&&inp.dob){
-      const exactAgeDecimal=exactElig.yrs+(exactElig.mos/12);
-      const yrsFromNow=Math.max(0,exactAgeDecimal-ageNowFn(inp.dob));
-      const exactSvc=Math.min(55, inp.serviceYears+yrsFromNow+((inp.sickPerYear||0)*(inp.serviceYears+yrsFromNow)/(inp.baseDays||182)));
-      const exactAF=getAF(exactAgeDecimal, exactSvc, formula, inp.dob);
+    if(exactElig&&inp.dob&&exactElig.eligDate&&typeof getAFexact==='function'&&typeof serviceAtDate==='function'){
+      const ed=exactElig.eligDate;
+      // Age on the LAST DAY of the eligibility month (same rule as the schedule)
+      const bdE=new Date(inp.dob);
+      const lastDayE=new Date(ed.getFullYear(), ed.getMonth()+1, 0);
+      let eyE=lastDayE.getFullYear()-bdE.getFullYear();
+      let emE=lastDayE.getMonth()-bdE.getMonth();
+      if(lastDayE.getDate()<bdE.getDate()) emE--;
+      if(emE<0){eyE--;emE+=12;}
+      const yrsFromNow=Math.max(0,(lastDayE-new Date())/(365.25*24*3600*1000));
+      const svcNoSickE=serviceAtDate(lastDayE, inp.serviceYears, inp.baseDays);
+      const sickE=(inp.sickPerYear||0)*svcNoSickE/(inp.baseDays||182);
+      const totalSvcE=Math.min(55, svcNoSickE+sickE);
+      const exactAF=getAFexact(eyE, emE, svcNoSickE, formula);
+      const use1yrE=formula==='2at60'&&svcNoSickE>=25;
       const exactSal=inp.salary*Math.pow(1+(inp.salaryGrowth||0)/100, yrsFromNow);
-      const exactMo=exactAF?Math.round(exactAF*exactSvc*exactSal/12):0;
+      const exactFC=use1yrE?exactSal:avg3(inp.salary,inp.salaryGrowth,yrsFromNow);
+      const exactMo=exactAF?Math.round(exactAF*totalSvcE*exactFC/12):0;
       if(exactMo>0) preciseMonthly=exactMo;
     }
     const juneNote='';
@@ -3536,19 +3576,49 @@ async function generateDetailedPDF(){
   doc.text('All figures are Member-Only estimates before COLA. Values reflect your exact retirement date, not a June 30 assumption.',ML,cy);
   cy+=18;
 
+  // ── Benefit-by-age chart (reflects the detailed month/year dates on screen) ──
+  try{
+    const chartCanvas=document.getElementById('benefitChart');
+    if(chartCanvas){
+      const cssW=chartCanvas.offsetWidth||chartCanvas.width;
+      const cssH=chartCanvas.offsetHeight||chartCanvas.height;
+      const scale=3;
+      const hiDpi=document.createElement('canvas');
+      hiDpi.width=cssW*scale; hiDpi.height=cssH*scale;
+      const hCtx=hiDpi.getContext('2d');
+      hCtx.fillStyle='#ffffff'; hCtx.fillRect(0,0,hiDpi.width,hiDpi.height);
+      hCtx.drawImage(chartCanvas,0,0,chartCanvas.width,chartCanvas.height,0,0,hiDpi.width,hiDpi.height);
+      const chartImg=hiDpi.toDataURL('image/png',1.0);
+      const chartH=Math.min(190, CW*(cssH/cssW));
+      if(cy>560){ doc.addPage(); cy=MT; }
+      setTxt(COL.navy); doc.setFont('helvetica','bold'); doc.setFontSize(8);
+      doc.text('PROJECTED MONTHLY BENEFIT BY RETIREMENT AGE  ·  AS OF '+D.retLabel.toUpperCase(),ML,cy);
+      cy+=8;
+      doc.addImage(chartImg,'PNG',ML,cy,CW,chartH,undefined,'FAST');
+      cy+=chartH+14;
+    }
+  }catch(e){ /* chart optional — skip if capture fails */ }
+
   // Helper to draw a wait table
   function MS(i){return['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][i];}
-  function getAFlocal(a,s){return getAF(a,s,inp.formula||'2at60',inp.dob);}
   function computeRow(rDate){
     const bd=inp.dob?new Date(inp.dob):null;
+    // Age factor uses age on the LAST DAY of the retirement month (matches screen)
     let rEY=0,rEM=0;
-    if(bd){rEY=rDate.getFullYear()-bd.getFullYear();rEM=rDate.getMonth()-bd.getMonth();if(rDate.getDate()-bd.getDate()<0)rEM--;if(rEM<0){rEY--;rEM+=12;}}
+    if(bd){
+      const rLast=new Date(rDate.getFullYear(), rDate.getMonth()+1, 0);
+      rEY=rLast.getFullYear()-bd.getFullYear();
+      rEM=rLast.getMonth()-bd.getMonth();
+      if(rLast.getDate()<bd.getDate()) rEM--;
+      if(rEM<0){rEY--;rEM+=12;}
+    }
     const rYrsToRet=Math.max(0,(rDate-D.nowExact)/(365.25*24*3600*1000));
-    const rYrsWorked=inp.serviceYears+rYrsToRet;
-    const rSick=(inp.sickPerYear||0)*rYrsWorked/(inp.baseDays||182);
-    const rSvc=Math.min(55,rYrsWorked+rSick);
+    // Service credit accrues by school year / basis (matches screen)
+    const rSvcNoSick=(typeof serviceAtDate==='function')?serviceAtDate(rDate, inp.serviceYears, inp.baseDays):(inp.serviceYears+rYrsToRet);
+    const rSick=(inp.sickPerYear||0)*rSvcNoSick/(inp.baseDays||182);
+    const rSvc=Math.min(55,rSvcNoSick+rSick);
     const rSal=Math.round((inp.salary||85000)*Math.pow(1+D.g,rYrsToRet));
-    const rAF=getAFlocal(rEY+(rEM/12),rSvc);
+    const rAF=(typeof getAFexact==='function')?getAFexact(rEY,rEM,rSvcNoSick,inp.formula||'2at60'):getAF(rEY+(rEM/12),rSvc,inp.formula||'2at60',inp.dob);
     const rElig=penElig(rEY+(rEM/12),rSvc,inp.formula||'2at60');
     const rFC=D.use1yr?rSal:(rSal+rSal/Math.pow(1+D.g,1)+rSal/Math.pow(1+D.g,2))/3;
     const rBen=rAF&&rElig?Math.round(rAF*rSvc*rFC/12):0;
