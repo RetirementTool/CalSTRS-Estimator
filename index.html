@@ -286,6 +286,8 @@
   @media(max-width:700px){
     /* Full-bleed layout — nothing wider than screen */
     html,body{overflow-x:hidden!important;width:100%!important;max-width:100vw}
+    /* The desktop "updates automatically" note isn't needed on mobile */
+    .auto-update-note{display:none!important}
     /* Nuclear option: any element that might overflow gets clamped */
     *{max-width:100%;min-width:0}
     /* But allow table to scroll internally */
@@ -754,12 +756,7 @@
         <input type="checkbox" id="pre1996Check" style="display:none">
 
         <div class="divider"></div>
-        <p class="sec-label">Target</p>
-        <div class="field">
-          <label>Your Target Retirement Age</label>
-          <input type="number" id="targetAge" value="62" min="50" max="75" step="1">
-          <p class="field-hint" style="color:#2d6da3;font-weight:500">You can also adjust this anytime using the slider on the results panel — no need to come back here.</p>
-        </div>
+        <p class="sec-label">Assignment</p>
         <div class="field">
           <label>Assignment Basis (Base Days) <span style="font-size:9px;font-weight:600;color:var(--text3);font-style:italic">— LAUSD</span></label>
           <select id="baseDays">
@@ -771,6 +768,12 @@
             <option value="248">248 — A-basis (district / central office)</option>
           </select>
           <p class="field-hint">The days that equal one full year of service for your assignment — used to convert unused sick days into service credit.</p>
+        </div>
+        <p class="sec-label">Target</p>
+        <div class="field">
+          <label>Your Target Retirement Age</label>
+          <input type="number" id="targetAge" value="62" min="50" max="75" step="1">
+          <p class="field-hint" style="color:#2d6da3;font-weight:500">You can also adjust this anytime using the slider on the results panel — no need to come back here.</p>
         </div>
 
         <div class="divider"></div>
@@ -817,6 +820,10 @@
         </div>
 
         <div class="divider"></div>
+        <div id="autoUpdateNote" class="auto-update-note" style="width:100%;padding:9px 0;margin-bottom:8px;background:#2d6da3;border:1.5px solid #235a87;border-radius:var(--rs);font-family:'Inter',system-ui,sans-serif;font-size:11.5px;font-weight:700;color:#fff;text-align:center;letter-spacing:.02em;display:flex;align-items:center;justify-content:center;gap:6px">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
+          Updates automatically
+        </div>
         <button onclick="resetToDefaults()" style="width:100%;padding:9px 0;background:var(--surface2);border:1.5px solid var(--text);border-radius:var(--rs);font-family:'Inter',system-ui,sans-serif;font-size:11.5px;font-weight:600;color:var(--text);cursor:pointer;letter-spacing:.02em;transition:background .15s" onmouseover="this.style.background='#e2e0d8'" onmouseout="this.style.background='var(--surface2)'">↺ Reset to Defaults</button>
       </div>
     </div>
@@ -828,7 +835,7 @@
   <div class="results-col" style="min-width:0;width:100%">
 
     <!-- Step 2: View selector -->
-    <div style="background:var(--surface2);border:1px solid var(--border);border-radius:var(--r);padding:11px 14px;margin-bottom:6px">
+    <div id="step2View" style="background:var(--surface2);border:1px solid var(--border);border-radius:var(--r);padding:11px 14px;margin-bottom:6px">
       <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
         <span style="background:#2d6da3;color:#fff;font-size:13px;font-weight:700;letter-spacing:.02em;padding:3px 10px;border-radius:4px;text-transform:uppercase">STEP 2</span>
         <h2 style="font-size:13px;letter-spacing:.04em;color:var(--text)">Choose your view</h2>
@@ -836,12 +843,28 @@
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
         <div id="viewCardHL" onclick="selectView('hl')" style="padding:11px 13px;border-radius:var(--rs);border:2px solid #2d6da3;background:#eaf2fb;cursor:pointer">
           <p style="font-size:13.5px;font-weight:700;color:#1a3d5c;margin-bottom:4px">📊 High-Level View</p>
-          <p style="font-size:10px;color:#3d6a8a;line-height:1.4">Explore retirement ages and options — great for planning 5+ years out. <strong>Assumes a June 30 retirement date.</strong></p>
+          <p style="font-size:10px;color:#3d6a8a;line-height:1.4">Explore retirement ages and options — great for planning 5+ years out. <strong>Assumes a June 30 resignation / July 1 retirement.</strong></p>
         </div>
         <div id="viewCardDT" onclick="selectView('dt')" style="padding:11px 13px;border-radius:var(--rs);border:2px solid var(--border);background:var(--surface);cursor:pointer">
           <p style="font-size:13.5px;font-weight:700;color:var(--text2);margin-bottom:4px">🎯 Detailed View</p>
-          <p style="font-size:10px;color:var(--text3);line-height:1.4">Precise analysis by exact retirement date — best if within 5 years of retiring. <strong style="color:#0f7670">You'll enter your expected retirement month and year.</strong></p>
+          <p style="font-size:10px;color:var(--text3);line-height:1.4">Same analysis, tied to your exact retirement month instead of June 30 — best if within 5 years of retiring.</p>
         </div>
+      </div>
+      <!-- Detailed-mode controls: month/year + shortcut toggles (hidden in high-level) -->
+      <div id="detailedControls" style="display:none;margin-top:9px;padding:10px 12px;background:#e8f7f6;border:1px solid #b8e0dc;border-radius:var(--rs)">
+        <div style="display:flex;align-items:center;gap:9px;flex-wrap:wrap">
+          <span style="font-size:11px;font-weight:700;color:#0a5a55">Retirement month:</span>
+          <select id="detailedMon" onchange="window._detailedMonth=parseInt(this.value);syncYearToSlider(parseInt(document.getElementById('ageSlider').value));updateSliderDisplay(parseInt(document.getElementById('ageSlider').value));update()" style="padding:5px 9px;border-radius:5px;border:1px solid #b8e0dc;font-size:12px;font-weight:600;background:#fff;cursor:pointer"></select>
+          <select id="detailedYr" onchange="window._detailedYear=parseInt(this.value);syncSliderToYear();update()" style="padding:5px 9px;border-radius:5px;border:1px solid #b8e0dc;font-size:12px;font-weight:600;background:#fff;cursor:pointer"></select>
+          <span id="detailedAgeAtDate" style="font-size:12px;font-weight:700;color:#0a5a55;white-space:nowrap;margin-left:12px"></span>
+        </div>
+        <div style="display:flex;align-items:center;gap:16px;flex-wrap:wrap;margin-top:9px;padding-top:9px;border-top:1px solid #b8e0dc">
+          <span style="font-size:10px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:#0a5a55">Shortcuts:</span>
+          <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:11px;font-weight:600;color:#0a5a55"><input type="checkbox" id="detailedToday" onchange="detailedShortcut('today',this.checked)" style="width:14px;height:14px;accent-color:#0f7670"> Analyze as of today</label>
+          <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:11px;font-weight:600;color:#0a5a55"><input type="checkbox" id="detailedJumpElig" onchange="detailedShortcut('elig',this.checked)" style="width:14px;height:14px;accent-color:#0f7670"> Jump to earliest eligible</label>
+          <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:11px;font-weight:600;color:#0a5a55"><input type="checkbox" id="detailedJumpMaxAF" onchange="detailedShortcut('maxaf',this.checked)" style="width:14px;height:14px;accent-color:#0f7670"> Jump to age factor max (2.4%)</label>
+        </div>
+        <p id="detailedTodayNote" style="font-size:9.5px;color:#0a5a55;margin-top:6px;line-height:1.4;display:none"></p>
       </div>
     </div>
 
@@ -852,7 +875,7 @@
     <div class="age-slider-card">
       <div class="age-slider-label-row">
         <span class="age-slider-title">Target Retirement Age</span>
-        <span><span class="age-slider-val" id="sliderAgeDisplay">62</span><span class="age-slider-val-sub">yrs old</span></span>
+        <span><span class="age-slider-val" id="sliderAgeDisplay">62</span><span class="age-slider-val-sub" id="sliderAgeSub">yrs old</span></span>
       </div>
       <div class="age-slider-range-row">
         <span class="age-slider-min">50</span>
@@ -880,7 +903,7 @@
         </button>
       </div>
       <div style="margin-bottom:12px;padding-bottom:10px;border-bottom:1px solid var(--border)">
-        <p style="font-size:9.5px;font-weight:700;letter-spacing:.09em;text-transform:uppercase;color:var(--text3);margin-bottom:3px">Based on your target retirement age, as of June 30th of that year</p>
+        <p id="heroSubtitle" style="font-size:9.5px;font-weight:700;letter-spacing:.09em;text-transform:uppercase;color:var(--text3);margin-bottom:3px">Based on your target retirement age, as of June 30th of that year</p>
         <p style="font-family:'DM Mono',monospace;font-size:22px;font-weight:600;color:#2d6da3;line-height:1" id="heroTargetAgeDisplay">Age —</p>
       </div>
       <div class="hero-grid">
@@ -905,6 +928,9 @@
     </div><!-- /hero -->
     </div><!-- /slider+hero group -->
 
+    <!-- ── 5-Year & 12-Month Analysis (detailed view; before beneficiary) ── -->
+    <div id="precisionSection" style="margin-top:10px"></div>
+
     <!-- Beneficiary Quick Comparison (collapsible, rendered by JS) -->
     <div id="benQuickSection"></div>
 
@@ -912,7 +938,7 @@
     <div class="insight-box">
       <div class="insight-header">
         <h3>Retirement Timing Insights</h3>
-        <span>Personalized to your inputs</span>
+        <span>High-level view · benefits as of June 30 each year</span>
       </div>
       <div class="insight-body" id="insightBody">—</div>
     </div>
@@ -953,7 +979,7 @@
     <!-- Table -->
     <div class="table-wrap">
       <div class="table-header">
-        <h3>Full Retirement Schedule <span style="font-size:11px;font-weight:400;color:var(--text3);letter-spacing:0">— benefit as of June 30th of the year you turn each age</span></h3>
+        <h3>Full Retirement Schedule <span id="scheduleHeaderNote" style="font-size:11px;font-weight:400;color:var(--text3);letter-spacing:0">— benefit as of June 30th of the year you turn each age</span></h3>
         <div class="table-header-badges">
           <span class="badge bg-blue" id="tableFormulaBadge">2% at 60</span>
           <span class="badge bg-district">District Rules</span>
@@ -975,8 +1001,8 @@
         <p><strong>Table symbols:</strong> ★ = your target retirement age &nbsp;·&nbsp; ⭐ = within the optimal retirement window &nbsp;·&nbsp; ⚠ = salary capped at CalSTRS pensionable limit (benefit calculated on capped amount, not your full salary)</p>
         <p><strong>Flags:</strong> <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#3a5a7c" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg> Pension eligible &nbsp;·&nbsp; <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#2a7a5a" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="4" x2="12" y2="20"/><line x1="4" y1="12" x2="20" y2="12"/></svg> Lifetime health benefit met &nbsp;·&nbsp; <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#1a2e42" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><text x="0" y="17" font-size="7" font-family="sans-serif" font-weight="800" fill="#1a2e42" stroke="none">AGE</text><polyline points="11 3 16 3 16 8"/><line x1="9" y1="9" x2="16" y2="3"/></svg> Age factor at max 2.4% &nbsp;·&nbsp; <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#7a4f10" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a10 10 0 100 20A10 10 0 0012 2z"/><text x="4.5" y="16" font-size="8" font-family="sans-serif" font-weight="800" fill="#7a4f10" stroke="none">Rx</text></svg> Medicare eligible (age 65)</p>
         <p>Sick leave: accumulated unused days ÷ base days = additional service credit. Cannot satisfy minimum eligibility requirements.</p>
-        <p>* Benefit values do not include CalSTRS COLA. A 2% simple annual COLA is applied each September 1st to your <em>original</em> benefit amount (not compounded). A PPPA adjustment may also apply if inflation erodes purchasing power below 85% of original.</p>
-        <p>† All values shown as of June 30th of each year — the most common CalSTRS retirement date. Use the Detailed View for estimates based on a different retirement date.</p>
+        <p>* Benefit values do not include CalSTRS COLA. A 2% simple annual COLA is applied to your <em>original</em> benefit amount (not compounded), beginning once you've been retired a full year as of September 1 — and it first appears in your October pension payment. A PPPA/SBMA adjustment may also apply if inflation erodes purchasing power below the floor.</p>
+        <p id="june30Footnote">† All values shown as of June 30th of each year — the most common CalSTRS retirement date. Use the Detailed View for estimates based on a different retirement date.</p>
 
       </div>
     </div>
@@ -989,9 +1015,6 @@
       <div id="colaSection"></div>
       <div id="salSickSection" style="display:contents"></div>
     </div>
-
-    <!-- ── PRECISION MODE ── -->
-    <div id="precisionSection" style="margin-top:10px"></div>
 
   </div>
 </div>
@@ -1138,6 +1161,108 @@ function ageOnJune30(dobStr, year){
 // ── Get AF: uses June 30 exact monthly lookup when DOB available ──────────────
 // targetAge = the whole-year target (e.g. 62)
 // dob = "YYYY-MM-DD" string, svc = service credit years, f = formula string
+
+// Precise age-factor lookup by EXACT age in years+months (for detailed view).
+// Per CalSTRS, the age factor is set by your age in years and completed months
+// on the LAST DAY of your retirement month. No June 30 recomputation.
+function getAFexact(exactYrs, exactMos, svc, f){
+  const mos = Math.max(0, Math.min(11, Math.floor(exactMos)));
+  if(f === '2at62'){
+    const row = AF_2AT62_M[exactYrs];
+    if(row) return row[mos];
+    return exactYrs >= 65 ? 0.024 : (exactYrs < 55 ? null : 0.024);
+  }
+  const tbl = svc >= 30 ? AF_2AT60_30_M : AF_2AT60_M;
+  const row = tbl[exactYrs];
+  if(row) return row[mos];
+  if(exactYrs >= 63) return svc >= 30 ? 0.024 : 0.024;
+  return exactYrs < 50 ? null : null;
+}
+
+// ── School-year service credit accrual ───────────────────────────────────────
+// CalSTRS credit accrues as creditable service is performed over the assignment's
+// WORK CALENDAR, which depends on the assignment basis (base days):
+//   • C-basis (182)  → ~10-month school year (Aug–Jun), flat over summer
+//   • B-basis (197–206) → extended calendar, short summer gap
+//   • E-basis (210)  → ~11.5-month calendar
+//   • A-basis (248)  → year-round; accrues ratably across all 12 months
+// Everyone still earns a max of 1.000 credit/year — only the intra-year SHAPE
+// differs. We model a monotonic "service clock": cumulative years of creditable
+// service completed since a fixed epoch. Credit added between two dates =
+// clock(later) − clock(earlier). Always increasing; no boundary double-counting.
+
+// Given base days, return the work-calendar window as a fraction of the year and
+// its start month. The window is centered on the school year and widens with
+// base days until it fills all 12 months at A-basis.
+function workCalendar(baseDays){
+  const bd = baseDays || 182;
+  // Standard school year ~183 instructional days over ~10 months (Aug15–Jun12).
+  // Scale the active-work window: at 182 → ~10 months; at 248 → 12 months.
+  // Linear-ish interpolation between the C-basis window and full year.
+  if(bd >= 248) return {startMonth: 0, startDay: 1, endMonth: 11, endDay: 31, yearRound: true};  // A-basis: Jan 1–Dec 31
+  if(bd <= 182) return {startMonth: 7, startDay: 15, endMonth: 5, endDay: 12, yearRound: false}; // C-basis: Aug 15–Jun 12
+  // Between: widen the window symmetrically toward year-round as bd grows 182→248.
+  // Fraction of the way from C-basis (10 mo) to full year.
+  const frac = Math.max(0, Math.min(1, (bd - 182) / (248 - 182)));
+  // C-basis window ≈ 10 months; extend earlier start and later end proportionally.
+  // Start pulls from Aug 15 toward Jul 1; end pushes from Jun 12 toward Jul 31 (next yr wrap).
+  // Simplify: start month moves Aug(7)→ toward Jul(6)/Jun; end month moves Jun(5)→ toward Jul/Aug.
+  const startMonth = Math.round(7 - frac * 1.5); // 7 (Aug) down toward ~5.5
+  const endMonth   = Math.round(5 + frac * 1.5); // 5 (Jun) up toward ~6.5
+  return {startMonth: Math.max(6, startMonth), startDay: 1, endMonth: Math.min(7, endMonth), endDay: 15, yearRound: false};
+}
+
+function serviceClock(date, baseDays){
+  const t = date.getTime();
+  const y = date.getFullYear();
+  const m = date.getMonth();
+  const cal = workCalendar(baseDays);
+
+  if(cal.yearRound){
+    // A-basis: 1.0 credit accrues linearly across the whole calendar year.
+    const yearStart = new Date(y, 0, 1).getTime();
+    const yearEnd   = new Date(y+1, 0, 1).getTime();
+    const completedYears = (y - 1971);
+    const frac = Math.max(0, Math.min(1, (t - yearStart) / (yearEnd - yearStart)));
+    return Math.max(0, completedYears + frac);
+  }
+
+  // School-year style: window from (startMonth,startDay) to (endMonth,endDay).
+  // The "year ending in spring of Y" runs startMonth(Y-1) .. endMonth(Y).
+  const junThisYear = new Date(y, cal.endMonth, cal.endDay).getTime();
+  let completed = (y - 1971) + (t >= junThisYear ? 1 : 0);
+  if(completed < 0) completed = 0;
+
+  const inNextWindow = (m >= cal.startMonth);
+  const syStart = new Date(inNextWindow ? y : y-1, cal.startMonth, cal.startDay).getTime();
+  const syEnd   = new Date(inNextWindow ? y+1 : y, cal.endMonth,   cal.endDay).getTime();
+  let frac;
+  if(t >= syEnd)        frac = 0;   // work window done → counted; summer flat
+  else if(t <= syStart) frac = 0;   // before window starts
+  else                  frac = (t - syStart) / (syEnd - syStart);
+  return completed + frac;
+}
+
+// Earned service credit at an exact retirement date given current whole svc.
+// Credit added = increase in the monotonic service clock from now to retDate.
+function serviceAtDate(retDate, currentSvc, baseDays){
+  const now = new Date();
+  const added = Math.max(0, serviceClock(retDate, baseDays) - serviceClock(now, baseDays));
+  return currentSvc + added;
+}
+
+// Retained for any callers referencing the old fraction helper.
+function schoolYearFraction(date){
+  const y = date.getFullYear();
+  const m = date.getMonth();
+  let syStart, syEnd;
+  if(m >= 7){ syStart = new Date(y,7,15);   syEnd = new Date(y+1,5,12); }
+  else      { syStart = new Date(y-1,7,15); syEnd = new Date(y,5,12);   }
+  if(date >= syEnd)   return 1.0;
+  if(date <= syStart) return 0.0;
+  return Math.max(0, Math.min(1, (date - syStart) / (syEnd - syStart)));
+}
+
 function getAF(targetAge, svc, f, dob){
   let exactYrs = targetAge, exactMos = 0;
   if(dob){
@@ -1188,11 +1313,19 @@ function exactPenEligAge(dob, hireDate, formula, nowSvc){
   gates.forEach(function(g){
     // Date member reaches minAge
     const ageDate=new Date(bd.getFullYear()+g.minAge, bd.getMonth(), bd.getDate());
-    // Date member reaches minSvc (from hire date)
-    const svcDate=new Date(hd.getFullYear()+g.minSvc, hd.getMonth(), hd.getDate());
+    // Date member reaches minSvc. Use the member's ACTUAL current service credit
+    // (nowSvc) growing at ~1 credit/year, so this matches the schedule and any
+    // service breaks/part-time already reflected in nowSvc. Fall back to hire-date
+    // calendar math only if nowSvc isn't provided.
+    let svcDate;
+    if(isFinite(nowSvc) && nowSvc>0){
+      const yrsToMinSvc=Math.max(0, g.minSvc - nowSvc); // additional creditable years needed
+      svcDate=new Date(now.getTime() + yrsToMinSvc*365.25*24*3600*1000);
+    } else {
+      svcDate=new Date(hd.getFullYear()+g.minSvc, hd.getMonth(), hd.getDate());
+    }
     // Eligibility = the LATER of the two (both must be met simultaneously)
     const eligDate=ageDate>svcDate?ageDate:svcDate;
-    // Only use this gate if elig date is valid (not in the past relative to hire)
     if(!earliest||eligDate<earliest) earliest=eligDate;
   });
 
@@ -1273,7 +1406,7 @@ function shortMY(d){
 function yrsUntil(dob,a){return Math.max(0,a-ageNowFn(dob))}
 function pSal(s,g,y){return s*Math.pow(1+g/100,y)}
 function avg3(s,g,y){return(pSal(s,g,Math.max(0,y-2))+pSal(s,g,Math.max(0,y-1))+pSal(s,g,y))/3}
-function autoDistrictYrs(h){return Math.max(0,Math.round((new Date()-new Date(h))/(365.25*24*3600*1000)))}
+function autoDistrictYrs(h){return Math.max(0,Math.round((new Date()-new Date(h))/(365.25*24*3600*1000)*10)/10)}
 function autoServiceYrs(h){return autoDistrictYrs(h)}
 function autoFormula(h){return new Date(h)<=new Date('2012-12-31')?'2at60':'2at62'}
 
@@ -1305,23 +1438,67 @@ function getSalaryCap(formula, retireYear, pre1996){
 }
 // ──────────────────────────────────────────────────────────────────
 
+// Age in years+months on the last day of `retMonth` (1-12) in the given year.
+function ageOnMonthEnd(dobStr, year, retMonth){
+  if(!dobStr) return null;
+  const bd = new Date(dobStr);
+  const lastDay = new Date(year, retMonth, 0); // day 0 of next month = last day of retMonth
+  let yrs = lastDay.getFullYear() - bd.getFullYear();
+  let mos = lastDay.getMonth() - bd.getMonth();
+  if(lastDay.getDate() < bd.getDate()) mos--;
+  if(mos < 0){ yrs--; mos += 12; }
+  return {yrs, mos, lastDay};
+}
+
 function buildSchedule(){
   const inp=getInputs();
   const rows=[];
   const curYear=new Date().getFullYear();
+  const now=new Date();
   const nowAge=ageNowFn(inp.dob);
   const tier=getTier(inp.hireDate);
   let prevMonthly=null;
 
+  // Detailed mode: rows tie to a user-selected month (last day) instead of June 30.
+  // High-level (default): retMonth=6 → June, day 30. Behavior unchanged.
+  const detailed = window._detailedMode === true;
+  const retMonth = detailed ? (window._detailedMonth || 6) : 6;
+
   for(let age=50;age<=75;age++){
-    const yOut=yrsUntil(inp.dob,age);
-    const earnedSvc=inp.serviceYears+yOut;
+    // Determine the exact retirement date for this age row.
+    let yOut, exactYrs, exactMos, retDate;
+    if(detailed && inp.dob){
+      // Year the member turns `age` (evaluated at the selected month-end).
+      const bd=new Date(inp.dob);
+      let candYear=bd.getFullYear()+age;
+      let am=ageOnMonthEnd(inp.dob, candYear, retMonth);
+      if(am.yrs < age) { candYear++; am=ageOnMonthEnd(inp.dob, candYear, retMonth); }
+      retDate=am.lastDay;
+      exactYrs=am.yrs; exactMos=am.mos;
+      yOut=Math.max(0,(retDate-now)/(365.25*24*3600*1000));
+    } else {
+      yOut=yrsUntil(inp.dob,age);
+      exactYrs=age; exactMos=0;
+      retDate=null;
+    }
+
+    // Service credit: detailed uses school-year/basis accrual to the exact date;
+    // high-level keeps the existing calendar-year projection.
+    let earnedSvc;
+    if(detailed && inp.dob && typeof serviceAtDate==='function'){
+      earnedSvc=serviceAtDate(retDate, inp.serviceYears, inp.baseDays);
+    } else {
+      earnedSvc=inp.serviceYears+yOut;
+    }
     const dSvc=inp.districtYears+yOut;
-    const sickDays=inp.sickPerYear*(inp.serviceYears+yOut);
+    const sickDays=inp.sickPerYear*earnedSvc;
     const sickCredit=sickDays/inp.baseDays;
     const totalSvc=earnedSvc+sickCredit;
-    const af=getAF(age,earnedSvc,formula,inp.dob);
-    const pe=penElig(age,earnedSvc,formula);
+    // Age factor: detailed uses exact age on month-end; high-level uses whole age.
+    const af=(detailed&&inp.dob)
+      ? getAFexact(exactYrs, exactMos, earnedSvc, formula)
+      : getAF(age,earnedSvc,formula,inp.dob);
+    const pe=penElig(detailed?(exactYrs+exactMos/12):age, earnedSvc, formula);
     const hm=healthMet(tier,age,dSvc);
     const maxAF=isMaxAF(age,earnedSvc,formula);
     const medicare=age>=65;
@@ -1348,7 +1525,7 @@ function buildSchedule(){
     const incr=(monthly!==null&&prevMonthly!==null)?monthly-prevMonthly:null;
     if(monthly!==null) prevMonthly=monthly;
 
-    rows.push({age,retireYear,earnedSvc,dSvc,sickCredit,totalSvc,af,finalComp,projSal,monthly,annual,pctSal,pe,hm,maxAF,medicare,use1yr,points,tier,incr,capped,salCap});
+    rows.push({age,retireYear,earnedSvc,dSvc,sickCredit,totalSvc,af,finalComp,projSal,monthly,annual,pctSal,pe,hm,maxAF,medicare,use1yr,points,tier,incr,capped,salCap,exactYrs,exactMos,retMonth});
   }
   return rows;
 }
@@ -1401,6 +1578,61 @@ function setMC(id,cls,val,sub,bText,bCls){
 function update(){
   const inp=getInputs();
   saveInputs(); // persist all inputs to localStorage on every update
+
+  // ── Detailed "analyze as of today" toggle ──────────────────────────────
+  // When checked (and the member is retirement-eligible now), anchor the detailed
+  // month/year on the current month so the 5yr/12mo views compare "now vs waiting".
+  {
+    const todayCb=document.getElementById('detailedToday');
+    const todayNote=document.getElementById('detailedTodayNote');
+    const monSel=document.getElementById('detailedMon');
+    const yrSel=document.getElementById('detailedYr');
+    if(todayCb && todayCb.checked && window._detailedMode){
+      const now2=new Date();
+      window._detailedMonth=now2.getMonth()+1;
+      window._detailedYear=now2.getFullYear();
+      if(monSel){ monSel.value=window._detailedMonth; monSel.disabled=true; }
+      if(yrSel){ yrSel.value=window._detailedYear; yrSel.disabled=true; }
+      // Snap the target age (slider + hero) to the member's whole age as of the
+      // current month-end, so the main box and slider reflect "retire today".
+      if(inp.dob){
+        const amNow=ageOnMonthEnd(inp.dob, window._detailedYear, window._detailedMonth);
+        if(amNow){
+          const curWholeAge=Math.min(75,Math.max(50,amNow.yrs));
+          const tEl=document.getElementById('targetAge');
+          const slEl=document.getElementById('ageSlider');
+          if(tEl) tEl.value=curWholeAge;
+          if(slEl){ slEl.value=curWholeAge; if(typeof updateSliderFill==='function') updateSliderFill(slEl); }
+          inp.targetAge=curWholeAge;
+        }
+      }
+      // Check eligibility now
+      const ageNow0=ageNowFn(inp.dob);
+      const svcNow0=inp.serviceYears;
+      const f0=inp.formula||formula;
+      const eligNow=(typeof penElig==='function')?penElig(ageNow0,svcNow0,f0):false;
+      if(todayNote){
+        todayNote.style.display='block';
+        todayNote.innerHTML=eligNow
+          ? '✓ <strong>You appear eligible to retire now.</strong> The schedule and 5-year / 12-month views below compare retiring today against waiting.'
+          : '⚠ Based on your inputs you are <strong>not yet eligible to retire today</strong> — the views below still show your nearest future options.';
+      }
+    } else {
+      if(monSel) monSel.disabled=false;
+      if(yrSel) yrSel.disabled=false;
+      if(todayNote) todayNote.style.display='none';
+    }
+    // Show the member's exact age at the selected month/year, next to the dropdowns
+    const ageAtDateEl=document.getElementById('detailedAgeAtDate');
+    if(ageAtDateEl){
+      if(window._detailedMode && inp.dob && window._detailedMonth && window._detailedYear && typeof ageOnMonthEnd==='function'){
+        const am=ageOnMonthEnd(inp.dob, window._detailedYear, window._detailedMonth);
+        ageAtDateEl.textContent=am ? ('Age '+am.yrs+' yrs '+am.mos+' mo') : '';
+      } else {
+        ageAtDateEl.textContent='';
+      }
+    }
+  }
 
   // ── INPUT VALIDATION ──────────────────────────────────────────────────
   const vWarn=document.getElementById('validationWarning');
@@ -1469,30 +1701,68 @@ function update(){
   const svHint=document.getElementById('serviceYearsHint');
   if(svHint) svHint.textContent=`Auto-calculated from hire date (${autoD} yrs); adjust if your CalSTRS credit differs (log in to myCalSTRS for your precise value)`;
 
-  // Sync slider display with current target age
+  // Sync slider display with current target age (month-aware in detailed mode)
   const sl=document.getElementById('ageSlider');
-  if(sl&&parseInt(sl.value)!==inp.targetAge){
-    sl.value=inp.targetAge;
-    const sd=document.getElementById('sliderAgeDisplay');
-    if(sd) sd.textContent=inp.targetAge;
-    updateSliderFill(sl);
+  if(sl){
+    if(parseInt(sl.value)!==inp.targetAge){
+      sl.value=inp.targetAge;
+      updateSliderFill(sl);
+    }
+    if(typeof updateSliderDisplay==='function') updateSliderDisplay(inp.targetAge);
   }
 
-  // Update hero target age display — show age + the June 30 date it corresponds to
+  // Update hero target age display — date reflects June 30 (high-level) or the
+  // selected month-end (detailed mode).
   const htaEl=document.getElementById('heroTargetAgeDisplay');
   if(htaEl){
-    let june30Year='';
+    const MSHORT=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+    const detailed=window._detailedMode===true;
+    const retMon=detailed?(window._detailedMonth||6):6;
+    let dateLabel='';
     if(inp.dob){
-      // Year the member turns target age, evaluated on June 30
       const bdY=new Date(inp.dob);
       let cand=bdY.getFullYear()+inp.targetAge;
-      const aOn=ageOnJune30(inp.dob,cand);
-      if(!aOn||aOn.yrs<inp.targetAge) cand++;
-      june30Year=cand;
+      if(detailed){
+        const am=ageOnMonthEnd(inp.dob,cand,retMon);
+        if(am && am.yrs<inp.targetAge) cand++;
+        const lastDay=new Date(cand,retMon,0);
+        dateLabel=MSHORT[retMon-1]+' '+lastDay.getDate()+', '+cand;
+      } else {
+        const aOn=ageOnJune30(inp.dob,cand);
+        if(!aOn||aOn.yrs<inp.targetAge) cand++;
+        dateLabel='June 30, '+cand;
+      }
     }
-    htaEl.innerHTML=june30Year
-      ? `Age ${inp.targetAge} <span style="font-size:14px;font-weight:400;color:var(--text3)">·</span> <span style="font-size:15px;color:var(--text2)">June 30, ${june30Year}</span>`
+    let ageLabel='Age '+inp.targetAge;
+    if(detailed && inp.dob){
+      const bdY2=new Date(inp.dob);
+      let cand2=bdY2.getFullYear()+inp.targetAge;
+      let am2=ageOnMonthEnd(inp.dob,cand2,retMon);
+      if(am2 && am2.yrs<inp.targetAge){ cand2++; am2=ageOnMonthEnd(inp.dob,cand2,retMon); }
+      if(am2) ageLabel=am2.yrs+' yrs '+am2.mos+' mo';
+    }
+    htaEl.innerHTML=dateLabel
+      ? `${ageLabel} <span style="font-size:14px;font-weight:400;color:var(--text3)">·</span> <span style="font-size:15px;color:var(--text2)">${dateLabel}</span>`
       : `Age ${inp.targetAge}`;
+  }
+
+  // Update the June-30 / selected-month labels for detailed vs high-level
+  {
+    const MFULL2=['January','February','March','April','May','June','July','August','September','October','November','December'];
+    const det=window._detailedMode===true;
+    const rMon=det?(window._detailedMonth||6):6;
+    const monName=MFULL2[rMon-1];
+    const lastDayNum=new Date(2001,rMon,0).getDate(); // non-leap ref for label
+    const subEl=document.getElementById('heroSubtitle');
+    if(subEl) subEl.textContent=det
+      ? 'Based on your selected retirement month and year'
+      : 'Based on your target retirement age, as of June 30th of that year';
+    const schEl=document.getElementById('scheduleHeaderNote');
+    if(schEl) schEl.textContent=det
+      ? `— benefit as of ${monName} ${lastDayNum} each year`
+      : '— benefit as of June 30th of the year you turn each age';
+    const fnEl=document.getElementById('june30Footnote');
+    if(fnEl) fnEl.style.display=det?'none':'';
   }
 
   // Sick days estimated total hint
@@ -1591,7 +1861,7 @@ function update(){
       const exactMo=exactAF?Math.round(exactAF*exactSvc*exactSal/12):0;
       if(exactMo>0) preciseMonthly=exactMo;
     }
-    const juneNote=(preciseMonthly!==firstPen.monthly)?` <span style="font-size:10px;color:var(--text3)">(${fmt(firstPen.monthly)}/mo as of June 30th following this date)</span>`:'';
+    const juneNote='';
     const clockIcon=`<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#3a5a7c" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>`;
     const eligDateStr=(exactElig&&exactElig.eligDate&&!exactElig.alreadyElig)?` <span style="color:var(--text3);font-weight:400">${shortMY(exactElig.eligDate)}</span> ·`:'';
     html+=`<div class="i-row">
@@ -1638,17 +1908,10 @@ function update(){
       }
     }
 
-    // Precise benefit at exact date age factor caps (vs June 30)
-    let peakPreciseMonthly=firstMaxAF.monthly;
-    if(inp.dob && !isNow){
-      const yrsToCap=Math.max(0,capAge-nowAge);
-      const capSvc=Math.min(55, inp.serviceYears+yrsToCap+((inp.sickPerYear||0)*(inp.serviceYears+yrsToCap)/(inp.baseDays||182)));
-      const capAF=getAF(capAge, capSvc, formula, inp.dob);
-      const capSal=inp.salary*Math.pow(1+(inp.salaryGrowth||0)/100, yrsToCap);
-      const capMo=capAF?Math.round(capAF*capSvc*capSal/12):0;
-      if(capMo>0) peakPreciseMonthly=capMo;
-    }
-    const peakJuneNote=(peakPreciseMonthly!==firstMaxAF.monthly)?` <span style="font-size:10px;color:var(--text3)">(${fmt(firstMaxAF.monthly)}/mo as of June 30th following this date)</span>`:'';
+    // Age factor is already capped at 2.4% at the cap age — there's no by-month
+    // nuance here (waiting within the cap age doesn't change the factor). Use the
+    // schedule row value directly.
+    const peakMonthly=firstMaxAF.monthly;
     // Date the age factor caps — the member's birthday in the year they reach capAge
     let peakDateStr='';
     if(inp.dob && !isNow){
@@ -1661,7 +1924,7 @@ function update(){
       <div class="i-icon">${ageArrowIcon}</div>
       <div>
         <p class="i-label">Age Factor Peaks at 2.4%</p>
-        <p class="i-val">Age ${capAge} ·${peakDateStr} ${fmt(peakPreciseMonthly)}/mo${peakJuneNote}</p>
+        <p class="i-val">Age ${capAge} ·${peakDateStr} ${fmt(peakMonthly)}/mo</p>
         <p class="i-desc">The multiplier stops increasing at age ${capAge}. After this, your benefit still grows through additional service credit, but the age factor component is maxed out. ${isNow?'<strong>Already reached.</strong>':'<strong>'+rel(inp.dob,capAge)+' away.</strong>'+monthlyBumpNote}</p>
         ${waitTip}
       </div>
@@ -1854,6 +2117,15 @@ function update(){
               <p class="i-label">Sick Leave Credit at Age ${target.age}</p>
               <p class="i-val">~${days2} days → +${cred2.toFixed(2)} yrs service credit</p>
               <p class="i-desc">Worth <strong>${extra2}/mo</strong> added to your benefit at retirement. Based on ${inp.sickPerYear} unused days/yr over your career.</p>
+              ${(function(){
+                const bd=inp.baseDays||182;
+                const perYear100=inp.sickPerYear/bd;
+                const perYear50=(inp.sickPerYear*0.5)/bd;
+                const yrs10=(perYear100*10), yrs10_50=(perYear50*10);
+                return `<div style="margin-top:9px;padding:8px 10px;background:#eaf4ee;border:1px solid #c0dcc8;border-radius:var(--rs)">
+                  <p style="font-size:10.5px;color:#1a4a2e;line-height:1.55"><strong>Planning insight:</strong> each future year you leave ${inp.sickPerYear} sick days unused adds <strong>${perYear100.toFixed(3)} yrs</strong> of service credit (${bd}-day basis). If you realistically bank only <strong>half</strong> (${(inp.sickPerYear*0.5).toFixed(1)} days/yr), that's <strong>${perYear50.toFixed(3)} yrs/yr</strong> — about <strong>+${yrs10_50.toFixed(2)} yrs</strong> over a decade (vs +${yrs10.toFixed(2)} yrs if you bank them all).</p>
+                </div>`;
+              })()}
             </div>
           </div>
         </div>
@@ -1950,7 +2222,7 @@ function update(){
             </div>
             <div style="padding:7px 10px;background:var(--surface2);border:1px solid var(--border);border-radius:var(--rs)">
               <p style="font-size:11px;font-weight:700;color:var(--text)">② Monthly annuity</p>
-              <p style="font-size:10.5px;color:var(--text2);line-height:1.5;margin-top:2px">Converts the balance into a lifetime monthly payment. Options include Member-Only, a Period-Certain annuity (3–10 years), or a 100%/75%/50% beneficiary annuity that continues to your survivor (only if you elected a Modified Benefit option on your main pension).</p>
+              <p style="font-size:10.5px;color:var(--text2);line-height:1.5;margin-top:2px">Converts the balance into a monthly payment. Options include a lifetime annuity, a Period-Certain annuity (3–10 years), or a Modified annuity that provides a 100%/75%/50% payment continuing to your survivor (only if you elected a Modified Benefit option on your main pension).</p>
             </div>
             <div style="padding:7px 10px;background:var(--surface2);border:1px solid var(--border);border-radius:var(--rs)">
               <p style="font-size:11px;font-weight:700;color:var(--text)">③ Combination</p>
@@ -1960,7 +2232,7 @@ function update(){
           <p style="font-size:9.5px;color:var(--text3);line-height:1.5;font-style:italic">You make this election on your Service Retirement Application, at the same time you choose your main pension option. It's separate from — but coordinated with — your monthly pension.</p>
 
           <p style="font-size:11px;font-weight:700;color:#1a3d5c;margin-top:2px">What a DBS balance is worth as a monthly annuity:</p>
-          <p style="font-size:10.5px;color:var(--text2);line-height:1.55">If you convert your DBS balance to a lifetime monthly annuity (Member-Only), here's roughly what different balances produce at retirement. Higher retirement ages pay slightly more per dollar.</p>
+          <p style="font-size:10.5px;color:var(--text2);line-height:1.55">If you convert your DBS balance into a monthly annuity (Member-Only lifetime option shown), here's roughly what different balances produce at retirement. Higher retirement ages pay slightly more per dollar.</p>
           <div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;font-size:11px">
             <thead><tr style="background:var(--surface2)">
               <th style="padding:6px 10px;text-align:left;font-size:9px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--text3)">DBS Balance</th>
@@ -1978,6 +2250,16 @@ function update(){
             </tbody>
           </table></div>
           <p style="font-size:9.5px;color:var(--text3);line-height:1.5;font-style:italic">Official CalSTRS DBS Member-Only annuity estimates (as of Sept 2024). This is on top of your main monthly pension. A Period-Certain annuity (3–10 yrs) pays more per month but for a limited time. Beneficiary annuities pay slightly less to provide survivor coverage.</p>
+
+          <div style="padding:9px 11px;background:#eef4fb;border:1px solid #c0d4ec;border-radius:var(--rs)">
+            <p style="font-size:11px;font-weight:700;color:#1a3d5c;margin-bottom:4px">Lump sum vs. annuity — how to think about it</p>
+            <p style="font-size:10.5px;color:#1a3d5c;line-height:1.6">Taking the annuity is a bit like earning a steady return on your balance for life — roughly <strong>4–5.5% a year</strong>, depending on how long you live. That's the number to beat if you'd rather take the cash and invest it yourself. So the rough rule of thumb:</p>
+            <ul style="margin:6px 0 0;padding-left:18px">
+              <li style="font-size:10.5px;color:#1a3d5c;line-height:1.6;margin-bottom:3px"><strong>Take the lump sum &amp; invest it yourself</strong> if you're confident you can reliably beat ~5% after taxes and fees over the long run, want control of the principal, or want to leave the balance to heirs.</li>
+              <li style="font-size:10.5px;color:#1a3d5c;line-height:1.6"><strong>Take the annuity</strong> if you value guaranteed income you can't outlive, don't want market risk on this money, or would spend a lump sum faster than intended. Because your main CalSTRS pension already covers longevity, some members take the lump sum here and let the pension be their "annuity."</li>
+            </ul>
+            <p style="font-size:9.5px;color:var(--text3);line-height:1.55;margin-top:6px;font-style:italic">This is a framework, not advice. Your health, other income, tax bracket, spouse, and estate goals all matter, and the election is generally irreversible — a fee-only fiduciary advisor can run it for your specific numbers.</p>
+          </div>
 
           <div style="padding:8px 11px;background:#fff8e8;border:1px solid #f0c060;border-radius:var(--rs)">
             <p style="font-size:10.5px;color:#7a4f10;line-height:1.55">📄 <strong>Find your actual balance:</strong> Your DBS balance appears on your annual Retirement Progress Report at <a href="https://myCalSTRS.com" target="_blank" rel="noopener" style="color:#2d6da3;font-weight:700">myCalSTRS.com ↗</a>. You can request an annuity estimate once the balance reaches $3,500.</p>
@@ -2002,43 +2284,47 @@ function update(){
             <p style="font-size:10.5px;color:#8b2a1a;line-height:1.55">Your LAUSD resignation date and your CalSTRS retirement date must be <strong>two consecutive calendar days</strong> (weekends and holidays count). Example: resign June 12, retire June 13. A gap can cost you your lifetime health eligibility. Your "last day of work" on the CalSTRS application doesn't need to be an actual work day — it can be any calendar day.</p>
           </div>
 
-          <p style="font-size:11px;font-weight:700;color:#1a3d5c">Which day of the month? The key rules</p>
+          <p style="font-size:11px;font-weight:700;color:#1a3d5c">Resignation date vs. retirement date — the key mechanic</p>
           <div style="background:#f0f5fb;border:1px solid #c0d4ec;border-radius:var(--rs);padding:9px 11px">
-            <p style="font-size:10.5px;color:#1a3d5c;line-height:1.6"><strong>Your age factor is set by your age on the LAST DAY of your retirement month</strong> — not the exact date you pick. So retiring June 1, June 15, or June 30 all use your age as of June 30 for the age factor. Picking the 1st vs. the 30th of the same month doesn't change your age factor.</p>
+            <p style="font-size:10.5px;color:#1a3d5c;line-height:1.6">These are <strong>two different dates</strong>. You <strong>resign from LAUSD on the last day of a month</strong> (e.g. June 30) and your <strong>CalSTRS retirement begins the next day</strong> (July 1). They must be consecutive calendar days to protect your lifetime health benefit. Retiring July 1 counts as a new month, which gives your age factor the chance to advance versus retiring in June.</p>
+          </div>
+          <div style="background:#f0f5fb;border:1px solid #c0d4ec;border-radius:var(--rs);padding:9px 11px">
+            <p style="font-size:10.5px;color:#1a3d5c;line-height:1.6"><strong>Your age factor is set by your age on the last day of your retirement month.</strong> It advances by month — and it can advance in <em>any</em> month, not just your birthday month (see the CalSTRS age factor chart). So retiring July 1 vs. August 1 vs. September 1 each steps your age factor up a little.</p>
           </div>
           <div style="display:flex;flex-direction:column;gap:6px">
             <div style="padding:7px 10px;background:var(--surface2);border:1px solid var(--border);border-radius:var(--rs)">
-              <p style="font-size:11px;font-weight:700;color:var(--text)">Retire earlier in the month to start pay sooner</p>
-              <p style="font-size:10.5px;color:var(--text2);line-height:1.5;margin-top:2px">Your first benefit is calculated from your retirement date through the end of that month. Since the age factor is fixed to the month's last day anyway, retiring earlier in the month (e.g. June 2 vs June 30) can mean a bit more first-month benefit — with no downside to your age factor. Your retirement date must be at least one day after your last day of paid work.</p>
+              <p style="font-size:11px;font-weight:700;color:var(--text)">If you're already at the max age factor (2.4%)</p>
+              <p style="font-size:10.5px;color:var(--text2);line-height:1.5;margin-top:2px">Consider resigning mid-month and retiring the next day. Your first pension is paid from your retirement date through month-end, so a mid-month retirement gives you a partial pension month you'd otherwise skip — with no age-factor downside, since you're already capped. (One exception: you may still want to work through June 30 to stay eligible for the Annual Earnings Credit — see below.)</p>
             </div>
             <div style="padding:7px 10px;background:var(--surface2);border:1px solid var(--border);border-radius:var(--rs)">
-              <p style="font-size:11px;font-weight:700;color:var(--text)">Crossing into a new month can bump your age factor</p>
-              <p style="font-size:10.5px;color:var(--text2);line-height:1.5;margin-top:2px">If your birthday falls early in a month, retiring in that month (vs. the month before) can capture a higher age factor. Example: a June 15 vs. July 1 retirement lands in different months — if your birthday is late June, the July retirement uses your now-older age. Check both around your birthday.</p>
+              <p style="font-size:11px;font-weight:700;color:var(--text)">If you're NOT yet at the max age factor</p>
+              <p style="font-size:10.5px;color:var(--text2);line-height:1.5;margin-top:2px">Each additional month can raise your pension. Resign at the end of a month, retire the 1st of the next, and try successive months (July 1, then Aug 1, then Sep 1…) in the Detailed View to see the increase. Every day you wait to retire is one day of pension you don't collect — so weigh the higher factor against the delayed payments.</p>
             </div>
             <div style="padding:7px 10px;background:var(--surface2);border:1px solid var(--border);border-radius:var(--rs)">
-              <p style="font-size:11px;font-weight:700;color:var(--text)">Last day of instruction vs. June 30</p>
-              <p style="font-size:10.5px;color:var(--text2);line-height:1.5;margin-top:2px">Working through the last day of instruction ensures all your contracted work days are reported for a full year of service credit. Many retire June 30 (end of the school year) so their last day of work and full year of credit both land cleanly — then CalSTRS benefits begin July 1.</p>
+              <p style="font-size:11px;font-weight:700;color:var(--text)">Service credit accrues during the school year</p>
+              <p style="font-size:10.5px;color:var(--text2);line-height:1.5;margin-top:2px">Credit is earned as you perform creditable service, not evenly across the calendar. A full year of credit completes around the last day of instruction. Resigning June 30 captures the full year's credit for that school year, then retiring July 1 starts your pension.</p>
             </div>
           </div>
 
           <p style="font-size:11px;font-weight:700;color:#1a3d5c">When in the year should you retire?</p>
           <div style="display:flex;flex-direction:column;gap:6px">
             <div style="padding:7px 10px;background:var(--surface2);border:1px solid var(--border);border-radius:var(--rs)">
-              <p style="font-size:11px;font-weight:700;color:var(--text)">Wait for your birthday-month age factor bump</p>
-              <p style="font-size:10.5px;color:var(--text2);line-height:1.5;margin-top:2px">Your age factor steps up every year on your birthday month, not on June 30. Retiring even a month or two later — after your birthday — can permanently raise your benefit. If you're close to a bump, the small wait pays for life.</p>
-            </div>
-            <div style="padding:7px 10px;background:var(--surface2);border:1px solid var(--border);border-radius:var(--rs)">
               <p style="font-size:11px;font-weight:700;color:var(--text)">Before vs. after the max age factor</p>
               <p style="font-size:10.5px;color:var(--text2);line-height:1.5;margin-top:2px">Until you hit the maximum age factor (2.4%), each additional year raises your pension substantially. After the max, each extra year adds a flatter ~2.4% — still growth, but the biggest gains come <em>before</em> you reach the cap.</p>
             </div>
             <div style="padding:7px 10px;background:var(--surface2);border:1px solid var(--border);border-radius:var(--rs)">
               <p style="font-size:11px;font-weight:700;color:var(--text)">Summer earnings can still add credit</p>
-              <p style="font-size:10.5px;color:var(--text2);line-height:1.5;margin-top:2px">Retiring after summer school or intersession can add service credit and feed your DBS account. There's no single "right" month — end of school year, mid-year, or after summer can each make sense depending on your goals.</p>
+              <p style="font-size:10.5px;color:var(--text2);line-height:1.5;margin-top:2px">Working summer school or intersession can add service credit and feed your DBS account. There's no single "right" month — end of school year, mid-year, or after summer can each make sense depending on your goals.</p>
             </div>
             <div style="padding:7px 10px;background:var(--surface2);border:1px solid var(--border);border-radius:var(--rs)">
               <p style="font-size:11px;font-weight:700;color:var(--text)">The decision is reversible — until it isn't</p>
               <p style="font-size:10.5px;color:var(--text2);line-height:1.5;margin-top:2px">Your CalSTRS retirement application can be changed if you reconsider. But your LAUSD resignation (Form 8152) generally <strong>cannot be cancelled</strong> without HR approval, which isn't guaranteed. Be certain before you file the resignation.</p>
             </div>
+          </div>
+
+          <div style="background:#eaf4ee;border:1px solid #c0dcc8;border-radius:var(--rs);padding:9px 11px">
+            <p style="font-size:11px;font-weight:700;color:#1a4a2e;margin-bottom:3px">Don't overlook the Annual Earnings Credit (AEC)</p>
+            <p style="font-size:10.5px;color:#2a5a2a;line-height:1.55">Your DBS account earns a guaranteed interest rate <em>plus</em>, in many years, an Annual Earnings Credit declared by the Teachers' Retirement Board. These stack. In 2024–25, for example, the DBS interest rate was 4.61% and the AEC added 4.53% — a combined <strong>~9.14%</strong> for that year. Because extra-duty pay (summer school, coaching, intersession) flows into your DBS, that work can compound at surprisingly high rates. Many members underestimate this.</p>
           </div>
 
           <div style="background:#fff8e8;border:1px solid #f0c060;border-radius:var(--rs);padding:9px 11px">
@@ -2064,10 +2350,12 @@ function update(){
   }
   // Next step note
   html+=`<p style="margin-top:0;padding:10px 12px;background:var(--surface2);border-radius:var(--rs);font-size:12.5px;color:var(--text);font-weight:700;line-height:1.5;border-left:3px solid #2d6da3">📋 Next step: Review the schedule below and consider your full financial picture before choosing a retirement age. Use these insights to prepare for any conversation with a financial advisor. Always verify directly with CalSTRS: <a href="https://www.calstrs.com/files/44f960e51/MemberHandbook2026.pdf" target="_blank" rel="noopener" style="color:#2d6da3;font-weight:700">Member Handbook ↗</a> · <a href="https://www.calstrs.com/files/1105a6846/UnderstandingTheFormula2025.pdf" target="_blank" rel="noopener" style="color:#2d6da3;font-weight:700">Understanding the Formula ↗</a> · <a href="https://forms.calstrs.com/CalSTRSOnlineFormRequestWebUI/Root/Pages/Order.aspx" target="_blank" rel="noopener" style="color:#2d6da3;font-weight:700">All CalSTRS Forms ↗</a></p>`;
-  html+=`<div style="padding:9px 12px;background:#e8f7f6;border:1.5px solid #0f7670;border-radius:var(--rs);display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap">
-    <p style="font-size:11px;color:#0a3d3a;line-height:1.55;flex:1;min-width:200px">💡 <strong style="color:#0a3d3a">This is a high-level planning tool.</strong> Calculations assume a <strong style="color:#0a3d3a">June 30 retirement date</strong> for each target age. <span style="text-decoration:underline;font-weight:600">For a more precise estimate based on your actual retirement date, use the detailed analysis below</span> — <em>most useful if you are within 5 years of retirement.</em></p>
-    <button onclick="selectView('dt')" style="padding:8px 14px;background:#0f7670;color:#fff;border:none;border-radius:var(--rs);font-size:11px;font-weight:700;cursor:pointer;white-space:nowrap;flex-shrink:0">→ Detailed analysis</button>
-  </div>`;
+  if(window._detailedMode!==true){
+    html+=`<div style="padding:9px 12px;background:#e8f7f6;border:1.5px solid #0f7670;border-radius:var(--rs);display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap">
+      <p style="font-size:11px;color:#0a3d3a;line-height:1.55;flex:1;min-width:200px">💡 <strong style="color:#0a3d3a">This is a high-level planning tool.</strong> Calculations assume a <strong style="color:#0a3d3a">June 30 retirement date</strong> for each target age. <span style="text-decoration:underline;font-weight:600">For a more precise estimate based on your actual retirement date, switch to the Detailed View</span> — <em>most useful if you are within 5 years of retirement.</em></p>
+      <button onclick="scrollToStep2();selectView('dt')" style="padding:8px 14px;background:#0f7670;color:#fff;border:none;border-radius:var(--rs);font-size:11px;font-weight:700;cursor:pointer;white-space:nowrap;flex-shrink:0">→ Detailed View</button>
+    </div>`;
+  }
 
   document.getElementById('insightBody').innerHTML=html;
 
@@ -2435,9 +2723,9 @@ function resetToDefaults(){
   document.getElementById('sickDaysPerYear').value='2';
   document.getElementById('baseDays').value='182';
   document.getElementById('targetAge').value='62';
-  // Sync slider
+  // Sync slider (reset _detailedMode first below, so display shows plain age)
   const sl=document.getElementById('ageSlider');
-  if(sl){sl.value='62';document.getElementById('sliderAgeDisplay').textContent='62';updateSliderFill(sl);}
+  if(sl){sl.value='62';updateSliderFill(sl);}
   // Reset formula
   setFormula('2at60');
   // Reset comp mode
@@ -2461,6 +2749,34 @@ function resetToDefaults(){
   window._precSalMode='auto';
   window._precManualSals=null;
   window._waitMode='5yr';
+  window._precOpen=false;
+  // ── Reset the Detailed View entirely — back to High-Level ──────────────────
+  window._detailedMode=false;
+  window._detailedMonth=null;
+  window._detailedYear=null;
+  // Uncheck & re-enable the "analyze as of today" toggle
+  const todayCb=document.getElementById('detailedToday');
+  if(todayCb) todayCb.checked=false;
+  const eligCb=document.getElementById('detailedJumpElig');
+  if(eligCb) eligCb.checked=false;
+  const maxAFCb=document.getElementById('detailedJumpMaxAF');
+  if(maxAFCb) maxAFCb.checked=false;
+  const monSel=document.getElementById('detailedMon');
+  const yrSel=document.getElementById('detailedYr');
+  if(monSel) monSel.disabled=false;
+  if(yrSel) yrSel.disabled=false;
+  const todayNote=document.getElementById('detailedTodayNote');
+  if(todayNote) todayNote.style.display='none';
+  const ageAtDateEl=document.getElementById('detailedAgeAtDate');
+  if(ageAtDateEl) ageAtDateEl.textContent='';
+  // Hide the detailed controls row and restore the High-Level card selection
+  const dc=document.getElementById('detailedControls');
+  if(dc) dc.style.display='none';
+  const hlCard=document.getElementById('viewCardHL');
+  const dtCard=document.getElementById('viewCardDT');
+  if(hlCard){ hlCard.style.border='2px solid #2d6da3'; hlCard.style.background='#eaf2fb'; }
+  if(dtCard){ dtCard.style.border='2px solid #d0d0d0'; dtCard.style.background='var(--surface)'; }
+  if(typeof updateSliderDisplay==='function') updateSliderDisplay(62);
   update();
   if(typeof selectView==='function') selectView('hl');
 }
@@ -2613,13 +2929,88 @@ const ageSlider=document.getElementById('ageSlider');
 const sliderDisplay=document.getElementById('sliderAgeDisplay');
 const targetAgeInput=document.getElementById('targetAge');
 
+// Update the slider readout. In detailed mode, show age with months at the
+// selected month/year (e.g. "62 · 3 mo"); in high-level, just the whole age.
+function updateSliderDisplay(v){
+  const sd=document.getElementById('sliderAgeDisplay');
+  const sub=document.getElementById('sliderAgeSub');
+  if(!sd) return;
+  const detailed=window._detailedMode===true;
+  let dobVal=''; const dobEl=document.getElementById('dob');
+  if(dobEl) dobVal=dobEl.value;
+  if(detailed && dobVal && typeof ageOnMonthEnd==='function'){
+    const retMon=window._detailedMonth||6;
+    const bd=new Date(dobVal);
+    let cand=bd.getFullYear()+v;
+    let am=ageOnMonthEnd(dobVal,cand,retMon);
+    if(am && am.yrs<v){ cand++; am=ageOnMonthEnd(dobVal,cand,retMon); }
+    if(am){
+      sd.textContent=am.yrs;
+      if(sub) sub.textContent='yrs '+am.mos+' mo';
+      return;
+    }
+  }
+  sd.textContent=v;
+  if(sub) sub.textContent='yrs old';
+}
+
+// Detailed view two-way sync between the age slider and the YEAR dropdown.
+// The month dropdown never changes here — only the year follows the slider,
+// and the slider follows the year. Both describe one shared retirement date.
+
+// Given a target age, return the year the member reaches it at the selected month.
+function yearForAge(age){
+  const dobEl=document.getElementById('dob');
+  if(!dobEl||!dobEl.value||typeof ageOnMonthEnd!=='function') return null;
+  const retMon=window._detailedMonth||6;
+  const bd=new Date(dobEl.value);
+  let cand=bd.getFullYear()+age;
+  let am=ageOnMonthEnd(dobEl.value,cand,retMon);
+  if(am && am.yrs<age){ cand++; }
+  return cand;
+}
+
+// Slider → year dropdown: set the year to match the slider's age (month stays).
+function syncYearToSlider(age){
+  if(window._detailedMode!==true) return;
+  const y=yearForAge(age);
+  if(y==null) return;
+  const yrSel=document.getElementById('detailedYr');
+  window._detailedYear=y;
+  if(yrSel){
+    // Ensure the option exists (year range is nowYear-3 .. nowYear+25)
+    let has=false;
+    for(let i=0;i<yrSel.options.length;i++){ if(parseInt(yrSel.options[i].value)===y){has=true;break;} }
+    if(has) yrSel.value=y;
+  }
+}
+
+// Year dropdown → slider: snap the slider/target age to the whole age the member
+// will be at the selected month-end of that year (month stays).
+function syncSliderToYear(){
+  if(window._detailedMode!==true) return;
+  const dobEl=document.getElementById('dob');
+  if(!dobEl||!dobEl.value||typeof ageOnMonthEnd!=='function') return;
+  const retMon=window._detailedMonth||6;
+  const yr=window._detailedYear;
+  const am=ageOnMonthEnd(dobEl.value, yr, retMon);
+  if(!am) return;
+  const age=Math.min(75,Math.max(50,am.yrs));
+  const slEl=document.getElementById('ageSlider');
+  const tEl=document.getElementById('targetAge');
+  if(slEl){ slEl.value=age; if(typeof updateSliderFill==='function') updateSliderFill(slEl); }
+  if(tEl) tEl.value=age;
+  if(typeof updateSliderDisplay==='function') updateSliderDisplay(age);
+}
+
 if(ageSlider){
   // Slider → targetAge input
   ageSlider.addEventListener('input',()=>{
     const v=parseInt(ageSlider.value);
-    sliderDisplay.textContent=v;
     targetAgeInput.value=v;
     updateSliderFill(ageSlider);
+    syncYearToSlider(v); // detailed: year dropdown follows slider (month unchanged)
+    updateSliderDisplay(v);
     update();
   });
 
@@ -3385,7 +3776,7 @@ function renderBreakEven(rows, target, firstPen, firstMaxAF){
       h+='</div>';
     }
     h+='<div style="padding:6px 14px;background:var(--surface2);border-bottom:1px solid var(--border)">';
-    h+='<p style="font-size:10px;color:var(--text3);font-style:italic;line-height:1.5">💡 Most useful if you are close to retirement and weighing whether to retire now or work a few more years. Both dropdowns are fully independent.</p>';
+    h+='<p style="font-size:10px;color:var(--text3);font-style:italic;line-height:1.5">💡 Most useful if you are close to retirement and weighing whether to retire now or work a few more years. Both dropdowns are fully independent. These figures use the <strong>high-level June 30 view</strong> — if you\'re close to retiring, switch to the <strong>Detailed View</strong> above for month-specific numbers.</p>';
     h+='</div>';
 
     // two side-by-side cards — on mobile, render B first so it appears on top
@@ -3525,12 +3916,12 @@ function renderCOLA(target){
 
   el.innerHTML='<div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--r);overflow:hidden">'
     +'<div style="background:#253447;padding:9px 14px;display:flex;align-items:center;justify-content:space-between;cursor:pointer" onclick="toggleSection(this)">'
-    +'<span style="color:#fff;font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase">COLA-Adjusted Benefit Projection</span>'
+    +'<span style="color:#fff;font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase">COLA-Adjusted Benefit Projection <span style="font-weight:400;text-transform:none;letter-spacing:0;color:rgba(255,255,255,.6)">· high-level June 30 view</span></span>'
     +'<span style="color:rgba(255,255,255,.6);font-size:10px">▶ expand</span>'
     +'</div>'
     +'<div style="display:none">'
     +'<div style="padding:9px 13px;background:#eaf2fb;border-bottom:1px solid #c0d4ec">'
-    +'<p style="font-size:11px;color:#1a3d5c;line-height:1.5">Starting from your <strong>Member-Only benefit of '+fmtM(base)+'/mo</strong> at age '+retireAge+'. CalSTRS applies a <strong>2% simple COLA</strong> each September 1st — adding <strong>'+fmtM(colaPerYear)+'/mo</strong> every year to your original base amount.</p>'
+    +'<p style="font-size:11px;color:#1a3d5c;line-height:1.5">Based on the <strong>high-level view</strong> — starting from your <strong>Member-Only benefit of '+fmtM(base)+'/mo</strong> at age '+retireAge+' (as of June 30 of that year). CalSTRS applies a <strong>2% simple COLA</strong> each September 1st — adding <strong>'+fmtM(colaPerYear)+'/mo</strong> every year to your original base amount.</p>'
     +'</div>'
     +'<div style="overflow-x:auto;-webkit-overflow-scrolling:touch">'
     +'<table style="width:100%;border-collapse:collapse;font-size:12px">'
@@ -3552,6 +3943,8 @@ function renderCOLA(target){
 function renderPrecision(inp, rows){
   var el=document.getElementById('precisionSection');
   if(!el) return;
+  // The 5-year / 12-month analysis only exists in Detailed View.
+  if(window._detailedMode!==true){ el.innerHTML=''; return; }
   var fmtM=function(n){return new Intl.NumberFormat('en-US',{style:'currency',currency:'USD',maximumFractionDigits:0}).format(n);};
   var today=new Date();
   var nowYear=today.getFullYear();
@@ -3569,28 +3962,23 @@ function renderPrecision(inp, rows){
     defYear=Math.max(nowYear,cand);
   }
 
-  // Reset stored date when target changes
-  if(window._precLastTarget!==inp.targetAge||window._precLastDob!==inp.dob){
-    window._precRetYr=null; window._precRetMon=null;
-    window._precLastTarget=inp.targetAge; window._precLastDob=inp.dob;
-  }
-
-  var userMon=window._precRetMon||null;
-  var userYr=window._precRetYr||null;
-  var retMon=userMon||bdMonDefault; // default to birthday month
-  var retYear=userYr||defYear;
+  // Use the SHARED detailed dropdown values (set above the fold in detailed mode)
+  var retMon=window._detailedMonth||bdMonDefault; // default to birthday month
+  var retYear=window._detailedYear||defYear;
   var waitMode=window._waitMode||'5yr';
 
   // ── Exact fractional years to retirement ─────────────────────────────────────
-  var bdDayDefault=bdParts?parseInt(bdParts[2]):30;
-  var retDay=userMon?(retMon===6?30:1):bdDayDefault; // birthday day if using default, else 1st (or 30 for June)
+  var retDay=new Date(retYear,retMon,0).getDate(); // last day of the selected month
   var retDateExact=new Date(retYear,retMon-1,retDay);
   var nowExact=new Date();
   var yrsToRet=Math.max(0,(retDateExact-nowExact)/(365.25*24*3600*1000));
   // Guard salary — fall back to a sane value if input is empty
   var baseSalary=(inp.salary&&inp.salary>0)?inp.salary:85000;
   var salAtRet=baseSalary*Math.pow(1+g,yrsToRet);
-  var yearsWorked=inp.serviceYears+yrsToRet;
+
+  // ── Service credit — accrues by school year, not calendar days ───────────────
+  var svcNoSick=serviceAtDate(retDateExact, inp.serviceYears, inp.baseDays);
+  var yearsWorked=svcNoSick; // earned service (excludes sick), school-year accrued
   var sickCredit=(inp.sickPerYear||0)*yearsWorked/(inp.baseDays||182);
   var svcAtRet=Math.min(55,yearsWorked+sickCredit);
 
@@ -3601,29 +3989,27 @@ function renderPrecision(inp, rows){
     var sal=salAtRet/Math.pow(1+g,i);
     var projected=Math.round(sal);
     var stored=window._precSals&&window._precSals[yr];
-    // Use stored only if it's a valid finite number, else fall back to projected
     var useVal=(stored!==undefined&&stored!==null&&isFinite(stored)&&stored>0)?stored:projected;
     if(!isFinite(useVal)||useVal<=0) useVal=Math.round((inp.salary&&inp.salary>0?inp.salary:85000));
     salRows.push({yr:yr,sal:useVal});
   }
 
-  // ── Exact age at retirement date ─────────────────────────────────────────────
+  // ── Exact age on the LAST DAY of the retirement month (CalSTRS AF rule) ───────
   var bd=inp.dob?new Date(inp.dob):null;
   var exactYrs=0,exactMos=0;
   if(bd){
-    exactYrs=retDateExact.getFullYear()-bd.getFullYear();
-    exactMos=retDateExact.getMonth()-bd.getMonth();
-    var dys2=retDateExact.getDate()-bd.getDate();
-    if(dys2<0&&bd.getDate()<=retDateExact.getDate()) exactMos--;
+    // Last day of the retirement month
+    var lastDay=new Date(retYear, retMon, 0); // day 0 of next month = last day of retMon
+    exactYrs=lastDay.getFullYear()-bd.getFullYear();
+    exactMos=lastDay.getMonth()-bd.getMonth();
+    if(lastDay.getDate()<bd.getDate()) exactMos--; // not yet reached birth-day this month
     if(exactMos<0){exactYrs--;exactMos+=12;}
   }
 
-  // ── Benefit calc — mirror buildSchedule() exactly so June ties to main chart ──
-  // Main schedule: af=getAF(age, earnedSvc), earnedSvc excludes sick credit
-  // finalComp via avg3/pSal, totalSvc includes sick credit
-  var earnedSvcAtRet=inp.serviceYears+yrsToRet; // excludes sick
-  var afAge=exactYrs+(exactMos/12); // fractional age at retirement date
-  var af=getAF(afAge, earnedSvcAtRet, inp.formula||'2at60', inp.dob);
+  // ── Benefit calc — age factor uses exact age on last day of retirement month ──
+  var earnedSvcAtRet=svcNoSick; // school-year accrued, excludes sick
+  var afAge=exactYrs+(exactMos/12);
+  var af=getAFexact(exactYrs, exactMos, earnedSvcAtRet, inp.formula||'2at60');
   var use1yr=(inp.formula!=='2at62')&&earnedSvcAtRet>=25;
   // Final compensation — same avg3/pSal logic as main schedule, using yrsToRet
   var finalComp;
@@ -3642,15 +4028,19 @@ function renderPrecision(inp, rows){
   }
   // ── Salary mode: 'auto' (project) or 'manual' (user enters own top salaries) ──
   var salMode=window._precSalMode||'auto';
-  // Manual salaries stored in window._precManualSals = {s1, s2, s3}
-  // s1 = highest/retire year, s2 = 1 yr prior, s3 = 2 yrs prior
+  // Manual salaries: {avg} (direct 3-yr average) or {s1,s2,s3} (three years to
+  // average), or {s1} for the single-highest-12-month case (25+ yrs, 2at60).
   var manualVals=window._precManualSals||{};
-  var hasManual=salMode==='manual' && (isFinite(manualVals.s1)&&manualVals.s1>0);
+  var hasAvg=isFinite(manualVals.avg)&&manualVals.avg>0;
+  var hasYears=(isFinite(manualVals.s1)&&manualVals.s1>0);
+  var hasManual=salMode==='manual' && (use1yr ? hasYears : (hasAvg||hasYears));
   if(hasManual){
     if(use1yr){
       finalComp=manualVals.s1;
+    } else if(hasAvg){
+      finalComp=manualVals.avg;
     } else {
-      // 3-year average — use the three entered values (fall back to s1 if others blank)
+      // 3-year average from entered years (fall back to s1 for blanks)
       var m1=(isFinite(manualVals.s1)&&manualVals.s1>0)?manualVals.s1:0;
       var m2=(isFinite(manualVals.s2)&&manualVals.s2>0)?manualVals.s2:m1;
       var m3=(isFinite(manualVals.s3)&&manualVals.s3>0)?manualVals.s3:m1;
@@ -3682,36 +4072,17 @@ function renderPrecision(inp, rows){
     }
   }
 
-  // ── Month/Year dropdowns — prepopulated with June + target year ──────────────
-  // If user hasn't picked, show June + defYear as the selected defaults
-  var dispMon=userMon||bdMonDefault;
-  var dispYr=userYr||defYear;
-  var MFull=['January','February','March','April','May','June','July','August','September','October','November','December'];
   var MS=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-  var monOpts='';
-  MFull.forEach(function(m,i){ monOpts+='<option value="'+(i+1)+'"'+(dispMon===i+1?' selected':'')+'>'+m+'</option>'; });
-  var yrOpts='';
-  for(var y=nowYear-5;y<=nowYear+25;y++){ yrOpts+='<option value="'+y+'"'+(dispYr===y?' selected':'')+'>'+y+'</option>'; }
-
-  var dateNote=bd?'<span style="font-size:13px;font-weight:700;color:#1a3d5c">'+exactYrs+' yrs '+exactMos+' mo old at this date</span>':'';
 
   // ── Build HTML ───────────────────────────────────────────────────────────────
   var precOpen=window._precOpen===true; // default collapsed
   var h='<div style="background:var(--surface);border:1.5px solid #0f7670;border-radius:var(--r);overflow:hidden;box-shadow:0 2px 8px rgba(15,118,112,.1)">';
-  h+='<div onclick="window._precOpen=!('+precOpen+');update();if(window._precOpen!==false){setTimeout(function(){document.getElementById(\'precisionSection\').scrollIntoView({behavior:\'smooth\',block:\'nearest\'});},150);}" style="background:linear-gradient(135deg,#0f7670,#1a9a93);padding:10px 14px;cursor:pointer;display:flex;align-items:center;justify-content:space-between">';
-  h+='<div><span style="color:#fff;font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase">🎯 Detailed Retirement Analysis</span>';
-  h+='<p style="color:rgba(255,255,255,.8);font-size:10px;margin-top:2px">'+(precOpen?'Enter your expected retirement date below for a more precise analysis':'Tap to expand — precise benefit estimate by exact retirement date')+'</p></div>';
+  h+='<div onclick="window._precOpen=!('+precOpen+');update();" style="background:linear-gradient(135deg,#0f7670,#1a9a93);padding:10px 14px;cursor:pointer;display:flex;align-items:center;justify-content:space-between">';
+  h+='<div><span style="color:#fff;font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase">🎯 5-Year &amp; 12-Month Analysis</span>';
+  h+='<p style="color:rgba(255,255,255,.8);font-size:10px;margin-top:2px">'+(precOpen?('Near-term options from '+MS[retMon-1]+' '+retYear+' — the date selected above'):'Tap to expand — compare retiring across nearby months and years')+'</p></div>';
   h+='<span style="color:#fff;font-size:12px">'+(precOpen?'▲':'▼')+'</span>';
   h+='</div>';
   h+='<div style="display:'+(precOpen?'block':'none')+'">';
-
-  // Date picker row
-  h+='<div style="padding:10px 14px;background:#f5f8fc;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;flex-wrap:wrap">';
-  h+='<span style="font-size:11px;font-weight:600;color:var(--text2)">Planned retirement date:</span>';
-  h+='<select id="precMon" onchange="window._precRetMon=this.value?parseInt(this.value):null;update()" style="padding:5px 9px;border-radius:5px;border:1px solid var(--border);font-size:12px;font-weight:600;background:#fff;cursor:pointer">'+monOpts+'</select>';
-  h+='<select id="precYr" onchange="window._precRetYr=this.value?parseInt(this.value):null;update()" style="padding:5px 9px;border-radius:5px;border:1px solid var(--border);font-size:12px;font-weight:600;background:#fff;cursor:pointer">'+yrOpts+'</select>';
-  h+=dateNote;
-  h+='</div>';
 
   // Salary section (collapsible) — auto-project OR enter your own top salaries
   var salOpen=window._precSalOpen||false;
@@ -3731,10 +4102,10 @@ function renderPrecision(inp, rows){
     h+='</div>';
 
     if(salMode==='auto'){
-      // Show the projected years (read-only display)
+      // Editable projected years — user can override any year (lower/higher job, big raises)
       h+='<table style="width:100%;border-collapse:collapse;font-size:12px"><thead><tr style="background:var(--surface2)">';
       h+='<th style="padding:5px 10px;text-align:left;font-size:9px;font-weight:700;text-transform:uppercase;color:var(--text3)">Year</th>';
-      h+='<th style="padding:5px 10px;text-align:right;font-size:9px;font-weight:700;text-transform:uppercase;color:var(--text3)">Projected Salary</th>';
+      h+='<th style="padding:5px 10px;text-align:right;font-size:9px;font-weight:700;text-transform:uppercase;color:var(--text3)">Salary (editable)</th>';
       h+='<th style="padding:5px 10px;text-align:center;font-size:9px;font-weight:700;text-transform:uppercase;color:var(--text3)">Used</th>';
       h+='</tr></thead><tbody>';
       salRows.forEach(function(row,idx){
@@ -3742,12 +4113,13 @@ function renderPrecision(inp, rows){
         var lbl=row.yr+(idx===4?' (retire yr)':idx===3?' (1 yr prior)':idx===2?' (2 yrs prior)':'');
         h+='<tr style="border-top:1px solid var(--border);'+(isUsed?'background:#f0f5fb;':'')+'">';
         h+='<td style="padding:5px 10px;font-size:11px;color:var(--text2);font-weight:'+(isUsed?'600':'400')+'">'+lbl+'</td>';
-        h+='<td style="padding:5px 10px;text-align:right;font-family:\'DM Mono\',monospace;font-size:12px;color:'+(isUsed?'var(--text)':'var(--text3)')+'">'+fmtM(row.sal)+'</td>';
+        h+='<td style="padding:4px 10px;text-align:right"><div style="position:relative;display:inline-block;width:110px"><span style="position:absolute;left:7px;top:50%;transform:translateY(-50%);color:var(--text3);font-size:11px">$</span><input type="text" inputmode="numeric" value="'+Math.round(row.sal).toLocaleString()+'" onchange="if(!window._precSals)window._precSals={};var v=Math.min(1000000,Math.max(0,parseFloat(this.value.replace(/[^0-9.]/g,\'\'))||0));window._precSals['+row.yr+']=v;update()" style="width:100%;padding:4px 6px 4px 16px;text-align:right;border:1px solid '+(isUsed?'#b8c8dc':'var(--border)')+';border-radius:5px;font-size:11.5px;font-family:\'DM Mono\',monospace;box-sizing:border-box;color:'+(isUsed?'var(--text)':'var(--text3)')+'"></div></td>';
         h+='<td style="padding:5px 10px;text-align:center;font-size:11px">'+(isUsed?'<span style="color:#2d6da3;font-weight:700">✓</span>':'<span style="color:var(--text3)">—</span>')+'</td>';
         h+='</tr>';
       });
       h+='</tbody></table>';
-      h+='<p style="font-size:9.5px;color:var(--text3);margin-top:6px;font-style:italic">Projected from your current salary of '+fmtM(inp.salary||85000)+' growing '+((inp.salaryGrowth||0))+'%/yr. Switch to "Enter my own" to use your actual figures.</p>';
+      var hasEdits=window._precSals&&Object.keys(window._precSals).some(function(k){return window._precSals[k]!=null;});
+      h+='<p style="font-size:9.5px;color:var(--text3);margin-top:6px;font-style:italic">Projected from your current salary of '+fmtM(inp.salary||85000)+' growing '+((inp.salaryGrowth||0))+'%/yr. <strong>Edit any year</strong> to model a lower/higher-paying job or bigger raises — the highlighted rows feed your final compensation.'+(hasEdits?' <a href="#" onclick="window._precSals=null;update();return false" style="color:#0f7670;font-weight:600">Reset to projection</a>':'')+'</p>';
     } else {
       // Manual entry — top salaries
       var mv=window._precManualSals||{};
@@ -3756,79 +4128,33 @@ function renderPrecision(inp, rows){
         h+='<div style="display:flex;align-items:center;gap:10px;margin-bottom:4px"><label style="font-size:11px;font-weight:600;color:var(--text2);min-width:130px">Highest 12-month salary</label>';
         h+='<div style="position:relative;flex:1"><span style="position:absolute;left:8px;top:50%;transform:translateY(-50%);color:var(--text3);font-size:12px">$</span><input type="text" inputmode="numeric" value="'+(isFinite(mv.s1)&&mv.s1>0?Math.round(mv.s1).toLocaleString():'')+'" placeholder="e.g. 110,000" onchange="if(!window._precManualSals)window._precManualSals={};window._precManualSals.s1=Math.min(1000000,Math.max(0,parseFloat(this.value.replace(/[^0-9.]/g,\'\'))||0));update()" style="width:100%;padding:6px 8px 6px 20px;border:1px solid var(--border);border-radius:var(--rs);font-size:12px;font-family:\'DM Mono\',monospace;box-sizing:border-box"></div></div>';
       } else {
-        h+='<p style="font-size:11px;color:var(--text2);margin-bottom:8px;line-height:1.5">CalSTRS averages your <strong>highest 3 consecutive years</strong> of compensation. Enter your three highest annual salaries:</p>';
-        var labels=['Highest year','2nd highest','3rd highest'];
+        h+='<p style="font-size:11px;color:var(--text2);margin-bottom:8px;line-height:1.5">You have fewer than 25 years of service, so CalSTRS uses your <strong>highest 3-year average</strong> compensation (not a single highest year). Enter that <strong>average</strong> below — or enter three years to have it averaged for you.</p>';
+        // Primary: single average input
+        var mvAvg=(isFinite(mv.avg)&&mv.avg>0)?Math.round(mv.avg).toLocaleString():'';
+        h+='<div style="display:flex;align-items:center;gap:10px;margin-bottom:8px"><label style="font-size:11px;font-weight:700;color:#0a5a55;min-width:130px">3-year average salary</label>';
+        h+='<div style="position:relative;flex:1"><span style="position:absolute;left:8px;top:50%;transform:translateY(-50%);color:var(--text3);font-size:12px">$</span><input type="text" inputmode="numeric" value="'+mvAvg+'" placeholder="e.g. 104,000" onchange="if(!window._precManualSals)window._precManualSals={};window._precManualSals.avg=Math.min(1000000,Math.max(0,parseFloat(this.value.replace(/[^0-9.]/g,\'\'))||0));window._precManualSals.s1=null;window._precManualSals.s2=null;window._precManualSals.s3=null;update()" style="width:100%;padding:6px 8px 6px 20px;border:1.5px solid #0f7670;border-radius:var(--rs);font-size:12px;font-family:\'DM Mono\',monospace;box-sizing:border-box"></div></div>';
+        // Optional: three-year breakdown (averaged)
+        h+='<details style="margin-top:2px"><summary style="font-size:10px;color:#0f7670;cursor:pointer;font-weight:600">Or enter three years to average</summary><div style="padding-top:8px">';
+        var labels=['Year 1','Year 2','Year 3'];
         var keys=['s1','s2','s3'];
-        var phs=['e.g. 110,000','e.g. 106,000','e.g. 102,000'];
         for(var mi=0;mi<3;mi++){
           var kv=mv[keys[mi]];
           h+='<div style="display:flex;align-items:center;gap:10px;margin-bottom:7px"><label style="font-size:11px;font-weight:600;color:var(--text2);min-width:90px">'+labels[mi]+'</label>';
-          h+='<div style="position:relative;flex:1"><span style="position:absolute;left:8px;top:50%;transform:translateY(-50%);color:var(--text3);font-size:12px">$</span><input type="text" inputmode="numeric" value="'+(isFinite(kv)&&kv>0?Math.round(kv).toLocaleString():'')+'" placeholder="'+phs[mi]+'" onchange="if(!window._precManualSals)window._precManualSals={};window._precManualSals.'+keys[mi]+'=Math.min(1000000,Math.max(0,parseFloat(this.value.replace(/[^0-9.]/g,\'\'))||0));update()" style="width:100%;padding:6px 8px 6px 20px;border:1px solid var(--border);border-radius:var(--rs);font-size:12px;font-family:\'DM Mono\',monospace;box-sizing:border-box"></div></div>';
+          h+='<div style="position:relative;flex:1"><span style="position:absolute;left:8px;top:50%;transform:translateY(-50%);color:var(--text3);font-size:12px">$</span><input type="text" inputmode="numeric" value="'+(isFinite(kv)&&kv>0?Math.round(kv).toLocaleString():'')+'" placeholder="e.g. 104,000" onchange="if(!window._precManualSals)window._precManualSals={};window._precManualSals.avg=null;window._precManualSals.'+keys[mi]+'=Math.min(1000000,Math.max(0,parseFloat(this.value.replace(/[^0-9.]/g,\'\'))||0));update()" style="width:100%;padding:6px 8px 6px 20px;border:1px solid var(--border);border-radius:var(--rs);font-size:12px;font-family:\'DM Mono\',monospace;box-sizing:border-box"></div></div>';
         }
+        h+='</div></details>';
         // Show the computed average
         if(hasManual){
           h+='<div style="margin-top:8px;padding:7px 10px;background:#e8f7f6;border:1px solid #b8e0dc;border-radius:var(--rs);display:flex;justify-content:space-between;align-items:center">';
-          h+='<span style="font-size:10.5px;font-weight:600;color:#0a5a55">3-year average final compensation</span>';
+          h+='<span style="font-size:10.5px;font-weight:600;color:#0a5a55">Final compensation used</span>';
           h+='<span style="font-size:14px;font-weight:700;color:#0f7670;font-family:\'DM Mono\',monospace">'+fmtM(finalComp)+'</span></div>';
         }
       }
-      h+='<p style="font-size:9.5px;color:var(--text3);margin-top:8px;font-style:italic">These figures come from your CalSTRS annual statement or myCalSTRS. Leave "2nd/3rd highest" blank to reuse your highest year.</p>';
+      h+='<p style="font-size:9.5px;color:var(--text3);margin-top:8px;font-style:italic">These figures come from your CalSTRS annual statement or myCalSTRS.</p>';
     }
     h+='</div>';
   }
   h+='</div>';
-
-  // Result card
-  if(!isEligible){
-    h+='<div style="padding:10px 14px;background:#fff2f0;border-bottom:1px solid #f0c0b8;border-top:1px solid var(--border)">';
-    h+='<p style="font-size:11px;font-weight:700;color:#8b2a1a">⚠ Not yet pension-eligible at this date</p>';
-    h+='<p style="font-size:10.5px;color:#8b2a1a;line-height:1.5;margin-top:3px">CalSTRS requires age 55 + 5 years of service, or age 50 + 30 years of service. At this retirement date you are '+exactYrs+'y '+exactMos+'m old with '+svcAtRet.toFixed(2)+' yrs service. Select a later retirement date.</p>';
-    h+='</div>';
-  }
-
-  // Hero-style summary (matches top box) + PDF button
-  var afPct=af?(af*100).toFixed(3)+'%':'—';
-  h+='<div style="padding:13px 15px;background:#f0f7f6;border-bottom:1px solid #c0dcd8">';
-  h+='<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:11px;padding-bottom:9px;border-bottom:1px solid #c0dcd8">';
-  h+='<div><p style="font-size:9.5px;font-weight:700;letter-spacing:.09em;text-transform:uppercase;color:var(--text3);margin-bottom:2px">Your benefit if you retire</p>';
-  h+='<p style="font-family:\'DM Mono\',monospace;font-size:19px;font-weight:600;color:#0f7670;line-height:1">'+MS[retMon-1]+' '+retYear+' · Age '+exactYrs+'y '+exactMos+'m</p></div>';
-  h+='<button onclick="generateDetailedPDF()" style="padding:7px 22px;min-width:110px;justify-content:center;background:#0f7670;color:#fff;border:none;border-radius:var(--rs);font-size:10px;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:5px;white-space:nowrap;flex-shrink:0"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14,2 14,8 20,8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>Download PDF</button>';
-  h+='</div>';
-  h+='<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px">';
-  h+='<div><p style="font-size:9px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--text3);margin-bottom:2px">Monthly Benefit</p><p style="font-size:20px;font-weight:700;color:#0f7670;font-family:\'DM Mono\',monospace;line-height:1">'+fmtM(monthlyBen)+'</p><p style="font-size:9px;color:var(--text3);margin-top:2px">'+fmtM(monthlyBen*12)+'/yr</p></div>';
-  h+='<div><p style="font-size:9px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--text3);margin-bottom:2px">Age Factor</p><p style="font-size:20px;font-weight:700;color:#1a3d5c;font-family:\'DM Mono\',monospace;line-height:1">'+afPct+'</p><p style="font-size:9px;color:var(--text3);margin-top:2px">'+MS[retMon-1]+' '+retYear+'</p></div>';
-  h+='<div><p style="font-size:9px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--text3);margin-bottom:2px">Service Credit</p><p style="font-size:20px;font-weight:700;color:#1a3d5c;font-family:\'DM Mono\',monospace;line-height:1">'+svcAtRet.toFixed(2)+'</p><p style="font-size:9px;color:var(--text3);margin-top:2px">yrs · final comp '+fmtM(finalComp)+'</p></div>';
-  h+='</div>';
-  h+='<p style="font-size:9.5px;color:#3d6a8a;margin-top:9px;line-height:1.5">Member-Only benefit, before COLA. Final compensation × service credit × age factor ÷ 12.</p>';
-  h+='</div>';
-
-  // ── Beneficiary options (if beneficiary DOB entered) ─────────────────────────
-  var benDobEl=document.getElementById('benDobMain');
-  if(benDobEl&&benDobEl.value&&isEligible&&monthlyBen>0&&typeof window._getFactor==='function'){
-    var benDob=new Date(benDobEl.value);
-    var benAgeAtRet=Math.max(1,Math.round((retDateExact-benDob)/(365.25*24*3600*1000)));
-    var memAgeWhole=exactYrs;
-    var f100=window._getFactor(memAgeWhole,benAgeAtRet,100);
-    var f75=window._getFactor(memAgeWhole,benAgeAtRet,75);
-    var f50=window._getFactor(memAgeWhole,benAgeAtRet,50);
-    var mod100=Math.round(monthlyBen*f100);
-    var mod75=Math.round(monthlyBen*f75);
-    var mod50=Math.round(monthlyBen*f50);
-    h+='<div style="border-bottom:1px solid var(--border)">';
-    h+='<div style="padding:9px 14px;background:var(--surface2);border-bottom:1px solid var(--border)"><p style="font-size:10px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--text3)">Beneficiary Options — survivor age '+benAgeAtRet+' at your retirement</p></div>';
-    h+='<div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;font-size:11px"><thead><tr style="background:var(--surface2)">';
-    h+='<th style="padding:6px 12px;text-align:left;font-size:9px;font-weight:700;text-transform:uppercase;color:var(--text3)">Option</th>';
-    h+='<th style="padding:6px 12px;text-align:right;font-size:9px;font-weight:700;text-transform:uppercase;color:var(--text3)">Your monthly</th>';
-    h+='<th style="padding:6px 12px;text-align:right;font-size:9px;font-weight:700;text-transform:uppercase;color:var(--text3)">Survivor gets</th>';
-    h+='</tr></thead><tbody>';
-    h+='<tr style="border-top:1px solid var(--border)"><td style="padding:6px 12px;font-weight:600;color:var(--text2)">Member-Only (no survivor)</td><td style="padding:6px 12px;text-align:right;font-family:\'DM Mono\',monospace;font-weight:700;color:#0f7670">'+fmtM(monthlyBen)+'</td><td style="padding:6px 12px;text-align:right;color:var(--text3)">—</td></tr>';
-    h+='<tr style="border-top:1px solid var(--border)"><td style="padding:6px 12px;font-weight:600;color:var(--text2)">100% Option</td><td style="padding:6px 12px;text-align:right;font-family:\'DM Mono\',monospace;color:#2d6da3">'+fmtM(mod100)+'</td><td style="padding:6px 12px;text-align:right;font-family:\'DM Mono\',monospace;color:#7a4a9a">'+fmtM(mod100)+'</td></tr>';
-    h+='<tr style="border-top:1px solid var(--border)"><td style="padding:6px 12px;font-weight:600;color:var(--text2)">75% Option</td><td style="padding:6px 12px;text-align:right;font-family:\'DM Mono\',monospace;color:#2d6da3">'+fmtM(mod75)+'</td><td style="padding:6px 12px;text-align:right;font-family:\'DM Mono\',monospace;color:#7a4a9a">'+fmtM(Math.round(mod75*0.75))+'</td></tr>';
-    h+='<tr style="border-top:1px solid var(--border)"><td style="padding:6px 12px;font-weight:600;color:var(--text2)">50% Option</td><td style="padding:6px 12px;text-align:right;font-family:\'DM Mono\',monospace;color:#2d6da3">'+fmtM(mod50)+'</td><td style="padding:6px 12px;text-align:right;font-family:\'DM Mono\',monospace;color:#7a4a9a">'+fmtM(Math.round(mod50*0.50))+'</td></tr>';
-    h+='</tbody></table></div>';
-    h+='<p style="font-size:9.5px;color:var(--text3);padding:7px 14px;line-height:1.5;font-style:italic">Electing a survivor option reduces your monthly benefit. The survivor receives the listed amount for life after you pass. <a href="#" onclick="selectView(\'dt\');return false" style="color:#0f7670;font-weight:600">Full beneficiary analysis →</a></p>';
-    h+='</div>';
-  }
 
   // ── What if I wait? ──────────────────────────────────────────────────────────
   h+='<div><div style="padding:9px 14px;background:var(--surface2);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px">';
@@ -3848,36 +4174,43 @@ function renderPrecision(inp, rows){
   h+='<th style="padding:6px 10px;text-align:right;font-size:9px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--text3)">vs chosen</th>';
   h+='</tr></thead><tbody>';
 
-  var bdMon2=bd?bd.getMonth()+1:6;
-  var startMon=userMon||(bdMon2===12?1:bdMon2+1);
-  var startYr=userYr||defYear;
-  var prevAF=null;
+  var startMon=retMon;
+  var startYr=retYear;
+  var _maxAFshown=false; // becomes true after the first row where AF tops out at 2.4%
 
   function addWaitRow(label,rDate,isChosen){
+    // Age factor uses age on the LAST DAY of the retirement month
     var rEY=0,rEM=0;
     if(bd){
-      rEY=rDate.getFullYear()-bd.getFullYear();
-      rEM=rDate.getMonth()-bd.getMonth();
-      var rd2=rDate.getDate()-bd.getDate();
-      if(rd2<0&&bd.getDate()<=rDate.getDate()) rEM--;
+      var rLast=new Date(rDate.getFullYear(), rDate.getMonth()+1, 0);
+      rEY=rLast.getFullYear()-bd.getFullYear();
+      rEM=rLast.getMonth()-bd.getMonth();
+      if(rLast.getDate()<bd.getDate()) rEM--;
       if(rEM<0){rEY--;rEM+=12;}
     }
     var rYrsToRet=Math.max(0,(rDate-nowExact)/(365.25*24*3600*1000));
-    var rYrsWorked=inp.serviceYears+rYrsToRet;
-    var rSick=(inp.sickPerYear||0)*rYrsWorked/(inp.baseDays||182);
-    var rSvc=Math.min(55,rYrsWorked+rSick);
-    var rSal=Math.round(inp.salary*Math.pow(1+g,rYrsToRet));
-    var rAF=getAF(rEY+(rEM/12),rSvc,inp.formula||'2at60',inp.dob);
+    // Service credit accrues by school year (not calendar days)
+    var rSvcNoSick=serviceAtDate(rDate, inp.serviceYears, inp.baseDays);
+    var rSick=(inp.sickPerYear||0)*rSvcNoSick/(inp.baseDays||182);
+    var rSvc=Math.min(55,rSvcNoSick+rSick);
+    var rSal=Math.round((inp.salary||85000)*Math.pow(1+g,rYrsToRet));
+    var rAF=getAFexact(rEY, rEM, rSvcNoSick, inp.formula||'2at60');
     var rEligible=penElig(rEY+(rEM/12),rSvc,inp.formula||'2at60');
     var rFC=use1yr?rSal:(rSal+rSal/Math.pow(1+g,1)+rSal/Math.pow(1+g,2))/3;
     var rBen=rAF&&rEligible?Math.round(rAF*rSvc*rFC/12):0;
     var diff=rBen-monthlyBen;
-    var afJump=prevAF!==null&&rAF!==prevAF;
-    prevAF=rAF;
+    // Detect the FIRST period where the age factor tops out at 2.400%
+    var isFirstMax=false;
+    if(rAF && Math.abs(rAF-0.024)<0.0000005 && !_maxAFshown){ isFirstMax=true; _maxAFshown=true; }
+    var afCell=(rAF?((rAF*100).toFixed(3)+'%'):'—');
+    var afStyle=isFirstMax
+      ? 'padding:6px 10px;text-align:right;font-family:\'DM Mono\',monospace;color:#1a2e42;font-weight:700'
+      : 'padding:6px 10px;text-align:right;font-family:\'DM Mono\',monospace;color:var(--text2);font-weight:400';
+    var afArrow=isFirstMax?' <span style="color:#1a2e42;font-weight:700">↑</span>':'';
     h+='<tr style="border-top:1px solid var(--border);'+(isChosen?'background:#eaf2fb;':'')+'">';
     h+='<td style="padding:6px 10px;font-weight:'+(isChosen?'700':'400')+';color:'+(isChosen?'#0f7670':'var(--text2)')+'">'+label+(isChosen?' ←':'')+'</td>';
     h+='<td style="padding:6px 10px;text-align:center;color:var(--text3)">'+rEY+'y '+rEM+'m</td>';
-    h+='<td style="padding:6px 10px;text-align:right;font-family:\'DM Mono\',monospace;color:'+(afJump?'#2a7a5a':'var(--text2)')+';font-weight:'+(afJump?'700':'400')+'">'+((rAF?((rAF*100).toFixed(3)+'%'):'—'))+(afJump?' ↑':'')+'</td>';
+    h+='<td style="'+afStyle+'">'+afCell+afArrow+'</td>';
     h+='<td style="padding:6px 10px;text-align:right;color:var(--text2)">'+rSvc.toFixed(2)+'</td>';
     h+='<td style="padding:6px 10px;text-align:right;font-weight:'+(isChosen?'700':'600')+';font-family:\'DM Mono\',monospace;color:'+(isChosen?'#0f7670':rEligible?'var(--text)':'#aaa')+'">'+( rEligible?fmtM(rBen):'not eligible')+'</td>';
     h+='<td style="padding:6px 10px;text-align:right;font-weight:600;color:'+(isChosen?'var(--text3)':diff>0?'#2a7a5a':'var(--text3)')+'">'+( isChosen?'—':(diff>0?'+':'')+fmtM(diff))+'</td>';
@@ -3903,7 +4236,15 @@ function renderPrecision(inp, rows){
 
   h+='</tbody></table></div>';
   h+='<p style="font-size:9.5px;color:var(--text3);padding:7px 14px 10px;line-height:1.5;font-style:italic">';
-  h+=waitMode==='1yr'?'12-Month view: service grows 1/12 per month. ↑ = age factor increase. ← = your chosen date. Before COLA, Member-Only.':'5-Year view: ↑ = age factor increase. ← = your chosen date. Before COLA, Member-Only.';
+  var bdVal=inp.baseDays||182;
+  var accrualNote=bdVal>=248
+    ?'service credit accrues year-round (A-basis — 12-month calendar)'
+    :bdVal>=210
+      ?'service credit accrues over your extended work calendar (E-basis)'
+      :bdVal>182
+        ?'service credit accrues over your extended work calendar (B-basis)'
+        :'service credit accrues during the school year, flat over summer (C-basis)';
+  h+=waitMode==='1yr'?('12-Month view: '+accrualNote+'. ↑ = age factor first reaches its 2.4% max. ← = your chosen date. Member-Only, before COLA.'):'5-Year view: ↑ = age factor first reaches its 2.4% max. ← = your chosen date. Member-Only, before COLA.';
   h+='</p></div></div></div>';
 
   // Stash all computed values for the detailed PDF generator
@@ -3924,19 +4265,111 @@ function renderPrecision(inp, rows){
 }
 
 
+// Scroll UP to the Step 2 view selector (used when switching to Detailed from
+// the high-level insights box). Never scrolls the user downward.
+function scrollToStep2(){
+  var el=document.getElementById('step2View');
+  if(el) el.scrollIntoView({behavior:'smooth',block:'start'});
+}
+
 function selectView(mode){
   var hl=document.getElementById('viewCardHL');
   var dt=document.getElementById('viewCardDT');
   var ps=document.getElementById('precisionSection');
+  var dc=document.getElementById('detailedControls');
   if(hl){ hl.style.border=mode==='hl'?'2px solid #2d6da3':'2px solid #d0d0d0'; hl.style.background=mode==='hl'?'#eaf2fb':'var(--surface)'; }
   if(dt){ dt.style.border=mode==='dt'?'2px solid #0f7670':'2px solid #d0d0d0'; dt.style.background=mode==='dt'?'#e8f7f6':'var(--surface)'; }
-  if(!ps) return;
-  // Precision section always renders now; Detailed View expands it
-  window._precOpen=(mode==='dt');
-  update();
+
+  window._detailedMode = (mode==='dt');
+
   if(mode==='dt'){
-    setTimeout(function(){ ps.scrollIntoView({behavior:'smooth',block:'nearest'}); },300);
+    // Populate month/year dropdowns (defaults: birthday month + target-age year)
+    populateDetailedControls();
+    if(dc) dc.style.display='block';
+    window._precOpen=false; // 5yr/12mo analysis starts collapsed
+  } else {
+    if(dc) dc.style.display='none';
+    window._precOpen=false;
   }
+  update();
+}
+
+// Populate the detailed month/year selects; default month = birthday month,
+// default year = year the member reaches their Step 1 target age.
+function populateDetailedControls(){
+  const inp=getInputs();
+  const monSel=document.getElementById('detailedMon');
+  const yrSel=document.getElementById('detailedYr');
+  if(!monSel||!yrSel) return;
+  const MFULL=['January','February','March','April','May','June','July','August','September','October','November','December'];
+  const nowYear=new Date().getFullYear();
+  // default month = birthday month
+  let bdMon=6;
+  if(inp.dob){ const p=inp.dob.split('-'); bdMon=parseInt(p[1]); }
+  if(!window._detailedMonth) window._detailedMonth=bdMon;
+  // default year = year they reach target age
+  let defYear=nowYear;
+  if(inp.dob){
+    const bd=new Date(inp.dob);
+    let cand=bd.getFullYear()+(inp.targetAge||62);
+    const am=ageOnMonthEnd(inp.dob,cand,window._detailedMonth);
+    if(am && am.yrs<(inp.targetAge||62)) cand++;
+    defYear=Math.max(nowYear,cand);
+  }
+  if(!window._detailedYear) window._detailedYear=defYear;
+  // Build month options
+  let mo='';
+  MFULL.forEach(function(m,i){ mo+='<option value="'+(i+1)+'"'+(window._detailedMonth===i+1?' selected':'')+'>'+m+'</option>'; });
+  monSel.innerHTML=mo;
+  // Build year options
+  let yo='';
+  for(let y=nowYear-3;y<=nowYear+25;y++){ yo+='<option value="'+y+'"'+(window._detailedYear===y?' selected':'')+'>'+y+'</option>'; }
+  yrSel.innerHTML=yo;
+}
+
+// ── Detailed-view shortcuts: today / earliest eligible / age factor max ──────
+// Mutually exclusive. Unchecking clears the shortcut (leaves date as-is).
+function detailedShortcut(which, checked){
+  const cbToday=document.getElementById('detailedToday');
+  const cbElig=document.getElementById('detailedJumpElig');
+  const cbMax=document.getElementById('detailedJumpMaxAF');
+  if(cbToday) cbToday.checked=(which==='today' && checked);
+  if(cbElig) cbElig.checked=(which==='elig' && checked);
+  if(cbMax) cbMax.checked=(which==='maxaf' && checked);
+
+  const inp=getInputs();
+  if(!checked){ update(); return; }
+  if(which==='today'){ update(); return; } // handled inside update()
+
+  if(which==='elig' && inp.dob && inp.hireDate){
+    const e=exactPenEligAge(inp.dob, inp.hireDate, inp.formula||formula, inp.serviceYears);
+    if(e && e.eligDate){
+      window._detailedMonth=e.eligDate.getMonth()+1;
+      window._detailedYear=e.eligDate.getFullYear();
+    }
+  } else if(which==='maxaf' && inp.dob){
+    const rows=(typeof buildSchedule==='function')?buildSchedule():[];
+    let maxRow=null;
+    for(let i=0;i<rows.length;i++){ if(rows[i].af && Math.abs(rows[i].af-0.024)<0.0000005){ maxRow=rows[i]; break; } }
+    if(maxRow){
+      const bd=new Date(inp.dob);
+      const rMon=window._detailedMonth||(bd.getMonth()+1);
+      let cand=bd.getFullYear()+maxRow.age;
+      const am=ageOnMonthEnd(inp.dob,cand,rMon);
+      if(am && am.yrs<maxRow.age) cand++;
+      window._detailedYear=cand;
+    }
+  }
+  const yrSel=document.getElementById('detailedYr');
+  const monSel=document.getElementById('detailedMon');
+  if(monSel) monSel.value=window._detailedMonth;
+  if(yrSel){
+    let has=false;
+    for(let i=0;i<yrSel.options.length;i++){ if(parseInt(yrSel.options[i].value)===window._detailedYear){has=true;break;} }
+    if(has) yrSel.value=window._detailedYear;
+  }
+  if(typeof syncSliderToYear==='function') syncSliderToYear();
+  update();
 }
 
 function initMobile(){
