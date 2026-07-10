@@ -1313,13 +1313,32 @@ function exactPenEligAge(dob, hireDate, formula, nowSvc){
   gates.forEach(function(g){
     // Date member reaches minAge
     const ageDate=new Date(bd.getFullYear()+g.minAge, bd.getMonth(), bd.getDate());
-    // Date member reaches minSvc. Use the member's ACTUAL current service credit
-    // (nowSvc) growing at ~1 credit/year, so this matches the schedule and any
-    // service breaks/part-time already reflected in nowSvc. Fall back to hire-date
-    // calendar math only if nowSvc isn't provided.
+    // Date member reaches minSvc. Find the actual date service credit crosses the
+    // threshold using the SAME school-year accrual (serviceAtDate) the chart uses,
+    // so the insights box and the schedule agree at year boundaries. Fall back to
+    // linear/ hire-date math only if serviceAtDate/baseDays aren't available.
     let svcDate;
-    if(isFinite(nowSvc) && nowSvc>0){
-      const yrsToMinSvc=Math.max(0, g.minSvc - nowSvc); // additional creditable years needed
+    if(isFinite(nowSvc) && nowSvc>0 && typeof serviceAtDate==='function'){
+      const baseD = (typeof getInputs==='function' ? (getInputs().baseDays||182) : 182);
+      // Already at/over the threshold?
+      if(nowSvc>=g.minSvc){
+        svcDate=new Date(now.getTime());
+      } else {
+        // Walk forward month-end by month-end until serviceAtDate reaches minSvc
+        svcDate=null;
+        let probe=new Date(now.getFullYear(), now.getMonth(), 1);
+        for(let i=0;i<=480;i++){ // up to 40 years out
+          const monthEnd=new Date(probe.getFullYear(), probe.getMonth()+1, 0);
+          if(serviceAtDate(monthEnd, nowSvc, baseD) >= g.minSvc - 1e-6){ svcDate=monthEnd; break; }
+          probe=new Date(probe.getFullYear(), probe.getMonth()+1, 1);
+        }
+        if(!svcDate){ // safety fallback
+          const yrsToMinSvc=Math.max(0, g.minSvc - nowSvc);
+          svcDate=new Date(now.getTime() + yrsToMinSvc*365.25*24*3600*1000);
+        }
+      }
+    } else if(isFinite(nowSvc) && nowSvc>0){
+      const yrsToMinSvc=Math.max(0, g.minSvc - nowSvc);
       svcDate=new Date(now.getTime() + yrsToMinSvc*365.25*24*3600*1000);
     } else {
       svcDate=new Date(hd.getFullYear()+g.minSvc, hd.getMonth(), hd.getDate());
@@ -1482,13 +1501,25 @@ function buildSchedule(){
       retDate=null;
     }
 
-    // Service credit: detailed uses school-year/basis accrual to the exact date;
-    // high-level keeps the existing calendar-year projection.
+    // Service credit accrues by school year in BOTH views (removes the rounding /
+    // calendar-projection understatement that could show e.g. 29.76 instead of
+    // 30.00 at a year boundary). Detailed accrues to the exact retirement date;
+    // high-level accrues to June 30 of the year the member turns this age.
     let earnedSvc;
-    if(detailed && inp.dob && typeof serviceAtDate==='function'){
-      earnedSvc=serviceAtDate(retDate, inp.serviceYears, inp.baseDays);
+    if(inp.dob && typeof serviceAtDate==='function'){
+      let svcDate;
+      if(detailed && retDate){
+        svcDate = retDate;
+      } else {
+        // June 30 of the year the member turns this age (matches the June-30 basis)
+        let jYr = new Date(inp.dob).getFullYear() + age;
+        const aOnJ = ageOnJune30(inp.dob, jYr);
+        if(!aOnJ || aOnJ.yrs < age) jYr++;
+        svcDate = new Date(jYr, 5, 30);
+      }
+      earnedSvc = serviceAtDate(svcDate, inp.serviceYears, inp.baseDays);
     } else {
-      earnedSvc=inp.serviceYears+yOut;
+      earnedSvc = inp.serviceYears + yOut;
     }
     const dSvc=inp.districtYears+yOut;
     const sickDays=inp.sickPerYear*earnedSvc;
