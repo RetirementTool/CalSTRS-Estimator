@@ -3080,6 +3080,7 @@ if(ageSlider){
     const v=parseInt(ageSlider.value);
     targetAgeInput.value=v;
     updateSliderFill(ageSlider);
+    clearDetailedShortcuts(); // manual slide overrides any active shortcut
     syncYearToSlider(v); // detailed: year dropdown follows slider (month unchanged)
     updateSliderDisplay(v);
     update();
@@ -3091,6 +3092,7 @@ if(ageSlider){
     ageSlider.value=v;
     sliderDisplay.textContent=v;
     updateSliderFill(ageSlider);
+    if(typeof clearDetailedShortcuts==='function') clearDetailedShortcuts();
   });
 
   // Init fill on load
@@ -4430,6 +4432,22 @@ function populateDetailedControls(){
 
 // ── Detailed-view shortcuts: today / earliest eligible / age factor max ──────
 // Mutually exclusive. Unchecking clears the shortcut (leaves date as-is).
+// Clear all detailed-view shortcut checkboxes (called when the user manually
+// moves the slider, so the slider takes over from any active shortcut). Also
+// re-enables the month/year dropdowns in case "analyze as of today" disabled them.
+function clearDetailedShortcuts(){
+  const ids=['detailedToday','detailedJumpElig','detailedJumpMaxAF'];
+  let any=false;
+  ids.forEach(function(id){ const cb=document.getElementById(id); if(cb){ if(cb.checked) any=true; cb.checked=false; } });
+  const monSel=document.getElementById('detailedMon');
+  const yrSel=document.getElementById('detailedYr');
+  if(monSel) monSel.disabled=false;
+  if(yrSel) yrSel.disabled=false;
+  const note=document.getElementById('detailedTodayNote');
+  if(note) note.style.display='none';
+  return any;
+}
+
 function detailedShortcut(which, checked){
   const cbToday=document.getElementById('detailedToday');
   const cbElig=document.getElementById('detailedJumpElig');
